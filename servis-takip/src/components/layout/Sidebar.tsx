@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings, type LucideIcon } from "lucide-react";
+import { Package, Settings, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -12,6 +12,7 @@ const navItems: { href: string; label: string; icon?: LucideIcon }[] = [
   { href: "/cihaz-sorgula", label: "Cihaz Sorgula" },
   { href: "/bekleyen-cihazlar", label: "Bekleyen Cihazlar" },
   { href: "/tanimlar", label: "Tanımlar", icon: Settings },
+  { href: "/stok", label: "Stok Yönetimi", icon: Package },
 ];
 
 export function Sidebar() {

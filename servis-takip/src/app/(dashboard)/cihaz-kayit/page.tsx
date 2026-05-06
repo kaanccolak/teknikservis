@@ -16,7 +16,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import {
@@ -514,20 +513,29 @@ export default function CihazKayitPage() {
               name="warrantyStatus"
               control={control}
               render={({ field }) => (
-                <RadioGroup
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  className="flex flex-col gap-2 sm:flex-row sm:gap-8"
+                <div
+                  className="flex flex-wrap gap-2"
+                  role="group"
+                  aria-label="Garanti durumu"
                 >
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <RadioGroupItem value="guaranteed" id="w-g" />
-                    <span className="text-sm font-medium">Garantili</span>
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <RadioGroupItem value="no_warranty" id="w-n" />
-                    <span className="text-sm font-medium">Garantisiz</span>
-                  </label>
-                </RadioGroup>
+                  {(["guaranteed", "no_warranty"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => field.onChange(value)}
+                      className={cn(
+                        "rounded-md border px-4 py-2 text-sm font-medium transition-colors",
+                        field.value === value
+                          ? value === "guaranteed"
+                            ? "border-green-600 bg-green-600 text-white"
+                            : "border-red-600 bg-red-600 text-white"
+                          : "border-gray-300 bg-white text-gray-600",
+                      )}
+                    >
+                      {value === "guaranteed" ? "Garantili" : "Garantisiz"}
+                    </button>
+                  ))}
+                </div>
               )}
             />
             {errors.warrantyStatus ? (
@@ -547,20 +555,36 @@ export default function CihazKayitPage() {
               name="isTampered"
               control={control}
               render={({ field }) => (
-                <RadioGroup
-                  value={field.value ? "yes" : "no"}
-                  onValueChange={(v) => field.onChange(v === "yes")}
-                  className="flex flex-col gap-2 sm:flex-row sm:gap-8"
+                <div
+                  className="flex flex-wrap gap-2"
+                  role="group"
+                  aria-label="Genel durum"
                 >
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <RadioGroupItem value="no" id="t-no" />
-                    <span className="text-sm font-medium">Kurcalanmamış</span>
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <RadioGroupItem value="yes" id="t-yes" />
-                    <span className="text-sm font-medium">Kurcalanmış</span>
-                  </label>
-                </RadioGroup>
+                  <button
+                    type="button"
+                    onClick={() => field.onChange(false)}
+                    className={cn(
+                      "rounded-md border px-4 py-2 text-sm font-medium transition-colors",
+                      !field.value
+                        ? "border-green-600 bg-green-600 text-white"
+                        : "border-gray-300 bg-white text-gray-600",
+                    )}
+                  >
+                    Kurcalanmamış
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => field.onChange(true)}
+                    className={cn(
+                      "rounded-md border px-4 py-2 text-sm font-medium transition-colors",
+                      field.value
+                        ? "border-red-600 bg-red-600 text-white"
+                        : "border-gray-300 bg-white text-gray-600",
+                    )}
+                  >
+                    Kurcalanmış
+                  </button>
+                </div>
               )}
             />
           </CardContent>

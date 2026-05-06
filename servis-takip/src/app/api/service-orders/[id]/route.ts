@@ -17,12 +17,17 @@ import {
 } from "@/lib/validation/patch-service-order";
 
 const serviceOrderInclude = {
+  shop: { select: { name: true } },
   customer: true,
   deviceType: true,
   brand: true,
   deviceModel: true,
   statusLogs: {
     orderBy: { createdAt: "desc" as const },
+  },
+  sparePartUsages: {
+    orderBy: { createdAt: "asc" as const },
+    include: { sparePart: true },
   },
 } as const;
 
@@ -386,6 +391,19 @@ export async function DELETE(
 
   try {
     await prisma.$transaction(async (tx) => {
+      const usages = await tx.sparePartUsage.findMany({
+        where: { serviceOrderId: id, shopId: shop.id },
+        select: { sparePartId: true, quantity: true },
+      });
+      for (const u of usages) {
+        await tx.sparePart.update({
+          where: { id: u.sparePartId, shopId: shop.id },
+          data: { stock: { increment: u.quantity } },
+        });
+      }
+      await tx.sparePartUsage.deleteMany({
+        where: { serviceOrderId: id, shopId: shop.id },
+      });
       await tx.statusLog.deleteMany({ where: { serviceOrderId: id } });
       await tx.serviceOrder.delete({ where: { id } });
     });

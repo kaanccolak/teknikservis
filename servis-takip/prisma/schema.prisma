@@ -9,14 +9,16 @@ datasource db {
 }
 
 model Shop {
-  id          String       @id @default(cuid())
-  name        String
-  createdAt   DateTime     @default(now())
-  customers   Customer[]
-  orders      ServiceOrder[]
-  deviceTypes DeviceType[]
-  brands      Brand[]
-  models      DeviceModel[]
+  id               String            @id @default(cuid())
+  name             String
+  createdAt        DateTime          @default(now())
+  customers        Customer[]
+  orders           ServiceOrder[]
+  deviceTypes      DeviceType[]
+  brands           Brand[]
+  models           DeviceModel[]
+  spareParts       SparePart[]
+  sparePartUsages  SparePartUsage[]
 }
 
 model Customer {
@@ -30,13 +32,14 @@ model Customer {
 }
 
 model DeviceType {
-  id        String         @id @default(cuid())
-  shopId    String
-  shop      Shop           @relation(fields: [shopId], references: [id])
-  name      String
-  brands    Brand[]
-  createdAt DateTime       @default(now())
-  orders ServiceOrder[]
+  id         String      @id @default(cuid())
+  shopId     String
+  shop       Shop        @relation(fields: [shopId], references: [id])
+  name       String
+  brands     Brand[]
+  createdAt  DateTime    @default(now())
+  orders     ServiceOrder[]
+  spareParts SparePart[]
 }
 
 model Brand {
@@ -48,18 +51,20 @@ model Brand {
   name         String
   models       DeviceModel[]
   createdAt    DateTime      @default(now())
-  orders ServiceOrder[]
+  orders       ServiceOrder[]
+  spareParts   SparePart[]
 }
 
 model DeviceModel {
-  id        String   @id @default(cuid())
-  shopId    String
-  shop      Shop     @relation(fields: [shopId], references: [id])
-  brandId   String
-  brand     Brand    @relation(fields: [brandId], references: [id])
-  name      String
-  createdAt DateTime @default(now())
-  orders ServiceOrder[]
+  id         String   @id @default(cuid())
+  shopId     String
+  shop       Shop     @relation(fields: [shopId], references: [id])
+  brandId    String
+  brand      Brand    @relation(fields: [brandId], references: [id])
+  name       String
+  createdAt  DateTime @default(now())
+  orders     ServiceOrder[]
+  spareParts SparePart[]
 }
 
 model ServiceOrder {
@@ -104,9 +109,10 @@ model ServiceOrder {
   arrivedAt      DateTime @default(now())
   trackingCode   String?
 
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  statusLogs StatusLog[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  statusLogs       StatusLog[]
+  sparePartUsages  SparePartUsage[]
 }
 
 model StatusLog {
@@ -116,5 +122,37 @@ model StatusLog {
   oldStatus      String?
   newStatus      String
   note           String?
+  createdAt      DateTime     @default(now())
+}
+
+model SparePart {
+  id             String       @id @default(cuid())
+  shopId         String
+  shop           Shop         @relation(fields: [shopId], references: [id])
+  name           String
+  partCode       String?
+  cost           Float        @default(0)
+  stock          Int          @default(0)
+  deviceTypeId   String?
+  brandId        String?
+  deviceModelId  String?
+  deviceType     DeviceType?  @relation(fields: [deviceTypeId], references: [id])
+  brand          Brand?       @relation(fields: [brandId], references: [id])
+  deviceModel    DeviceModel? @relation(fields: [deviceModelId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  usages         SparePartUsage[]
+}
+
+model SparePartUsage {
+  id             String       @id @default(cuid())
+  shopId         String
+  shop           Shop         @relation(fields: [shopId], references: [id])
+  sparePartId    String
+  sparePart      SparePart    @relation(fields: [sparePartId], references: [id])
+  serviceOrderId String
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+  quantity       Int          @default(1)
+  costAtTime     Float        @default(0)
   createdAt      DateTime     @default(now())
 }

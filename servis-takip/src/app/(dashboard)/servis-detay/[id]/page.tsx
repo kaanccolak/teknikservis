@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowLeft, Loader2, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  MessageSquare,
+  Pencil,
+  Printer,
+  Trash2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -53,6 +61,26 @@ type StatusLogRow = {
   createdAt: string;
 };
 
+type SparePartUsageRow = {
+  id: string;
+  quantity: number;
+  costAtTime: number;
+  sparePart: {
+    id: string;
+    name: string;
+    partCode: string | null;
+    stock: number;
+  };
+};
+
+type EligibleSparePart = {
+  id: string;
+  name: string;
+  partCode: string | null;
+  stock: number;
+  cost: number;
+};
+
 type ServiceOrderDetail = {
   id: string;
   orderNumber: string | null;
@@ -77,6 +105,7 @@ type ServiceOrderDetail = {
   brand: NamedEntity | null;
   deviceModel: NamedEntity | null;
   statusLogs: StatusLogRow[];
+  sparePartUsages?: SparePartUsageRow[];
 };
 
 function formatArrivedAt(iso: string) {
@@ -163,6 +192,16 @@ export default function ServisDetayPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const [spareOptions, setSpareOptions] = useState<EligibleSparePart[]>([]);
+  const [sparePartId, setSparePartId] = useState("");
+  const [spareQty, setSpareQty] = useState("1");
+  const [loadingSpares, setLoadingSpares] = useState(false);
+  const [savingSpare, setSavingSpare] = useState(false);
+  const [removingUsageId, setRemovingUsageId] = useState<string | null>(null);
+
+  const nativeSelectClassName =
+    "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
+
   const load = useCallback(async () => {
     if (!id) {
       setError("Geçersiz adres");
@@ -202,6 +241,101 @@ export default function ServisDetayPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const loadSpareOptions = useCallback(async (orderId: string) => {
+    setLoadingSpares(true);
+    try {
+      const res = await fetch(
+        `/api/spare-parts?forServiceOrderId=${encodeURIComponent(orderId)}`,
+      );
+      const data = (await res.json()) as EligibleSparePart[] | { error?: string };
+      if (!res.ok) {
+        setSpareOptions([]);
+        return;
+      }
+      setSpareOptions(data as EligibleSparePart[]);
+    } catch {
+      setSpareOptions([]);
+    } finally {
+      setLoadingSpares(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!order?.id) {
+      setSpareOptions([]);
+      setSparePartId("");
+      return;
+    }
+    void loadSpareOptions(order.id);
+  }, [order?.id, loadSpareOptions]);
+
+  const selectedSpare = spareOptions.find((p) => p.id === sparePartId);
+  const spareQtyNum = Number.parseInt(spareQty, 10);
+  const spareQtyValid =
+    Number.isInteger(spareQtyNum) && spareQtyNum >= 1 && spareQtyNum <= (selectedSpare?.stock ?? 0);
+  const insufficientSpare =
+    !!selectedSpare && selectedSpare.stock < (Number.isInteger(spareQtyNum) ? spareQtyNum : 0);
+
+  const sparePartsCostTotal = (order?.sparePartUsages ?? []).reduce(
+    (acc, u) => acc + u.quantity * u.costAtTime,
+    0,
+  );
+
+  async function handleAddSparePart() {
+    if (!order || !sparePartId || !spareQtyValid) return;
+    setSavingSpare(true);
+    try {
+      const res = await fetch(
+        `/api/service-orders/${encodeURIComponent(order.id)}/spare-parts`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sparePartId,
+            quantity: spareQtyNum,
+          }),
+        },
+      );
+      const j = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(j.error ?? "Parça eklenemedi");
+        return;
+      }
+      toast.success("Parça eklendi");
+      setSparePartId("");
+      setSpareQty("1");
+      await load();
+      await loadSpareOptions(order.id);
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingSpare(false);
+    }
+  }
+
+  async function handleRemoveSpareUsage(usageId: string) {
+    if (!order) return;
+    setRemovingUsageId(usageId);
+    try {
+      const res = await fetch(
+        `/api/service-orders/${encodeURIComponent(order.id)}/spare-parts?usageId=${encodeURIComponent(usageId)}`,
+        { method: "DELETE" },
+      );
+      if (!res.ok) {
+        const j = (await res.json()) as { error?: string };
+        toast.error(j.error ?? "Kaldırılamadı");
+        return;
+      }
+      toast.success("Parça kullanımı kaldırıldı");
+      await load();
+      await loadSpareOptions(order.id);
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setRemovingUsageId(null);
+    }
+  }
 
   async function patchOrder(body: Record<string, unknown>) {
     const res = await fetch(`/api/service-orders/${encodeURIComponent(id)}`, {
@@ -355,6 +489,13 @@ export default function ServisDetayPage() {
           >
             <Pencil className="mr-2 size-4" aria-hidden />
             Kaydı Düzenle
+          </Link>
+          <Link
+            href={`/servis-detay/${encodeURIComponent(order.id)}/fis`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            <Printer className="mr-2 size-4" aria-hidden />
+            Fişi Yazdır
           </Link>
           <Button
             type="button"
@@ -517,6 +658,151 @@ export default function ServisDetayPage() {
                   </DetailRow>
                 ) : null}
               </dl>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <CardTitle>Kullanılan Parçalar</CardTitle>
+              <CardDescription>
+                Bu kayıtta kullanılan yedek parçalar ve maliyet özeti
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(order.sparePartUsages ?? []).length === 0 ? (
+                <p className="text-sm text-slate-600">Henüz parça eklenmedi</p>
+              ) : (
+                <div className="overflow-x-auto rounded-md border border-slate-100">
+                  <table className="w-full min-w-[360px] border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/80">
+                        <th className="px-3 py-2 font-medium text-slate-700">Parça</th>
+                        <th className="px-3 py-2 font-medium text-slate-700">Adet</th>
+                        <th className="px-3 py-2 font-medium text-slate-700">Birim</th>
+                        <th className="px-3 py-2 font-medium text-slate-700">Toplam</th>
+                        <th className="w-10 px-2 py-2" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(order.sparePartUsages ?? []).map((u) => (
+                        <tr key={u.id} className="border-b border-slate-50 last:border-0">
+                          <td className="px-3 py-2 text-slate-900">
+                            {u.sparePart.name}
+                            {u.sparePart.partCode ? (
+                              <span className="ml-1 text-xs text-slate-500">
+                                ({u.sparePart.partCode})
+                              </span>
+                            ) : null}
+                          </td>
+                          <td className="px-3 py-2 tabular-nums text-slate-800">{u.quantity}</td>
+                          <td className="px-3 py-2 tabular-nums text-slate-700">
+                            {formatTry(u.costAtTime)}
+                          </td>
+                          <td className="px-3 py-2 tabular-nums font-medium text-slate-900">
+                            {formatTry(u.quantity * u.costAtTime)}
+                          </td>
+                          <td className="px-2 py-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 text-slate-500 hover:text-destructive"
+                              disabled={removingUsageId === u.id}
+                              aria-label="Kaldır"
+                              onClick={() => void handleRemoveSpareUsage(u.id)}
+                            >
+                              {removingUsageId === u.id ? (
+                                <Loader2 className="size-4 animate-spin" aria-hidden />
+                              ) : (
+                                <X className="size-4" aria-hidden />
+                              )}
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p className="text-sm font-medium text-slate-800">
+                Parça maliyeti:{" "}
+                <span className="tabular-nums text-slate-900">
+                  {formatTry(sparePartsCostTotal)}
+                </span>
+              </p>
+
+              <div className="space-y-3 border-t border-slate-100 pt-4">
+                <p className="text-sm font-medium text-slate-800">Parça ekle</p>
+                {loadingSpares ? (
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                    Parça listesi yükleniyor…
+                  </p>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="spare-select">Parça</Label>
+                      <select
+                        id="spare-select"
+                        value={sparePartId}
+                        onChange={(e) => {
+                          setSparePartId(e.target.value);
+                          setSpareQty("1");
+                        }}
+                        className={nativeSelectClassName}
+                      >
+                        <option value="">Seçin</option>
+                        {spareOptions.map((p) => (
+                          <option key={p.id} value={p.id} disabled={p.stock < 1}>
+                            {p.name}
+                            {p.partCode ? ` — ${p.partCode}` : ""} (stok: {p.stock})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {selectedSpare ? (
+                      <p className="text-xs text-slate-600">
+                        Stokta:{" "}
+                        <span className="font-semibold text-slate-800">
+                          {selectedSpare.stock} adet
+                        </span>
+                      </p>
+                    ) : null}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="spare-qty">Adet</Label>
+                      <Input
+                        id="spare-qty"
+                        type="number"
+                        min={1}
+                        max={selectedSpare?.stock ?? undefined}
+                        value={spareQty}
+                        onChange={(e) => setSpareQty(e.target.value)}
+                        disabled={!sparePartId}
+                      />
+                    </div>
+                    {insufficientSpare && sparePartId ? (
+                      <p className="text-sm text-destructive">Yetersiz stok</p>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={
+                        !sparePartId || !spareQtyValid || savingSpare || insufficientSpare
+                      }
+                      onClick={() => void handleAddSparePart()}
+                    >
+                      {savingSpare ? (
+                        <>
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          Ekleniyor…
+                        </>
+                      ) : (
+                        "Ekle"
+                      )}
+                    </Button>
+                  </>
+                )}
+              </div>
             </CardContent>
           </Card>
 
