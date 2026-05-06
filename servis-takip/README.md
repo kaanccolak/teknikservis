@@ -15,8 +15,10 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Yedek parça stok yönetimi** (cihaz türü / marka / modele göre filtreleme)
 - **Kayıtta kullanılan parça takibi** ve otomatik stok düşme (iptal/silmede iade)
 - **Müşteri Nüshası (servis giriş fişi) ve Cihaz Etiketi yazdırma** (tarayıcı yazdır / PDF kaydet)
+- **Barkod entegrasyonu** (fiş ve etiketlerde)
 - **Kargo gönderi fişi yazdırma** (cari bazında)
-- Döviz kurları (USD/EUR) dashboard'da anlık gösterim (TCMB/ExchangeRate-API)
+- **Raporlar sayfası** (servis, finansal, ikinci el — sekme yapısı)
+- **Döviz kurları** (USD/EUR, TCMB/ExchangeRate-API) — dashboard’da gösterim; **istemci ~10 dakikada bir günceller** (gereksiz istek azaltma)
 - Ciro maskeleme (göster/gizle butonu)
 - Cihaz kayıt formunda geçmiş müşteri arama ve otomatik doldurma
 - Telefon numarası normalize arama (537, 0537, 5377664248 gibi)
@@ -29,6 +31,8 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Durum geçmişi
 - Arama ve filtreleme
 - CSV export
+- **Enter tuşu ile form navigasyonu** (cihaz kayıt formunda sonraki alana geçiş)
+- **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
 
 ## Tech Stack
 
@@ -93,6 +97,7 @@ src/
 │   │   ├── cihaz-kayit/       # Yeni kayıt formu
 │   │   ├── cihaz-sorgula/     # Kayıt listesi ve arama
 │   │   ├── bekleyen-cihazlar/ # Bekleyen cihaz listesi
+│   │   ├── raporlar/          # Raporlar (servis / finansal / ikinci el)
 │   │   ├── stok/              # Yedek parça stok
 │   │   ├── servis-detay/[id]/ # Kayıt detay, fiş, düzenleme
 │   │   └── tanimlar/          # Cihaz türü/marka/model yönetimi
@@ -125,9 +130,10 @@ src/
 - [x] Telefon normalize arama
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
-- [ ] Auth / Login koruması
-- [ ] Dükkan adı ve bilgileri ayarı
-- [ ] SMS entegrasyonu
-- [ ] Multi-tenant geçişi
+- [ ] Auth / Login koruması (Supabase Auth)
+- [ ] Multi-tenant geçişi (shopId bazlı)
+- [ ] WhatsApp Business API aktivasyonu (altyapı hazır)
+- [ ] Domain bağlama
+- [ ] Production deploy (Vercel)
 
 ---

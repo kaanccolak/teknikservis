@@ -73,6 +73,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/fis/[id]` — Müşteri Nüshası / Servis giriş fişi (dashboard dışı)
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
+- `/raporlar` — Raporlar (**3 sekme:** Servis, Finansal, İkinci El)
 
 ### Yeni API Route'lar
 
@@ -83,7 +84,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/cari` — **GET**, **POST**
 - `/api/cari/[id]` — **GET**, **PATCH**, **DELETE**
 - `/api/customers/search` — **GET** (`?q=` ile müşteri arama, min 3 karakter)
-- `/api/exchange-rates` — **GET** (USD/EUR kurları, 5dk cache)
+- `/api/exchange-rates` — **GET** (USD/EUR kurları; sunucu tarafı cache + dashboard’da ~10 dk’da bir istemci yenilemesi)
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
@@ -100,7 +101,27 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - Döviz kurları: alış -2%, satış +2% olarak revize edilir.
 - Tarayıcı header/footer yazdırmada kullanıcı tarafından manuel kapatılmalıdır.
 
-### Kayıt Numarası Formatı
+## Performans Notları
+
+- `src/lib/cache.ts` — bellek içi cache (**device-types**, **brands**, **models**; yaklaşık **5 dk TTL**). Tanımlar / ilgili API’lerde POST/DELETE sonrası **invalidate** edilir.
+- `src/lib/getShop.ts` — shop önbelleği (**~1 dk TTL**).
+- Ağır dashboard / listeleme uçlarında mümkün olduğunca **`Promise.all`** ile paralel Prisma sorguları.
+- **`$queryRaw`** yerine tercihen **`findMany` + JS tarafında gruplama** (okunabilirlik ve tip güvenliği).
+- **`useEffect` bağımlılık dizilerini** dikkatli tut; aynı veriyi iki kez çekmeyi önle (Strict Mode + gereksiz `[load]` zincirleri).
+
+## Form UX
+
+- **Cihaz kayıt** formunda **Enter** ile bir sonraki alana odak (TAB benzeri sıra).
+- İlgili **input / native select** alanlarında `onKeyDown` ile Enter işlenir.
+- **Textarea:** **Shift+Enter** yeni satır; yalnız **Enter** sonraki alana geçer; son textarea’dan Enter **Kaydet** butonuna odaklar.
+
+## Önemli Hatırlatmalar
+
+- Geliştirme: **`npm run dev`** → `next dev --turbo` (package.json’da tanımlı).
+- **İlk Supabase / DB bağlantısı** soğuk başlangıçta yavaş olabilir — normal; `prisma.$connect()` ısıtması `src/lib/prisma.ts` içinde kullanılıyor.
+- **device-types** (ve marka/model) cache’i Tanımlar’da ekleme/silmede **invalidate** edilir; eski liste görürsen API/cache invalidasyonunu kontrol et.
+
+## Kayıt Numarası Formatı
 
 YYYYMM### — örnek: 202605001
 
@@ -108,17 +129,17 @@ YYYYMM### — örnek: 202605001
 - Aynı yıl+ay prefix'ine sahip son kaydı bul, 1 artır
 - İlk kayıtsa 001'den başla
 
-### Telefon Formatı
+## Telefon Formatı
 
 +90 5XX XXX XX XX — veritabanına bu formatta kaydet
 
-### API Route Kuralları
+## API Route Kuralları
 
 - Tüm GET route'larında ?search=, ?status=, ?hideDelivered= parametrelerini destekle
 - Hata durumlarında Türkçe mesaj döndür
 - Response'larda ilişkili tabloları include et (customer, deviceType, brand, deviceModel)
 
-### UI Kuralları
+## UI Kuralları
 
 - shadcn/ui bileşenlerini kullan
 - **Native HTML `<select>` kullan** (shadcn `Select` değil — dropdown pozisyon sorunu var)
@@ -149,6 +170,7 @@ src/app/(dashboard)/                          # Korumalı sayfalar (auth gelince
 src/app/(dashboard)/stok/                     # Yedek parça stok
 src/app/(dashboard)/cari/                     # Cari yönetimi
 src/app/(dashboard)/servis-detay/[id]/duzenle/  # Kayıt düzenleme
+src/app/(dashboard)/raporlar/                  # Raporlar (3 sekme)
 src/app/fis/[id]/                             # Müşteri nüshası
 src/app/dukkan-nushasi/[id]/                  # Cihaz etiketi
 src/app/kargo-fisi/[id]/                      # Kargo gönderi fişi
@@ -183,6 +205,7 @@ src/lib/supabase/
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
 - [ ] Auth / Login koruması (Supabase Auth)
-- [ ] Dükkan adı ve bilgileri ayarı
-- [ ] SMS entegrasyonu
-- [ ] Multi-tenant geçişi
+- [ ] Multi-tenant geçişi (shopId bazlı)
+- [ ] WhatsApp Business API aktivasyonu (altyapı hazır)
+- [ ] Domain bağlama
+- [ ] Production deploy (Vercel)
