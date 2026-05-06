@@ -46,11 +46,16 @@ Sadece şu durumlar geçerli, başka durum ekleme:
 
 - **SparePart**: yedek parça stok yönetimi (`name`, `partCode`, `cost`, `stock`, isteğe bağlı `deviceTypeId`, `brandId`, `deviceModelId`; hepsi null = genel parça).
 - **SparePartUsage**: hangi kayıtta hangi parça kullanıldı (`sparePartId`, `serviceOrderId`, `quantity`, `costAtTime`, `shopId`).
+- **Cari**: `cariCode` (C202605001), `name`, `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `cargoInfo`, `cargoCode`.
+- **Setting**: key-value ayar tablosu (`shopId + key` unique).
 
 ### Yeni Sayfalar
 
 - `/stok` — Yedek parça stok yönetimi
-- `/servis-detay/[id]/fis` — Servis giriş fişi (print-friendly; ücret/parça tablosu yok, giriş belgesi)
+- `/cari` — Cari yönetimi
+- `/kargo-fisi/[id]` — Kargo gönderi fişi (dashboard dışı)
+- `/fis/[id]` — Müşteri Nüshası / Servis giriş fişi (dashboard dışı)
+- `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
 
 ### Yeni API Route'lar
@@ -59,8 +64,22 @@ Sadece şu durumlar geçerli, başka durum ekleme:
 - `/api/spare-parts/[id]` — **PATCH**, **DELETE**
 - `/api/spare-parts/[id]/stock` — **PATCH** (`{ quantity, type: "add" | "subtract" }`)
 - `/api/service-orders/[id]/spare-parts` — **GET**, **POST**; **DELETE** `?usageId=` (stok iadesi)
+- `/api/cari` — **GET**, **POST**
+- `/api/cari/[id]` — **GET**, **PATCH**, **DELETE**
+- `/api/customers/search` — **GET** (`?q=` ile müşteri arama, min 3 karakter)
+- `/api/exchange-rates` — **GET** (USD/EUR kurları, 5dk cache)
+- `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 
 **Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
+
+### Önemli Notlar
+
+- Fiş sayfaları (`fis`, `dukkan-nushasi`, `kargo-fisi`) dashboard layout'u dışında `src/app/` root altında, sidebar görünmez.
+- Telefon araması `phoneDigits` alanı üzerinden yapılır (normalize edilmiş rakamlar).
+- Kargo fişi aynı sekmede açılır (`router.push`, `window.open` değil).
+- Ciro kartı varsayılan gizli, göz ikonu ile açılır.
+- Döviz kurları: alış -2%, satış +2% olarak revize edilir.
+- Tarayıcı header/footer yazdırmada kullanıcı tarafından manuel kapatılmalıdır.
 
 ### Kayıt Numarası Formatı
 
@@ -101,12 +120,19 @@ YYYYMM### — örnek: 202605001
 ```
 src/app/(dashboard)/                          # Korumalı sayfalar (auth gelince)
 src/app/(dashboard)/stok/                     # Yedek parça stok
-src/app/(dashboard)/servis-detay/[id]/fis/    # Servis giriş fişi (yazdır)
+src/app/(dashboard)/cari/                     # Cari yönetimi
 src/app/(dashboard)/servis-detay/[id]/duzenle/  # Kayıt düzenleme
+src/app/fis/[id]/                             # Müşteri nüshası
+src/app/dukkan-nushasi/[id]/                  # Cihaz etiketi
+src/app/kargo-fisi/[id]/                      # Kargo gönderi fişi
 src/app/(auth)/                               # Login sayfası
 src/app/api/
 src/app/api/spare-parts/                      # Parça CRUD + stok
 src/app/api/service-orders/[id]/spare-parts/  # Kayıt parça kullanımı
+src/app/api/cari/                             # Cari CRUD
+src/app/api/customers/search/                 # Geçmiş müşteri arama
+src/app/api/exchange-rates/                   # Kur servisi
+src/app/api/settings/                         # Yazdırma/uygulama ayarları
 src/components/layout/                        # Sidebar, TopBar
 src/lib/prisma.ts
 src/lib/supabase/
@@ -122,9 +148,14 @@ src/lib/supabase/
 ## Yapılacaklar (TODO)
 
 - [x] Stok yönetimi
-- [x] Servis fişi yazdırma
+- [x] Cari yönetimi
+- [x] Kargo fişi yazdırma
+- [x] Müşteri Nüshası ve Cihaz Etiketi
+- [x] Döviz kurları
+- [x] Telefon normalize arama
+- [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
 - [ ] Auth / Login koruması (Supabase Auth)
-- [ ] Dükkan adı ayarı
+- [ ] Dükkan adı ve bilgileri ayarı
 - [ ] SMS entegrasyonu
 - [ ] Multi-tenant geçişi

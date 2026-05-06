@@ -89,7 +89,7 @@ function DeleteConfirmDialog({
   );
 }
 
-type TabId = "types" | "brands" | "models";
+type TabId = "types" | "brands" | "models" | "print";
 
 export default function TanimlarPage() {
   const [activeTab, setActiveTab] = useState<TabId>("types");
@@ -122,11 +122,13 @@ export default function TanimlarPage() {
         {tabBtn("types", "Cihaz türleri")}
         {tabBtn("brands", "Markalar")}
         {tabBtn("models", "Modeller")}
+        {tabBtn("print", "Yazdırma Ayarları")}
       </div>
 
       {activeTab === "types" ? <DeviceTypesTab /> : null}
       {activeTab === "brands" ? <BrandsTab /> : null}
       {activeTab === "models" ? <ModelsTab /> : null}
+      {activeTab === "print" ? <PrintSettingsTab /> : null}
     </div>
   );
 }
@@ -633,5 +635,212 @@ function ModelsTab() {
         </ul>
       </CardContent>
     </Card>
+  );
+}
+
+type PrintSettings = {
+  servis_fisi_boyut: string;
+  servis_fisi_yon: string;
+  servis_fisi_kenar: string;
+  kargo_fisi_boyut: string;
+  kargo_fisi_yon: string;
+  kargo_fisi_kenar: string;
+};
+
+function PrintSettingsTab() {
+  const [settings, setSettings] = useState<PrintSettings>({
+    servis_fisi_boyut: "A4",
+    servis_fisi_yon: "portrait",
+    servis_fisi_kenar: "normal",
+    kargo_fisi_boyut: "A6",
+    kargo_fisi_yon: "portrait",
+    kargo_fisi_kenar: "dar",
+  });
+  const [loading, setLoading] = useState(true);
+  const [savingServis, setSavingServis] = useState(false);
+  const [savingKargo, setSavingKargo] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/settings");
+        const data = (await res.json()) as Partial<PrintSettings> & { error?: string };
+        if (!res.ok) {
+          toast.error(data.error ?? "Ayarlar yüklenemedi");
+          return;
+        }
+        setSettings((prev) => ({ ...prev, ...data }));
+      } catch {
+        toast.error("Ayarlar yüklenemedi");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  async function save(part: "servis" | "kargo") {
+    const payload =
+      part === "servis"
+        ? {
+            servis_fisi_boyut: settings.servis_fisi_boyut,
+            servis_fisi_yon: settings.servis_fisi_yon,
+            servis_fisi_kenar: settings.servis_fisi_kenar,
+          }
+        : {
+            kargo_fisi_boyut: settings.kargo_fisi_boyut,
+            kargo_fisi_yon: settings.kargo_fisi_yon,
+            kargo_fisi_kenar: settings.kargo_fisi_kenar,
+          };
+    part === "servis" ? setSavingServis(true) : setSavingKargo(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Ayarlar kaydedilemedi");
+        return;
+      }
+      toast.success("Ayarlar kaydedildi");
+    } catch {
+      toast.error("Ayarlar kaydedilemedi");
+    } finally {
+      part === "servis" ? setSavingServis(false) : setSavingKargo(false);
+    }
+  }
+
+  const sizeOptions = ["A4", "A5", "A6", "80mm termal", "58mm termal"];
+  const marginOptions = [
+    { value: "yok", label: "Yok" },
+    { value: "dar", label: "Dar" },
+    { value: "normal", label: "Normal" },
+    { value: "genis", label: "Geniş" },
+  ];
+
+  if (loading) {
+    return <p className="text-sm text-slate-600">Ayarlar yükleniyor...</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-slate-200/80 bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle>Servis Giriş Fişi</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Kağıt Boyutu</Label>
+            <select
+              className={nativeSelectClassName}
+              value={settings.servis_fisi_boyut}
+              onChange={(e) => setSettings((p) => ({ ...p, servis_fisi_boyut: e.target.value }))}
+            >
+              {sizeOptions.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Yönlendirme</Label>
+            <div className="flex gap-4 text-sm">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="servis-yon"
+                  checked={settings.servis_fisi_yon === "portrait"}
+                  onChange={() => setSettings((p) => ({ ...p, servis_fisi_yon: "portrait" }))}
+                />
+                Dikey
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="servis-yon"
+                  checked={settings.servis_fisi_yon === "landscape"}
+                  onChange={() => setSettings((p) => ({ ...p, servis_fisi_yon: "landscape" }))}
+                />
+                Yatay
+              </label>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Kenar Boşluğu</Label>
+            <select
+              className={nativeSelectClassName}
+              value={settings.servis_fisi_kenar}
+              onChange={(e) => setSettings((p) => ({ ...p, servis_fisi_kenar: e.target.value }))}
+            >
+              {marginOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <Button type="button" onClick={() => void save("servis")} disabled={savingServis}>
+            {savingServis ? "Kaydediliyor..." : "Kaydet"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 bg-white shadow-sm">
+        <CardHeader>
+          <CardTitle>Kargo Gönderi Fişi</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Kağıt Boyutu</Label>
+            <select
+              className={nativeSelectClassName}
+              value={settings.kargo_fisi_boyut}
+              onChange={(e) => setSettings((p) => ({ ...p, kargo_fisi_boyut: e.target.value }))}
+            >
+              {sizeOptions.map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Yönlendirme</Label>
+            <div className="flex gap-4 text-sm">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="kargo-yon"
+                  checked={settings.kargo_fisi_yon === "portrait"}
+                  onChange={() => setSettings((p) => ({ ...p, kargo_fisi_yon: "portrait" }))}
+                />
+                Dikey
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="kargo-yon"
+                  checked={settings.kargo_fisi_yon === "landscape"}
+                  onChange={() => setSettings((p) => ({ ...p, kargo_fisi_yon: "landscape" }))}
+                />
+                Yatay
+              </label>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Kenar Boşluğu</Label>
+            <select
+              className={nativeSelectClassName}
+              value={settings.kargo_fisi_kenar}
+              onChange={(e) => setSettings((p) => ({ ...p, kargo_fisi_kenar: e.target.value }))}
+            >
+              {marginOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <Button type="button" onClick={() => void save("kargo")} disabled={savingKargo}>
+            {savingKargo ? "Kaydediliyor..." : "Kaydet"}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

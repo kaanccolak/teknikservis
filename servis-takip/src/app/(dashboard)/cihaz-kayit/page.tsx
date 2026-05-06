@@ -1,11 +1,28 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useState } from "react";
+import { Building2, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -29,6 +46,29 @@ import {
 } from "@/lib/validation/create-service-order";
 
 type IdName = { id: string; name: string };
+type CustomerSearchOrder = {
+  id: string;
+  orderNumber: string | null;
+  serialNo: string | null;
+  deviceTypeId: string | null;
+  brandId: string | null;
+  deviceModelId: string | null;
+  deviceType: { name: string } | null;
+  brand: { name: string } | null;
+  deviceModel: { name: string } | null;
+};
+type CustomerSearchItem = {
+  id: string;
+  name: string;
+  phone: string | null;
+  orders: CustomerSearchOrder[];
+};
+type CariRow = {
+  id: string;
+  name: string;
+  phone: string | null;
+  taxOrTcNo: string | null;
+};
 
 const nativeSelectClassName =
   "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60";
@@ -75,6 +115,21 @@ export default function CihazKayitPage() {
   const [models, setModels] = useState<IdName[]>([]);
   const [listError, setListError] = useState<string | null>(null);
   const [showDateEditor, setShowDateEditor] = useState(false);
+  const [customerResults, setCustomerResults] = useState<CustomerSearchItem[]>([]);
+  const [customerLoading, setCustomerLoading] = useState(false);
+  const [customerPanelOpen, setCustomerPanelOpen] = useState(false);
+  const [pendingSelection, setPendingSelection] = useState<{
+    customer: CustomerSearchItem;
+    order: CustomerSearchOrder;
+  } | null>(null);
+  const [cariDialogOpen, setCariDialogOpen] = useState(false);
+  const [cariSearch, setCariSearch] = useState("");
+  const [cariRows, setCariRows] = useState<CariRow[]>([]);
+  const [cariLoading, setCariLoading] = useState(false);
+  const [selectedCariId, setSelectedCariId] = useState<string | null>(null);
+  const [selectedCariName, setSelectedCariName] = useState<string | null>(null);
+  const skipDeviceCascade = useRef(false);
+  const skipBrandCascade = useRef(false);
 
   const {
     register,
@@ -94,6 +149,54 @@ export default function CihazKayitPage() {
   const arrivedByCargo = watch("arrivedByCargo");
   const noSerialNo = watch("noSerialNo");
   const arrivedAt = watch("arrivedAt");
+  const customerName = watch("customerName");
+  const formValues = watch();
+
+  const isDirty = useMemo(() => {
+    const textFields = [
+      formValues.customerName,
+      formValues.phone,
+      formValues.cargoInfo,
+      formValues.serialNo,
+      formValues.complaint,
+      formValues.accessories,
+      formValues.physicalDamage,
+    ];
+    const hasText = textFields.some((v) => (v ?? "").trim() !== "");
+    const hasSelection =
+      (formValues.deviceTypeId ?? "") !== "" ||
+      (formValues.brandId ?? "") !== "" ||
+      (formValues.deviceModelId ?? "") !== "";
+    const hasToggle =
+      formValues.arrivedByCargo === true ||
+      formValues.noSerialNo === true ||
+      formValues.isTampered === true ||
+      formValues.warrantyStatus === "guaranteed";
+    return hasText || hasSelection || hasToggle;
+  }, [formValues]);
+
+  useEffect(() => {
+    window.__formIsDirty = isDirty;
+  }, [isDirty]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
+
+  useEffect(() => {
+    return () => {
+      window.__formIsDirty = false;
+    };
+  }, []);
 
   const loadDeviceTypes = useCallback(async () => {
     setListError(null);
@@ -115,6 +218,10 @@ export default function CihazKayitPage() {
   }, [loadDeviceTypes]);
 
   useEffect(() => {
+    if (skipDeviceCascade.current) {
+      skipDeviceCascade.current = false;
+      return;
+    }
     setValue("brandId", "");
     setValue("deviceModelId", "");
     setBrands([]);
@@ -142,6 +249,10 @@ export default function CihazKayitPage() {
   }, [deviceTypeId, setValue]);
 
   useEffect(() => {
+    if (skipBrandCascade.current) {
+      skipBrandCascade.current = false;
+      return;
+    }
     setValue("deviceModelId", "");
     setModels([]);
     if (!brandId) return;
@@ -166,13 +277,126 @@ export default function CihazKayitPage() {
     };
   }, [brandId, setValue]);
 
+  useEffect(() => {
+    const q = (customerName ?? "").trim();
+    if (q.length < 3) {
+      setCustomerLoading(false);
+      setCustomerResults([]);
+      setCustomerPanelOpen(false);
+      return;
+    }
+    const t = window.setTimeout(async () => {
+      setCustomerLoading(true);
+      try {
+        const res = await fetch(`/api/customers/search?q=${encodeURIComponent(q)}`);
+        const data = (await res.json()) as CustomerSearchItem[] | { error?: string };
+        if (!res.ok) {
+          setCustomerResults([]);
+          setCustomerPanelOpen(false);
+          return;
+        }
+        const rows = data as CustomerSearchItem[];
+        setCustomerResults(rows);
+        setCustomerPanelOpen(rows.length > 0);
+      } catch {
+        setCustomerResults([]);
+        setCustomerPanelOpen(false);
+      } finally {
+        setCustomerLoading(false);
+      }
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [customerName]);
+
+  useEffect(() => {
+    if (!cariDialogOpen) return;
+    const q = cariSearch.trim();
+    if (q.length < 2) {
+      setCariRows([]);
+      setCariLoading(false);
+      return;
+    }
+    const t = window.setTimeout(async () => {
+      setCariLoading(true);
+      try {
+        const res = await fetch(`/api/cari?search=${encodeURIComponent(q)}`);
+        const data = (await res.json()) as CariRow[] | { error?: string };
+        if (!res.ok) {
+          setCariRows([]);
+          return;
+        }
+        setCariRows(data as CariRow[]);
+      } catch {
+        setCariRows([]);
+      } finally {
+        setCariLoading(false);
+      }
+    }, 250);
+    return () => window.clearTimeout(t);
+  }, [cariDialogOpen, cariSearch]);
+
+  function normalizePhoneForInput(phone: string | null): string {
+    if (!phone) return "";
+    const digits = phone.replace(/\D/g, "");
+    if (digits.startsWith("90")) return digits.slice(2, 12);
+    if (digits.startsWith("0")) return digits.slice(1, 11);
+    return digits.slice(0, 10);
+  }
+
+  async function applyOrderToForm(customer: CustomerSearchItem, order: CustomerSearchOrder) {
+    const phoneInput = normalizePhoneForInput(customer.phone);
+    setValue("customerName", customer.name, { shouldDirty: true });
+    setValue("phone", phoneInput, { shouldDirty: true });
+
+    const dtId = order.deviceTypeId ?? "";
+    const brId = order.brandId ?? "";
+    const mdId = order.deviceModelId ?? "";
+    if (dtId && brId && mdId) {
+      try {
+        const [brRes, mdRes] = await Promise.all([
+          fetch(`/api/brands?deviceTypeId=${encodeURIComponent(dtId)}`),
+          fetch(`/api/models?brandId=${encodeURIComponent(brId)}`),
+        ]);
+        const brData = (await brRes.json()) as IdName[] | { error?: string };
+        const mdData = (await mdRes.json()) as IdName[] | { error?: string };
+        if (brRes.ok) setBrands(brData as IdName[]);
+        if (mdRes.ok) setModels(mdData as IdName[]);
+      } catch {
+        // Liste yüklenemezse mevcut alanları yine de doldur.
+      }
+      skipDeviceCascade.current = true;
+      skipBrandCascade.current = true;
+      setValue("deviceTypeId", dtId, { shouldDirty: true });
+      setValue("brandId", brId, { shouldDirty: true });
+      setValue("deviceModelId", mdId, { shouldDirty: true });
+    }
+    setValue("serialNo", order.serialNo ?? "", { shouldDirty: true });
+    setValue("noSerialNo", false, { shouldDirty: true });
+    setCustomerPanelOpen(false);
+    toast.success("Bilgiler aktarıldı");
+  }
+
+  function applyOnlyCustomer(customer: CustomerSearchItem) {
+    const phoneInput = normalizePhoneForInput(customer.phone);
+    setValue("customerName", customer.name, { shouldDirty: true });
+    setValue("phone", phoneInput, { shouldDirty: true });
+    setCustomerPanelOpen(false);
+    toast.success("Bilgiler aktarıldı");
+  }
+
+  function orderSummary(order: CustomerSearchOrder) {
+    return `${order.deviceType?.name ?? "—"} / ${order.brand?.name ?? "—"} / ${
+      order.deviceModel?.name ?? "—"
+    }`;
+  }
+
   async function onSubmit(data: CreateServiceOrderFormValues) {
     const payload = createServiceOrderSchema.parse(data);
     try {
       const res = await fetch("/api/service-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, cariId: selectedCariId ?? undefined }),
       });
       const json = (await res.json()) as {
         id?: string;
@@ -188,7 +412,13 @@ export default function CihazKayitPage() {
       if (json.orderNumber) {
         toast.success(`Kayıt oluşturuldu! No: #${json.orderNumber}`);
         reset(getDefaultValues());
+        window.__formIsDirty = false;
         setShowDateEditor(false);
+        setCustomerResults([]);
+        setCustomerPanelOpen(false);
+        setPendingSelection(null);
+        setSelectedCariId(null);
+        setSelectedCariName(null);
       }
     } catch {
       toast.error("Bağlantı hatası. Tekrar deneyin.");
@@ -196,7 +426,7 @@ export default function CihazKayitPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Cihaz kayıt</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -211,67 +441,106 @@ export default function CihazKayitPage() {
         </p>
       ) : null}
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-6"
-        noValidate
-      >
-        <Card className="border-slate-200/80 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle>Müşteri bilgileri</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="customerName">
-                Ad soyad <span className="text-destructive">*</span>
-              </Label>
-              <Controller
-                name="customerName"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="customerName"
-                    type="text"
-                    autoComplete="name"
-                    aria-invalid={!!errors.customerName}
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {errors.customerName ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.customerName.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="phone">Telefon</Label>
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <TrPhoneInput
-                    id="phone"
-                    aria-invalid={!!errors.phone}
-                    value={field.value ?? ""}
-                    onValueChange={field.onChange}
-                    onBlur={field.onBlur}
-                  />
-                )}
-              />
-              {errors.phone ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.phone.message}
-                </p>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="flex gap-6">
+          <div className="min-w-0 flex-1 space-y-6">
+            <Card className="border-slate-200/80 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle>Müşteri bilgileri</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="customerName">
+                    Ad soyad <span className="text-destructive">*</span>
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCariDialogOpen(true);
+                      setCariSearch("");
+                      setCariRows([]);
+                    }}
+                  >
+                    <Building2 className="mr-1 size-4" />
+                    Cari Seç
+                  </Button>
+                </div>
+                <Controller
+                  name="customerName"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="customerName"
+                      type="text"
+                      autoComplete="name"
+                      aria-invalid={!!errors.customerName}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (!e.target.value.trim()) {
+                          setCustomerResults([]);
+                          setCustomerPanelOpen(false);
+                        }
+                      }}
+                      onBlur={field.onBlur}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          setCustomerPanelOpen(false);
+                        }
+                      }}
+                      ref={field.ref}
+                    />
+                  )}
+                />
+                {errors.customerName ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {errors.customerName.message}
+                  </p>
+                ) : null}
+                {selectedCariId && selectedCariName ? (
+                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700">
+                    <span>🏢 {selectedCariName}</span>
+                    <button
+                      type="button"
+                      className="text-slate-500 hover:text-slate-800"
+                      onClick={() => {
+                        setSelectedCariId(null);
+                        setSelectedCariName(null);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="phone">Telefon</Label>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <TrPhoneInput
+                      id="phone"
+                      aria-invalid={!!errors.phone}
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
+                  )}
+                />
+                {errors.phone ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {errors.phone.message}
+                  </p>
+                ) : null}
+              </div>
+            </CardContent>
+            </Card>
 
-        <Card className="border-slate-200/80 bg-white shadow-sm">
+            <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Kargo bilgisi</CardTitle>
           </CardHeader>
@@ -340,9 +609,9 @@ export default function CihazKayitPage() {
               )}
             </div>
           </CardContent>
-        </Card>
+            </Card>
 
-        <Card className="border-slate-200/80 bg-white shadow-sm">
+            <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Cihaz bilgileri</CardTitle>
             <CardDescription>
@@ -502,9 +771,9 @@ export default function CihazKayitPage() {
               )}
             />
           </CardContent>
-        </Card>
+            </Card>
 
-        <Card className="border-slate-200/80 bg-white shadow-sm">
+            <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Garanti bilgisi</CardTitle>
           </CardHeader>
@@ -544,9 +813,9 @@ export default function CihazKayitPage() {
               </p>
             ) : null}
           </CardContent>
-        </Card>
+            </Card>
 
-        <Card className="border-slate-200/80 bg-white shadow-sm">
+            <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Genel durum</CardTitle>
           </CardHeader>
@@ -588,9 +857,9 @@ export default function CihazKayitPage() {
               )}
             />
           </CardContent>
-        </Card>
+            </Card>
 
-        <Card className="border-slate-200/80 bg-white shadow-sm">
+            <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Arıza ve notlar</CardTitle>
           </CardHeader>
@@ -614,14 +883,172 @@ export default function CihazKayitPage() {
               />
             </div>
           </CardContent>
-        </Card>
+            </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? "Kaydediliyor…" : "Kaydet"}
-          </Button>
+            <div className="flex justify-end">
+              <Button type="submit" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? "Kaydediliyor…" : "Kaydet"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="w-96 shrink-0">
+            {customerPanelOpen && customerResults.length > 0 ? (
+              <aside className="sticky top-4 rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-100 p-4">
+                  <h3 className="text-sm font-medium text-slate-900">Geçmiş Kayıtlar</h3>
+                </div>
+                <div className="max-h-[600px] overflow-y-auto">
+                  {customerLoading ? (
+                    <div className="flex items-center gap-2 px-4 py-4 text-sm text-slate-600">
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                      Müşteri aranıyor...
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {customerResults.map((customer) => (
+                        <div key={customer.id} className="p-3">
+                          <div className="mb-2">
+                            <p className="font-semibold text-slate-900">{customer.name}</p>
+                            <p className="text-sm text-slate-500">
+                              {customer.phone ?? "Telefon yok"}
+                            </p>
+                          </div>
+                          <div className="space-y-1.5">
+                            {customer.orders.map((order) => (
+                              <div
+                                key={order.id}
+                                className="rounded-md px-2 py-2 transition-colors hover:bg-slate-50"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="text-sm text-slate-700">
+                                    {order.orderNumber ?? "—"} | {orderSummary(order)}
+                                  </p>
+                                  <button
+                                    type="button"
+                                    className="text-sm font-medium text-primary hover:underline"
+                                    onClick={() => setPendingSelection({ customer, order })}
+                                  >
+                                    Seç
+                                  </button>
+                                </div>
+                                <p className="mt-0.5 text-xs text-slate-500">
+                                  Seri: {order.serialNo ?? "Yok"}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </aside>
+            ) : null}
+          </div>
         </div>
       </form>
+
+      <AlertDialog open={pendingSelection !== null} onOpenChange={(open) => !open && setPendingSelection(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ne aktarılsın?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingSelection ? (
+                <>
+                  <span className="block font-medium text-slate-800">
+                    {pendingSelection.customer.name}
+                  </span>
+                  <span className="block">
+                    {orderSummary(pendingSelection.order)}
+                  </span>
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <button
+              type="button"
+              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-left hover:bg-slate-50"
+              onClick={() => {
+                if (!pendingSelection) return;
+                applyOnlyCustomer(pendingSelection.customer);
+                setPendingSelection(null);
+              }}
+            >
+              <p className="font-medium text-slate-900">Sadece Müşteri Bilgileri</p>
+              <p className="text-sm text-slate-600">İsim ve telefon aktarılır</p>
+            </button>
+            <button
+              type="button"
+              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-left hover:bg-slate-50"
+              onClick={() => {
+                if (!pendingSelection) return;
+                void applyOrderToForm(
+                  pendingSelection.customer,
+                  pendingSelection.order,
+                );
+                setPendingSelection(null);
+              }}
+            >
+              <p className="font-medium text-slate-900">Müşteri + Cihaz Bilgileri</p>
+              <p className="text-sm text-slate-600">
+                İsim, telefon, cihaz türü, marka, model ve seri no aktarılır
+              </p>
+            </button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={cariDialogOpen} onOpenChange={setCariDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cari Seç</DialogTitle>
+            <DialogDescription>En az 2 karakterle cari arayın.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="İsim, telefon veya vergi no ara..."
+              value={cariSearch}
+              onChange={(e) => setCariSearch(e.target.value)}
+            />
+            <div className="max-h-72 overflow-y-auto rounded-md border border-slate-200">
+              {cariLoading ? (
+                <p className="px-3 py-3 text-sm text-slate-600">Yükleniyor...</p>
+              ) : cariRows.length === 0 ? (
+                <p className="px-3 py-3 text-sm text-slate-600">Sonuç bulunamadı</p>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {cariRows.map((cari) => (
+                    <button
+                      key={cari.id}
+                      type="button"
+                      className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50"
+                      onClick={() => {
+                        setValue("customerName", cari.name, { shouldDirty: true });
+                        setValue("phone", normalizePhoneForInput(cari.phone), { shouldDirty: true });
+                        setSelectedCariId(cari.id);
+                        setSelectedCariName(cari.name);
+                        setCariDialogOpen(false);
+                        toast.success(`Cari seçildi: ${cari.name}`);
+                      }}
+                    >
+                      <div>
+                        <p className="font-medium text-slate-900">{cari.name}</p>
+                        <p className="text-xs text-slate-500">{cari.phone ?? "Telefon yok"}</p>
+                      </div>
+                      <span className="text-xs text-slate-500">{cari.taxOrTcNo ?? "—"}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

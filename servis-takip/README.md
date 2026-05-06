@@ -8,12 +8,21 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 
 - Cihaz kayıt ve takip
 - Müşteri yönetimi
+- Cari yönetimi (firma/müşteri kaydı, cari kodu: C202605001 formatı)
 - Servis durumu güncelleme (Teknik Serviste, Onay Bekliyor, Onay Verildi, Parça Bekliyor, Onarım Tamamlandı, Teslim Edildi)
 - Otomatik kayıt numarası (YYYYMM001 formatı)
 - Cihaz türü, marka ve model tanım yönetimi
 - **Yedek parça stok yönetimi** (cihaz türü / marka / modele göre filtreleme)
 - **Kayıtta kullanılan parça takibi** ve otomatik stok düşme (iptal/silmede iade)
-- **Servis giriş fişi yazdırma** (tarayıcı yazdır / PDF kaydet)
+- **Müşteri Nüshası (servis giriş fişi) ve Cihaz Etiketi yazdırma** (tarayıcı yazdır / PDF kaydet)
+- **Kargo gönderi fişi yazdırma** (cari bazında)
+- Döviz kurları (USD/EUR) dashboard'da anlık gösterim (TCMB/ExchangeRate-API)
+- Ciro maskeleme (göster/gizle butonu)
+- Cihaz kayıt formunda geçmiş müşteri arama ve otomatik doldurma
+- Telefon numarası normalize arama (537, 0537, 5377664248 gibi)
+- Arama filtresi URL'de saklanır, geri dönünce kaybolmaz
+- Yazdırma boyut ayarları (Tanımlar sayfasında)
+- Sayfadan ayrılma uyarısı (form doldurulmuşken)
 - **Kayıt düzenleme ve silme**
 - Ciro takibi (günlük / haftalık / aylık / yıllık / **tarih aralığı**)
 - Bekleme süresi takibi (renk kodlu)
@@ -109,10 +118,15 @@ src/
 ## Yapılacaklar
 
 - [x] Stok yönetimi
-- [x] Servis fişi yazdırma
+- [x] Cari yönetimi
+- [x] Kargo fişi yazdırma
+- [x] Müşteri Nüshası ve Cihaz Etiketi
+- [x] Döviz kurları
+- [x] Telefon normalize arama
+- [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
 - [ ] Auth / Login koruması
-- [ ] Dükkan adı ayarı
+- [ ] Dükkan adı ve bilgileri ayarı
 - [ ] SMS entegrasyonu
 - [ ] Multi-tenant geçişi
 

@@ -26,6 +26,10 @@ function phoneRawToStorage(phone: string): string | undefined {
   return trNationalToStorage(d);
 }
 
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
+
 export async function GET(request: Request) {
   let shop;
   try {
@@ -40,6 +44,8 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search")?.trim() ?? "";
+  const searchDigits = normalizePhone(search);
+  const isPhoneSearch = searchDigits.length >= 3 && /^\d+$/.test(searchDigits);
   const statusParam = searchParams.get("status")?.trim() ?? "";
   const hideCompleted = searchParams.get("hideCompleted") === "true";
   const hideDelivered = searchParams.get("hideDelivered") === "true";
@@ -79,6 +85,18 @@ export async function GET(request: Request) {
         OR: [
           { customer: { name: { contains: search, mode: "insensitive" } } },
           { customer: { phone: { contains: search, mode: "insensitive" } } },
+          ...(isPhoneSearch
+            ? [
+                {
+                  customer: {
+                    phoneDigits: {
+                      contains: searchDigits,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                },
+              ]
+            : []),
           { orderNumber: { contains: search, mode: "insensitive" } },
         ],
       },
@@ -86,17 +104,20 @@ export async function GET(request: Request) {
   }
 
   try {
-    const orders = await prisma.serviceOrder.findMany({
-      where,
-      include: {
-        customer: true,
-        deviceType: true,
-        brand: true,
-        deviceModel: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(orders);
+    const [orders, total] = await Promise.all([
+      prisma.serviceOrder.findMany({
+        where,
+        include: {
+          customer: true,
+          deviceType: true,
+          brand: true,
+          deviceModel: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.serviceOrder.count({ where }),
+    ]);
+    return NextResponse.json({ orders, total });
   } catch (e) {
     return jsonServerError(
       "GET /api/service-orders",
@@ -192,8 +213,18 @@ export async function POST(request: Request) {
           if (!deviceType || !brand || !deviceModel) {
             throw new Error("INVALID_DEVICE_CHAIN");
           }
+          if (body.cariId) {
+            const cari = await tx.cari.findFirst({
+              where: { id: body.cariId, shopId: shop.id },
+              select: { id: true },
+            });
+            if (!cari) {
+              throw new Error("INVALID_CARI");
+            }
+          }
 
           const phoneStored = phoneRawToStorage(body.phone);
+          const phoneDigits = phoneStored ? normalizePhone(phoneStored) : null;
 
           let customer = null;
           if (phoneStored) {
@@ -214,6 +245,7 @@ export async function POST(request: Request) {
                 shopId: shop.id,
                 name: body.customerName.trim(),
                 phone: emptyToNull(phoneStored),
+                phoneDigits,
               },
             });
           }
@@ -229,6 +261,7 @@ export async function POST(request: Request) {
               orderNumber,
               shopId: shop.id,
               customerId: customer.id,
+              cariId: body.cariId ?? null,
               deviceTypeId: body.deviceTypeId,
               brandId: body.brandId,
               deviceModelId: body.deviceModelId,
@@ -276,6 +309,9 @@ export async function POST(request: Request) {
       orderNumber: order.orderNumber,
     });
   } catch (e) {
+    if (e instanceof Error && e.message === "INVALID_CARI") {
+      return NextResponse.json({ error: "Geçersiz cari seçimi" }, { status: 400 });
+    }
     if (e instanceof Error && e.message === "INVALID_DEVICE_CHAIN") {
       console.error("[POST /api/service-orders] INVALID_DEVICE_CHAIN", {
         shopId: shop.id,

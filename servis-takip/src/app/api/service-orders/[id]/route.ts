@@ -19,6 +19,7 @@ import {
 const serviceOrderInclude = {
   shop: { select: { name: true } },
   customer: true,
+  cari: true,
   deviceType: true,
   brand: true,
   deviceModel: true,
@@ -41,6 +42,10 @@ function phoneRawToStorage(phone: string): string | undefined {
   if (d.length === 0) return undefined;
   const stored = trNationalToStorage(d);
   return stored === "" ? undefined : stored;
+}
+
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, "");
 }
 
 export async function GET(
@@ -246,13 +251,18 @@ export async function PATCH(
     existing.status,
   );
 
-  const customerUpdate: { name?: string; phone?: string | null } = {};
+  const customerUpdate: {
+    name?: string;
+    phone?: string | null;
+    phoneDigits?: string | null;
+  } = {};
   if (body.customerName !== undefined) {
     customerUpdate.name = body.customerName.trim();
   }
   if (body.phone !== undefined) {
     const stored = phoneRawToStorage(body.phone);
     customerUpdate.phone = stored ? stored : null;
+    customerUpdate.phoneDigits = stored ? normalizePhone(stored) : null;
   }
   if (Object.keys(customerUpdate).length > 0) {
     prismaData.customer = { update: customerUpdate };

@@ -213,6 +213,7 @@ function RevenueCiroCard({
   revenue: number;
   onRevenueChange: (n: number) => void;
 }) {
+  const [ciroGoster, setCiroGoster] = useState(false);
   const [period, setPeriod] = useState<RevenuePeriod>("daily");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -288,14 +289,59 @@ function RevenueCiroCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p
-          className={cn(
-            "text-3xl font-bold tabular-nums tracking-tight text-green-950 sm:text-4xl",
-            loading && "opacity-60",
-          )}
-        >
-          {formatTryTr(revenue)}
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span
+            className={cn(
+              "tabular-nums tracking-tight text-green-950 sm:text-4xl",
+              loading && "opacity-60",
+            )}
+            style={{ fontSize: "28px", fontWeight: "700" }}
+          >
+            {ciroGoster ? formatTryTr(revenue) : "₺ ******"}
+          </span>
+          <button
+            type="button"
+            onClick={() => setCiroGoster(!ciroGoster)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px",
+              color: "#666",
+              fontSize: "16px",
+              display: "flex",
+              alignItems: "center",
+            }}
+            title={ciroGoster ? "Gizle" : "Göster"}
+          >
+            {ciroGoster ? (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {revenuePills.map((p) => (
             <Button
@@ -365,6 +411,15 @@ function RevenueCiroCard({
 export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardPayload | null>(null);
+  const [rates, setRates] = useState<{
+    usd: { alis: string; satis: string } | null;
+    eur: { alis: string; satis: string } | null;
+    guncelleme?: string;
+  }>({
+    usd: null,
+    eur: null,
+  });
+  const [ratesLoading, setRatesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -404,6 +459,37 @@ export default function DashboardPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    setRatesLoading(true);
+    fetch("/api/exchange-rates")
+      .then((r) => r.json())
+      .then(
+        (j: {
+          usd?: { alis?: string; satis?: string } | null;
+          eur?: { alis?: string; satis?: string } | null;
+          guncelleme?: string;
+        }) => {
+        setRates({
+          usd:
+            j.usd && j.usd.alis && j.usd.satis
+              ? { alis: j.usd.alis, satis: j.usd.satis }
+              : null,
+          eur:
+            j.eur && j.eur.alis && j.eur.satis
+              ? { alis: j.eur.alis, satis: j.eur.satis }
+              : null,
+          guncelleme: j.guncelleme,
+        });
+      },
+    )
+      .catch(() => {
+        setRates({ usd: null, eur: null });
+      })
+      .finally(() => {
+        setRatesLoading(false);
+      });
+  }, []);
+
   function goDetail(id: string) {
     router.push(`/servis-detay/${encodeURIComponent(id)}`);
   }
@@ -435,9 +521,105 @@ export default function DashboardPage() {
             gidebilirsiniz.
           </p>
         </div>
-        <p className="text-sm font-medium text-slate-700 sm:text-right">
-          {todayLabel}
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <div style={{ display: "flex", gap: "12px" }}>
+            {!ratesLoading && (!rates.usd || !rates.eur) ? null : (
+              <>
+                {ratesLoading ? (
+                  <>
+                    <div
+                      style={{
+                        background: "#f8f9fa",
+                        border: "1px solid #e9ecef",
+                        borderRadius: "8px",
+                        padding: "4px 12px",
+                        fontSize: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <span style={{ fontWeight: "600", color: "#555" }}>USD</span>
+                      <div
+                        className="animate-pulse"
+                        style={{
+                          width: "84px",
+                          height: "16px",
+                          background: "#e9ecef",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        background: "#f8f9fa",
+                        border: "1px solid #e9ecef",
+                        borderRadius: "8px",
+                        padding: "4px 12px",
+                        fontSize: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <span style={{ fontWeight: "600", color: "#555" }}>EUR</span>
+                      <div
+                        className="animate-pulse"
+                        style={{
+                          width: "84px",
+                          height: "16px",
+                          background: "#e9ecef",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {rates.usd && (
+                      <div
+                        style={{
+                          background: "#f8f9fa",
+                          border: "1px solid #e9ecef",
+                          borderRadius: "8px",
+                          padding: "4px 12px",
+                          fontSize: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span style={{ fontWeight: "600", color: "#555" }}>USD</span>
+                        <span style={{ color: "#16a34a" }}>A: {rates.usd.alis} ₺</span>
+                        <span style={{ color: "#dc2626" }}>S: {rates.usd.satis} ₺</span>
+                      </div>
+                    )}
+
+                    {rates.eur && (
+                      <div
+                        style={{
+                          background: "#f8f9fa",
+                          border: "1px solid #e9ecef",
+                          borderRadius: "8px",
+                          padding: "4px 12px",
+                          fontSize: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span style={{ fontWeight: "600", color: "#555" }}>EUR</span>
+                        <span style={{ color: "#16a34a" }}>A: {rates.eur.alis} ₺</span>
+                        <span style={{ color: "#dc2626" }}>S: {rates.eur.satis} ₺</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </div>
+          <span style={{ fontSize: "13px", color: "#666" }}>{todayLabel}</span>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

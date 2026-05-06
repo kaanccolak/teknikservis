@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,10 @@ type ServiceOrderListRow = {
   brand: Named | null;
   deviceModel: Named | null;
 };
+type ServiceOrderListResponse = {
+  orders: ServiceOrderListRow[];
+  total: number;
+};
 
 function formatArrivedAt(iso: string) {
   const d = new Date(iso);
@@ -63,27 +67,44 @@ function yyyymmFileSuffix(d: Date) {
 
 function CihazSorgulaInner() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const statusParam = searchParams.get("status");
-  const searchParam = searchParams.get("search");
-  const hideCompletedParam = searchParams.get("hideCompleted");
+  const searchParam = searchParams.get("search") || "";
+  const statusParam = searchParams.get("status") || "all";
+  const hideDeliveredParam = searchParams.get("hideDelivered");
+  const hideDelivered = hideDeliveredParam !== "false";
 
   const initialStatus =
-    statusParam && SERVICE_ORDER_STATUS_VALUES.has(statusParam)
+    statusParam !== "all" && SERVICE_ORDER_STATUS_VALUES.has(statusParam)
       ? statusParam
       : "all";
 
-  const [search, setSearch] = useState(searchParam ?? "");
+  const [search, setSearch] = useState(searchParam);
   const [debouncedSearch, setDebouncedSearch] = useState(
-    () => (searchParam ?? "").trim(),
+    () => searchParam.trim(),
   );
   const [statusFilter, setStatusFilter] = useState(initialStatus);
-  const [hideCompleted, setHideCompleted] = useState(
-    hideCompletedParam === "false" ? false : true,
-  );
+  const [hideCompleted, setHideCompleted] = useState(hideDelivered);
   const [orders, setOrders] = useState<ServiceOrderListRow[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const updateURL = useCallback(
+    (params: Record<string, string>) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          current.set(key, value);
+        } else {
+          current.delete(key);
+        }
+      });
+      const query = current.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   useEffect(() => {
     if (statusParam && SERVICE_ORDER_STATUS_VALUES.has(statusParam)) {
@@ -94,15 +115,13 @@ function CihazSorgulaInner() {
   }, [statusParam]);
 
   useEffect(() => {
-    const q = searchParam ?? "";
-    setSearch(q);
-    setDebouncedSearch(q.trim());
+    setSearch(searchParam);
+    setDebouncedSearch(searchParam.trim());
   }, [searchParam]);
 
   useEffect(() => {
-    if (hideCompletedParam === "false") setHideCompleted(false);
-    else if (hideCompletedParam === "true") setHideCompleted(true);
-  }, [hideCompletedParam]);
+    setHideCompleted(hideDelivered);
+  }, [hideDelivered]);
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -120,9 +139,9 @@ function CihazSorgulaInner() {
       if (statusFilter && statusFilter !== "all") {
         params.set("status", statusFilter);
       }
-      if (hideCompleted) params.set("hideCompleted", "true");
+      if (hideCompleted) params.set("hideDelivered", "true");
       const res = await fetch(`/api/service-orders?${params.toString()}`);
-      const data = (await res.json()) as ServiceOrderListRow[] | { error?: string };
+      const data = (await res.json()) as ServiceOrderListResponse | { error?: string };
       if (!res.ok) {
         setError(
           typeof data === "object" && data && "error" in data
@@ -130,12 +149,15 @@ function CihazSorgulaInner() {
             : "Kayıtlar yüklenemedi",
         );
         setOrders([]);
+        setTotal(0);
         return;
       }
-      setOrders(data as ServiceOrderListRow[]);
+      setOrders((data as ServiceOrderListResponse).orders);
+      setTotal((data as ServiceOrderListResponse).total);
     } catch {
       setError("Bağlantı hatası");
       setOrders([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -186,7 +208,11 @@ function CihazSorgulaInner() {
   }
 
   function goDetail(id: string) {
-    router.push(`/servis-detay/${encodeURIComponent(id)}`);
+    const query = searchParams.toString();
+    const currentUrl = query ? `${pathname}?${query}` : pathname;
+    router.push(
+      `/servis-detay/${encodeURIComponent(id)}?from=${encodeURIComponent(currentUrl)}`,
+    );
   }
 
   return (
@@ -208,7 +234,11 @@ function CihazSorgulaInner() {
             type="search"
             placeholder="Müşteri adı, telefon veya kayıt no ara..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearch(value);
+              updateURL({ search: value });
+            }}
             className="w-full"
           />
         </div>
@@ -220,7 +250,11 @@ function CihazSorgulaInner() {
             <select
               id="status-filter"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setStatusFilter(value);
+                updateURL({ status: value });
+              }}
               className={nativeSelectClassName}
             >
               <option value="all">Hepsi</option>
@@ -234,14 +268,23 @@ function CihazSorgulaInner() {
           <label className="flex cursor-pointer items-center gap-2 pb-1.5 sm:pb-2">
             <Checkbox
               checked={hideCompleted}
-              onCheckedChange={(c) => setHideCompleted(c === true)}
+              onCheckedChange={(c) => {
+                const value = c === true;
+                setHideCompleted(value);
+                updateURL({ hideDelivered: String(value) });
+              }}
             />
             <span className="text-sm font-medium text-slate-700">
               Tamamlananları gizle
             </span>
           </label>
         </div>
-        <div className="flex justify-end lg:ml-auto">
+        <div className="flex flex-col items-end gap-2 lg:ml-auto">
+          <span className="text-sm text-gray-500">
+            {search.trim() || statusFilter !== "all"
+              ? `${total} sonuç bulundu`
+              : `Toplam ${total} kayıt`}
+          </span>
           <Button
             type="button"
             variant="outline"

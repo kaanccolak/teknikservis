@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -99,7 +99,12 @@ function mapOrderToFormValues(order: OrderApiRow): CreateServiceOrderFormValues 
 export default function ServisDuzenlePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = typeof params.id === "string" ? params.id : "";
+  const fromUrl = searchParams.get("from");
+  const detailHref = fromUrl
+    ? `/servis-detay/${encodeURIComponent(id)}?from=${encodeURIComponent(fromUrl)}`
+    : `/servis-detay/${encodeURIComponent(id)}`;
 
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
@@ -322,12 +327,12 @@ export default function ServisDuzenlePage() {
           return;
         }
         toast.success("Kayıt güncellendi");
-        router.push(`/servis-detay/${encodeURIComponent(id)}`);
+        router.push(detailHref);
       } catch {
         toast.error("Bağlantı hatası. Tekrar deneyin.");
       }
     },
-    [id, router],
+    [detailHref, id, router],
   );
 
   if (loadingOrder) {
@@ -346,7 +351,7 @@ export default function ServisDuzenlePage() {
     return (
       <div className="mx-auto max-w-4xl space-y-4">
         <Link
-          href={id ? `/servis-detay/${encodeURIComponent(id)}` : "/cihaz-sorgula"}
+          href={id ? detailHref : "/cihaz-sorgula"}
           className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
         >
           <ArrowLeft className="mr-2 size-4" aria-hidden />
@@ -365,7 +370,7 @@ export default function ServisDuzenlePage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-col gap-3 border-b border-slate-200/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <Link
-          href={`/servis-detay/${encodeURIComponent(id)}`}
+          href={detailHref}
           className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-fit")}
         >
           <ArrowLeft className="mr-2 size-4" aria-hidden />
@@ -779,7 +784,7 @@ export default function ServisDuzenlePage() {
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           <Link
-            href={`/servis-detay/${encodeURIComponent(id)}`}
+            href={detailHref}
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
               "inline-flex items-center justify-center",

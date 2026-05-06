@@ -13,12 +13,14 @@ model Shop {
   name             String
   createdAt        DateTime          @default(now())
   customers        Customer[]
+  cariler          Cari[]
   orders           ServiceOrder[]
   deviceTypes      DeviceType[]
   brands           Brand[]
   models           DeviceModel[]
   spareParts       SparePart[]
   sparePartUsages  SparePartUsage[]
+  settings         Setting[]
 }
 
 model Customer {
@@ -27,6 +29,7 @@ model Customer {
   shop      Shop           @relation(fields: [shopId], references: [id])
   name      String
   phone     String? @db.VarChar(20)
+  phoneDigits String? @db.VarChar(20)
   createdAt DateTime       @default(now())
   orders    ServiceOrder[]
 }
@@ -75,6 +78,8 @@ model ServiceOrder {
   shop       Shop     @relation(fields: [shopId], references: [id])
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id])
+  cariId     String?
+  cari       Cari?    @relation(fields: [cariId], references: [id])
 
   deviceTypeId   String?
   brandId        String?
@@ -113,6 +118,37 @@ model ServiceOrder {
   updatedAt        DateTime          @updatedAt
   statusLogs       StatusLog[]
   sparePartUsages  SparePartUsage[]
+}
+
+model Cari {
+  id            String         @id @default(cuid())
+  shopId        String
+  shop          Shop           @relation(fields: [shopId], references: [id])
+  cariCode      String?        @unique
+  name          String
+  phone         String?
+  phoneDigits   String?
+  email         String?
+  address       String?
+  taxOrTcNo     String?
+  taxOffice     String?
+  cargoInfo     String?
+  cargoCode     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  serviceOrders ServiceOrder[]
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id])
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([shopId, key])
 }
 
 model StatusLog {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,10 @@ type ServiceOrderListRow = {
   deviceType: Named | null;
   brand: Named | null;
   deviceModel: Named | null;
+};
+type ServiceOrderListResponse = {
+  orders: ServiceOrderListRow[];
+  total: number;
 };
 
 function formatArrivedAt(iso: string) {
@@ -83,6 +87,8 @@ function waitingDaysClass(days: number): string {
 
 export default function BekleyenCihazlarPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -157,7 +163,7 @@ export default function BekleyenCihazlarPage() {
 
       const res = await fetch(`/api/service-orders?${params.toString()}`);
       const data = (await res.json()) as
-        | ServiceOrderListRow[]
+        | ServiceOrderListResponse
         | { error?: string };
       if (!res.ok) {
         setListError(
@@ -168,7 +174,7 @@ export default function BekleyenCihazlarPage() {
         setOrders([]);
         return;
       }
-      setOrders(data as ServiceOrderListRow[]);
+      setOrders((data as ServiceOrderListResponse).orders);
     } catch {
       setListError("Bağlantı hatası");
       setOrders([]);
@@ -187,7 +193,11 @@ export default function BekleyenCihazlarPage() {
   }, [orders.length]);
 
   function goDetail(id: string) {
-    router.push(`/servis-detay/${encodeURIComponent(id)}`);
+    const query = searchParams.toString();
+    const currentUrl = query ? `${pathname}?${query}` : pathname;
+    router.push(
+      `/servis-detay/${encodeURIComponent(id)}?from=${encodeURIComponent(currentUrl)}`,
+    );
   }
 
   return (

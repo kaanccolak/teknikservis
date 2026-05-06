@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -101,6 +101,7 @@ type ServiceOrderDetail = {
   technicianNote: string | null;
   totalPrice: number | null;
   customer: Customer;
+  cari?: NamedEntity | null;
   deviceType: NamedEntity | null;
   brand: NamedEntity | null;
   deviceModel: NamedEntity | null;
@@ -179,7 +180,24 @@ function DetailRow({
 export default function ServisDetayPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = typeof params.id === "string" ? params.id : "";
+  const fromUrl = searchParams.get("from");
+  const detailQuery = fromUrl ? `?from=${encodeURIComponent(fromUrl)}` : "";
+  const editHref = `/servis-detay/${encodeURIComponent(id)}/duzenle${detailQuery}`;
+
+  function resolveBackHref() {
+    if (!fromUrl) return "/cihaz-sorgula";
+    try {
+      return decodeURIComponent(fromUrl);
+    } catch {
+      return "/cihaz-sorgula";
+    }
+  }
+
+  function handleBack() {
+    router.push(resolveBackHref());
+  }
 
   const [order, setOrder] = useState<ServiceOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -396,7 +414,7 @@ export default function ServisDetayPage() {
       }
       toast.success("Kayıt silindi");
       setDeleteOpen(false);
-      router.push("/cihaz-sorgula");
+      handleBack();
     } catch {
       toast.error("Kayıt silinemedi");
     } finally {
@@ -456,13 +474,16 @@ export default function ServisDetayPage() {
   if (error || !order) {
     return (
       <div className="space-y-4">
-        <Link
-          href="/cihaz-sorgula"
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          onClick={handleBack}
         >
           <ArrowLeft className="mr-2 size-4" aria-hidden />
           Geri Dön
-        </Link>
+        </Button>
         <p className="text-sm text-destructive" role="alert">
           {error ?? "Kayıt bulunamadı"}
         </p>
@@ -476,26 +497,36 @@ export default function ServisDetayPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 border-b border-slate-200/80 pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
         <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 lg:min-w-[12rem]">
-          <Link
-            href="/cihaz-sorgula"
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            onClick={handleBack}
           >
             <ArrowLeft className="mr-2 size-4" aria-hidden />
             Geri Dön
-          </Link>
+          </Button>
           <Link
-            href={`/servis-detay/${encodeURIComponent(order.id)}/duzenle`}
+            href={editHref}
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
             <Pencil className="mr-2 size-4" aria-hidden />
             Kaydı Düzenle
           </Link>
           <Link
-            href={`/servis-detay/${encodeURIComponent(order.id)}/fis`}
+            href={`/fis/${encodeURIComponent(order.id)}`}
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
             <Printer className="mr-2 size-4" aria-hidden />
-            Fişi Yazdır
+            Müşteri Nüshası
+          </Link>
+          <Link
+            href={`/dukkan-nushasi/${encodeURIComponent(order.id)}`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            <Printer className="mr-2 size-4" aria-hidden />
+            Cihaz Etiketi
           </Link>
           <Button
             type="button"
@@ -580,6 +611,11 @@ export default function ServisDetayPage() {
                 <DetailRow label="Telefon">
                   {order.customer.phone ?? "—"}
                 </DetailRow>
+                {order.cari ? (
+                  <DetailRow label="Cari">
+                    <Badge variant="outline">{order.cari.name}</Badge>
+                  </DetailRow>
+                ) : null}
               </dl>
             </CardContent>
           </Card>

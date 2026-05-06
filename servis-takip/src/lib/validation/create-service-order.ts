@@ -16,6 +16,7 @@ export const createServiceOrderSchema = z
         invalid_type_error: "Ad soyad metin olmalıdır",
       })
       .min(2, "En az 2 karakter girin"),
+    cariId: z.string().optional(),
     phone: z.string(),
     arrivedByCargo: z.boolean().default(false),
     cargoInfo: z.string().optional(),

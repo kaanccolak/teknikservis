@@ -1,0 +1,205 @@
+"use client";
+
+import { ArrowLeft, Printer } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { formatServiceOrderNo } from "@/lib/service-order-number";
+
+type DukkanNushasiOrder = {
+  id: string;
+  orderNumber: string | null;
+  arrivedAt: string;
+  complaint: string | null;
+  customer: { name: string; phone: string | null };
+  shop: { name: string } | null;
+};
+
+type PrintSettings = Record<string, string>;
+
+function getPageSize(size: string, orientation: string) {
+  if (size === "80mm termal") return "80mm auto";
+  if (size === "58mm termal") return "58mm auto";
+  return `${size} ${orientation}`;
+}
+
+function getPageMargin(v: string) {
+  if (v === "yok") return "0";
+  if (v === "dar") return "0.3cm";
+  if (v === "genis") return "2cm";
+  return "1cm";
+}
+
+function textOrFallback(v: string | null | undefined, fallback: string) {
+  const t = v?.trim();
+  return t ? t : fallback;
+}
+
+export default function DukkanNushasiPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = typeof params.id === "string" ? params.id : "";
+
+  const [order, setOrder] = useState<DukkanNushasiOrder | null>(null);
+  const [settings, setSettings] = useState<PrintSettings>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const printStyles = useMemo(() => {
+    const size = getPageSize(
+      settings.servis_fisi_boyut ?? "A5",
+      settings.servis_fisi_yon ?? "portrait",
+    );
+    const margin = getPageMargin(settings.servis_fisi_kenar ?? "normal");
+
+    return `
+      body { background: #f3f4f6; }
+      @media print {
+        .no-print { display: none !important; }
+        body { background: white !important; margin: 0; padding: 0; }
+        .fis-card {
+          box-shadow: none !important;
+          border-radius: 0 !important;
+          margin: 0 !important;
+          max-width: 100% !important;
+          padding: 16px !important;
+        }
+        @page {
+          size: ${size};
+          margin: ${margin};
+          margin-top: 0.5cm;
+          margin-bottom: 0.5cm;
+        }
+      }
+    `;
+  }, [settings]);
+
+  const load = useCallback(async () => {
+    if (!id) {
+      setError("Geçersiz kayıt");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const [orderRes, settingsRes] = await Promise.all([
+        fetch(`/api/service-orders/${encodeURIComponent(id)}`),
+        fetch("/api/settings"),
+      ]);
+
+      const orderData = await orderRes.json().catch(() => ({}));
+      const settingsData = await settingsRes.json().catch(() => ({}));
+
+      if (!orderRes.ok) {
+        setError(
+          typeof orderData.error === "string" ? orderData.error : "Kayıt yüklenemedi",
+        );
+        setOrder(null);
+        return;
+      }
+
+      setOrder(orderData as DukkanNushasiOrder);
+      setSettings(settingsData as PrintSettings);
+    } catch {
+      setError("Bağlantı hatası");
+      setOrder(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: printStyles }} />
+
+      <div className="no-print mb-4 flex gap-2">
+        <button
+          type="button"
+          onClick={() => router.push(id ? `/servis-detay/${encodeURIComponent(id)}` : "/cihaz-sorgula")}
+          className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Geri Dön
+        </button>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm text-white"
+        >
+          <Printer className="size-4" aria-hidden />
+          Yazdır / PDF Kaydet
+        </button>
+      </div>
+      <p
+        className="no-print"
+        style={{
+          fontSize: "11px",
+          color: "#888",
+          marginTop: "6px",
+          maxWidth: "320px",
+          lineHeight: "1.5",
+        }}
+      >
+        💡 Üst/alt bilgileri (tarih, URL) kaldırmak için tarayıcının yazdırma
+        ayarlarında "Üstbilgiler ve altbilgiler" seçeneğini kapatın.
+      </p>
+
+      {loading ? (
+        <p className="text-sm text-slate-600">Yükleniyor…</p>
+      ) : error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : order ? (
+        <div
+          className="fis-card mx-auto max-w-[400px] rounded-lg bg-white p-8 text-black shadow-[0_2px_12px_rgba(0,0,0,0.1)]"
+          style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
+        >
+          <div className="mb-5 border-b-2 border-slate-900 pb-4 text-center">
+            <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+              CİHAZ ETİKETİ
+            </p>
+            <p className="text-[20px] font-bold leading-tight">
+              {textOrFallback(order.shop?.name, "Dükkan")}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {new Date(order.arrivedAt).toLocaleString("tr-TR")}
+            </p>
+          </div>
+
+          <div className="mb-5 flex items-center justify-between rounded-md bg-slate-50 px-4 py-2.5">
+            <span className="text-xs text-slate-500">Kayıt No</span>
+            <span className="font-mono text-base font-bold text-slate-900">
+              #{formatServiceOrderNo(order)}
+            </span>
+          </div>
+
+          <div className="mb-5 border-b border-slate-200 pb-4">
+            <p className="mb-2 text-[10px] uppercase tracking-[0.1em] text-slate-400">
+              MÜŞTERİ BİLGİLERİ
+            </p>
+            <p className="text-sm font-semibold text-slate-900">
+              {textOrFallback(order.customer?.name, "Belirtilmemiş")}
+            </p>
+            <p className="mt-1 text-[13px] text-slate-600">
+              {textOrFallback(order.customer?.phone, "Belirtilmemiş")}
+            </p>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.1em] text-slate-400">
+              ŞİKAYET / ARIZA
+            </p>
+            <p className="min-h-10 text-[13px] leading-6 text-slate-700">
+              {textOrFallback(order.complaint, "Belirtilmemiş")}
+            </p>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
