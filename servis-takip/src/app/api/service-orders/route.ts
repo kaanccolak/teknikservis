@@ -5,7 +5,11 @@ import { parseDatetimeLocal } from "@/lib/datetime-local";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { allocateServiceOrderNumber } from "@/lib/service-order-number";
-import { SERVICE_ORDER_STATUS_VALUES } from "@/lib/service-order-status";
+import {
+  SERVICE_ORDER_DELIVERED_STATUSES,
+  SERVICE_ORDER_HIDE_COMPLETED_STATUSES,
+  SERVICE_ORDER_STATUS_VALUES,
+} from "@/lib/service-order-status";
 import { getErrorDetails, jsonServerError } from "@/lib/server-error";
 import {
   trNationalToStorage,
@@ -13,7 +17,10 @@ import {
   trPhoneMatchKey,
   TR_NATIONAL_MOBILE_DIGITS,
 } from "@/lib/tr-phone";
-import { createServiceOrderSchema } from "@/lib/validation/create-service-order";
+import {
+  createServiceOrderSchema,
+  formEstimatedPriceToDb,
+} from "@/lib/validation/create-service-order";
 
 function emptyToNull(s: string | undefined): string | null {
   const t = s?.trim();
@@ -51,6 +58,9 @@ export async function GET(request: Request) {
   const hideDelivered = searchParams.get("hideDelivered") === "true";
   const deviceTypeId = searchParams.get("deviceTypeId")?.trim() ?? "";
   const brandId = searchParams.get("brandId")?.trim() ?? "";
+  const deviceModelId = searchParams.get("deviceModelId")?.trim() ?? "";
+  const dateFrom = searchParams.get("dateFrom")?.trim() ?? "";
+  const dateTo = searchParams.get("dateTo")?.trim() ?? "";
 
   if (
     statusParam &&
@@ -70,13 +80,23 @@ export async function GET(request: Request) {
   if (brandId) {
     where.brandId = brandId;
   }
+  if (deviceModelId) {
+    where.deviceModelId = deviceModelId;
+  }
+
+  if (dateFrom || dateTo) {
+    where.arrivedAt = {
+      ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+      ...(dateTo ? { lte: new Date(dateTo + "T23:59:59") } : {}),
+    };
+  }
 
   if (statusParam && statusParam !== "all") {
     where.status = statusParam;
   } else if (hideCompleted) {
-    where.status = { notIn: ["completed", "delivered"] };
+    where.status = { notIn: [...SERVICE_ORDER_HIDE_COMPLETED_STATUSES] };
   } else if (hideDelivered) {
-    where.status = { not: "delivered" };
+    where.status = { notIn: [...SERVICE_ORDER_DELIVERED_STATUSES] };
   }
 
   if (search) {
@@ -98,6 +118,7 @@ export async function GET(request: Request) {
               ]
             : []),
           { orderNumber: { contains: search, mode: "insensitive" } },
+          { serialNo: { contains: search, mode: "insensitive" } },
         ],
       },
     ];
@@ -139,6 +160,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const isReturn =
+    typeof json === "object" &&
+    json !== null &&
+    (json as { isReturn?: unknown }).isReturn === true;
+
   const parsed = createServiceOrderSchema.safeParse(json);
   if (!parsed.success) {
     const first = parsed.error.flatten();
@@ -151,6 +177,7 @@ export async function POST(request: Request) {
       first.fieldErrors.deviceModelId?.[0] ??
       first.fieldErrors.arrivedAt?.[0] ??
       first.fieldErrors.warrantyStatus?.[0] ??
+      first.fieldErrors.estimatedPrice?.[0] ??
       "Bilgileri kontrol edip tekrar deneyin";
     return NextResponse.json(
       { error: msg, details: first.fieldErrors },
@@ -281,7 +308,8 @@ export async function POST(request: Request) {
                   ? emptyToNull(body.cargoInfo)
                   : null,
               arrivedAt,
-              status: "in_service",
+              status: isReturn ? "returned_device" : "in_service",
+              estimatedPrice: formEstimatedPriceToDb(body.estimatedPrice),
             },
             select: { id: true, orderNumber: true },
           });

@@ -29,20 +29,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 
-type CariRow = {
+interface Cari {
   id: string;
-  cariCode: string | null;
+  cariCode?: string;
   name: string;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  taxOrTcNo: string | null;
-  taxOffice: string | null;
-  cargoInfo: string | null;
-  cargoCode: string | null;
-};
+  phone?: string;
+  email?: string;
+  address?: string;
+  taxOrTcNo?: string;
+  taxOffice?: string;
+  cargoInfo?: string;
+  cargoCode?: string;
+  createdAt: string;
+}
 
-type CariForm = Omit<CariRow, "id">;
+type CariForm = Omit<Cari, "id" | "createdAt" | "cariCode">;
 
 const emptyForm: CariForm = {
   name: "",
@@ -58,14 +59,14 @@ const emptyForm: CariForm = {
 export default function CariPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [rows, setRows] = useState<CariRow[]>([]);
+  const [rows, setRows] = useState<Cari[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<CariRow | null>(null);
+  const [editing, setEditing] = useState<Cari | null>(null);
   const [form, setForm] = useState<CariForm>(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [deleteRow, setDeleteRow] = useState<CariRow | null>(null);
+  const [deleteRow, setDeleteRow] = useState<Cari | null>(null);
   const [deleteLinkedCount, setDeleteLinkedCount] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
@@ -77,13 +78,13 @@ export default function CariPage() {
     try {
       const qs = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
       const res = await fetch(`/api/cari${qs}`);
-      const data = (await res.json()) as CariRow[] | { error?: string };
+      const data = (await res.json()) as Cari[] | { error?: string };
       if (!res.ok) {
         setError((data as { error?: string }).error ?? "Cariler yüklenemedi");
         setRows([]);
         return;
       }
-      setRows(data as CariRow[]);
+      setRows(data as Cari[]);
     } catch {
       setError("Bağlantı hatası");
       setRows([]);
@@ -103,7 +104,7 @@ export default function CariPage() {
     setDialogOpen(true);
   }
 
-  function openEdit(row: CariRow) {
+  function openEdit(row: Cari) {
     setEditing(row);
     setForm({
       name: row.name,
@@ -145,7 +146,7 @@ export default function CariPage() {
     }
   }
 
-  async function askDelete(row: CariRow) {
+  async function askDelete(row: Cari) {
     setDeleteRow(row);
     setDeleteLinkedCount(0);
   }
@@ -231,7 +232,9 @@ export default function CariPage() {
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="border-b last:border-0">
-                  <td className="px-3 py-2.5 font-mono text-xs">{row.cariCode ?? "—"}</td>
+                  <td className="px-3 py-2.5 font-mono text-xs">
+                    {row.cariCode || "—"}
+                  </td>
                   <td className="px-3 py-2.5 font-medium text-slate-900">{row.name}</td>
                   <td className="px-3 py-2.5">{row.phone ?? "—"}</td>
                   <td className="px-3 py-2.5">{row.email ?? "—"}</td>

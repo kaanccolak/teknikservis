@@ -1,9 +1,17 @@
 "use client";
 
-import { Building2, Package, Settings, type LucideIcon } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  Landmark,
+  Package,
+  Settings,
+  Truck,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   AlertDialog,
@@ -17,20 +25,51 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
-const navItems: { href: string; label: string; icon?: LucideIcon }[] = [
+const navItems: {
+  href: string;
+  label: string;
+  icon?: LucideIcon;
+}[] = [
   { href: "/", label: "Gösterge Paneli" },
   { href: "/cihaz-kayit", label: "Cihaz Kayıt" },
   { href: "/cihaz-sorgula", label: "Cihaz Sorgula" },
+  { href: "/ikinci-el", label: "İkinci El Cihazlar" },
   { href: "/bekleyen-cihazlar", label: "Bekleyen Cihazlar" },
   { href: "/tanimlar", label: "Tanımlar", icon: Settings },
   { href: "/stok", label: "Stok Yönetimi", icon: Package },
   { href: "/cari", label: "Cari Yönetimi", icon: Building2 },
+  { href: "/dis-servis", label: "Dış Servisler", icon: Truck },
+  { href: "/planlarim", label: "Planlarım", icon: Calendar },
+  { href: "/sirketim", label: "Şirketim", icon: Landmark },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [shopName, setShopName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    function applyShop(data: { name?: string }) {
+      if (!cancelled && typeof data?.name === "string") {
+        setShopName(data.name);
+      }
+    }
+    void fetch("/api/shop")
+      .then((r) => r.json())
+      .then(applyShop)
+      .catch(() => {});
+    const onShopUpdated = (e: Event) => {
+      const d = (e as CustomEvent<{ name?: string }>).detail;
+      if (d?.name) setShopName(d.name);
+    };
+    window.addEventListener("shop-updated", onShopUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("shop-updated", onShopUpdated);
+    };
+  }, []);
 
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
     if (href === pathname) return;
@@ -44,10 +83,12 @@ export function Sidebar() {
     <>
       <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200/80 bg-white">
         <div className="border-b border-slate-100 px-5 py-6">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Teknik Servis
+          <p className="logo-sub text-xs font-medium uppercase tracking-wide text-slate-500">
+            Teknik Servis Yönetimi
           </p>
-          <p className="mt-1 text-lg font-semibold text-slate-900">Servis Takip</p>
+          <p className="logo-title mt-1 text-lg font-semibold text-slate-900">
+            {shopName || "Servis Takip"}
+          </p>
         </div>
         <nav className="flex flex-1 flex-col gap-0.5 p-3">
           {navItems.map((item) => {

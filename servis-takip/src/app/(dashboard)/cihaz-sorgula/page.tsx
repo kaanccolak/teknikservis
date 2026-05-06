@@ -12,9 +12,9 @@ import { formatServiceOrderNo } from "@/lib/service-order-number";
 import {
   SERVICE_ORDER_STATUS_OPTIONS,
   SERVICE_ORDER_STATUS_VALUES,
-  serviceOrderStatusBadgeClass,
   serviceOrderStatusLabel,
 } from "@/lib/service-order-status";
+import { getStatusBadge } from "@/lib/statusConfig";
 
 const nativeSelectClassName =
   "h-8 w-full min-w-[11rem] rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30";
@@ -41,6 +41,8 @@ type ServiceOrderListResponse = {
   orders: ServiceOrderListRow[];
   total: number;
 };
+
+type IdName = { id: string; name: string };
 
 function formatArrivedAt(iso: string) {
   const d = new Date(iso);
@@ -73,7 +75,6 @@ function CihazSorgulaInner() {
   const statusParam = searchParams.get("status") || "all";
   const hideDeliveredParam = searchParams.get("hideDelivered");
   const hideDelivered = hideDeliveredParam !== "false";
-
   const initialStatus =
     statusParam !== "all" && SERVICE_ORDER_STATUS_VALUES.has(statusParam)
       ? statusParam
@@ -85,6 +86,9 @@ function CihazSorgulaInner() {
   );
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [hideCompleted, setHideCompleted] = useState(hideDelivered);
+  const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
+  const [brands, setBrands] = useState<IdName[]>([]);
+  const [models, setModels] = useState<IdName[]>([]);
   const [orders, setOrders] = useState<ServiceOrderListRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -123,12 +127,84 @@ function CihazSorgulaInner() {
     setHideCompleted(hideDelivered);
   }, [hideDelivered]);
 
+  const deviceTypeFilter = searchParams.get("deviceType") || "";
+  const brandFilter = searchParams.get("brand") || "";
+  const modelFilter = searchParams.get("model") || "";
+  const dateFrom = searchParams.get("dateFrom") || "";
+  const dateTo = searchParams.get("dateTo") || "";
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/device-types")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setDeviceTypes(Array.isArray(data) ? (data as IdName[]) : []);
+      })
+      .catch(() => {
+        if (!cancelled) setDeviceTypes([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!deviceTypeFilter) {
+      setBrands([]);
+      return;
+    }
+    let cancelled = false;
+    void fetch(
+      `/api/brands?deviceTypeId=${encodeURIComponent(deviceTypeFilter)}`,
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setBrands(Array.isArray(data) ? (data as IdName[]) : []);
+      })
+      .catch(() => {
+        if (!cancelled) setBrands([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceTypeFilter]);
+
+  useEffect(() => {
+    if (!brandFilter) {
+      setModels([]);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/models?brandId=${encodeURIComponent(brandFilter)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setModels(Array.isArray(data) ? (data as IdName[]) : []);
+      })
+      .catch(() => {
+        if (!cancelled) setModels([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [brandFilter]);
+
   useEffect(() => {
     const t = window.setTimeout(() => {
       setDebouncedSearch(search.trim());
     }, 300);
     return () => window.clearTimeout(t);
   }, [search]);
+
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setDebouncedSearch("");
+    setStatusFilter("all");
+    setHideCompleted(true);
+    router.replace(pathname);
+  }, [pathname, router]);
 
   const loadOrders = useCallback(async () => {
     setError(null);
@@ -140,6 +216,11 @@ function CihazSorgulaInner() {
         params.set("status", statusFilter);
       }
       if (hideCompleted) params.set("hideDelivered", "true");
+      if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);
+      if (brandFilter) params.set("brandId", brandFilter);
+      if (modelFilter) params.set("deviceModelId", modelFilter);
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
       const res = await fetch(`/api/service-orders?${params.toString()}`);
       const data = (await res.json()) as ServiceOrderListResponse | { error?: string };
       if (!res.ok) {
@@ -161,7 +242,16 @@ function CihazSorgulaInner() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilter, hideCompleted]);
+  }, [
+    debouncedSearch,
+    statusFilter,
+    hideCompleted,
+    deviceTypeFilter,
+    brandFilter,
+    modelFilter,
+    dateFrom,
+    dateTo,
+  ]);
 
   useEffect(() => {
     void loadOrders();
@@ -207,6 +297,13 @@ function CihazSorgulaInner() {
     URL.revokeObjectURL(url);
   }
 
+  const hasAdvancedFilters =
+    Boolean(deviceTypeFilter) ||
+    Boolean(brandFilter) ||
+    Boolean(modelFilter) ||
+    Boolean(dateFrom) ||
+    Boolean(dateTo);
+
   function goDetail(id: string) {
     const query = searchParams.toString();
     const currentUrl = query ? `${pathname}?${query}` : pathname;
@@ -232,7 +329,7 @@ function CihazSorgulaInner() {
           <Input
             id="search"
             type="search"
-            placeholder="Müşteri adı, telefon veya kayıt no ara..."
+            placeholder="Müşteri adı, telefon, kayıt no veya seri no ara..."
             value={search}
             onChange={(e) => {
               const value = e.target.value;
@@ -281,7 +378,9 @@ function CihazSorgulaInner() {
         </div>
         <div className="flex flex-col items-end gap-2 lg:ml-auto">
           <span className="text-sm text-gray-500">
-            {search.trim() || statusFilter !== "all"
+            {search.trim() ||
+            statusFilter !== "all" ||
+            hasAdvancedFilters
               ? `${total} sonuç bulundu`
               : `Toplam ${total} kayıt`}
           </span>
@@ -294,6 +393,154 @@ function CihazSorgulaInner() {
             Excel&apos;e Aktar
           </Button>
         </div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginTop: "10px",
+          flexWrap: "wrap",
+        }}
+      >
+        <select
+          aria-label="Cihaz türü"
+          value={deviceTypeFilter}
+          onChange={(e) => {
+            const v = e.target.value;
+            updateURL({ deviceType: v, brand: "", model: "" });
+          }}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #e5e7eb",
+            borderRadius: "6px",
+            fontSize: "13px",
+            minWidth: "150px",
+          }}
+        >
+          <option value="">Tüm cihaz türleri</option>
+          {deviceTypes.map((dt) => (
+            <option key={dt.id} value={dt.id}>
+              {dt.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label="Marka"
+          value={brandFilter}
+          onChange={(e) => {
+            const v = e.target.value;
+            updateURL({ brand: v, model: "" });
+          }}
+          disabled={!deviceTypeFilter}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #e5e7eb",
+            borderRadius: "6px",
+            fontSize: "13px",
+            minWidth: "150px",
+          }}
+        >
+          <option value="">Tüm markalar</option>
+          {brands.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label="Model"
+          value={modelFilter}
+          onChange={(e) => {
+            const v = e.target.value;
+            updateURL({ model: v });
+          }}
+          disabled={!brandFilter}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #e5e7eb",
+            borderRadius: "6px",
+            fontSize: "13px",
+            minWidth: "150px",
+          }}
+        >
+          <option value="">Tüm modeller</option>
+          {models.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            flexWrap: "wrap",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "12px",
+              color: "#6b7280",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Geliş:
+          </span>
+          <input
+            type="date"
+            aria-label="Geliş tarihi başlangıç"
+            value={dateFrom}
+            onChange={(e) => {
+              const v = e.target.value;
+              updateURL({ dateFrom: v });
+            }}
+            style={{
+              padding: "8px 10px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              fontSize: "13px",
+            }}
+          />
+          <span style={{ fontSize: "12px", color: "#6b7280" }}>—</span>
+          <input
+            type="date"
+            aria-label="Geliş tarihi bitiş"
+            value={dateTo}
+            onChange={(e) => {
+              const v = e.target.value;
+              updateURL({ dateTo: v });
+            }}
+            style={{
+              padding: "8px 10px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              fontSize: "13px",
+            }}
+          />
+        </div>
+
+        {hasAdvancedFilters ? (
+          <button
+            type="button"
+            onClick={clearFilters}
+            style={{
+              padding: "8px 14px",
+              border: "1px solid #fca5a5",
+              borderRadius: "6px",
+              fontSize: "13px",
+              color: "#ef4444",
+              background: "#fef2f2",
+              cursor: "pointer",
+            }}
+          >
+            Filtreleri temizle ✕
+          </button>
+        ) : null}
       </div>
 
       {error ? (
@@ -354,7 +601,9 @@ function CihazSorgulaInner() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((row, i) => (
+                {orders.map((row, i) => {
+                  const statusBadge = getStatusBadge(row.status);
+                  return (
                   <tr
                     key={row.id}
                     role="button"
@@ -396,9 +645,19 @@ function CihazSorgulaInner() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-2.5">
                       <span
-                        className={serviceOrderStatusBadgeClass(row.status)}
+                        style={{
+                          display: "inline-block",
+                          padding: "3px 10px",
+                          borderRadius: "20px",
+                          fontSize: "11px",
+                          fontWeight: "500",
+                          background: statusBadge.bg,
+                          color: statusBadge.color,
+                          border: `1px solid ${statusBadge.border}`,
+                          whiteSpace: "nowrap",
+                        }}
                       >
-                        {serviceOrderStatusLabel(row.status)}
+                        {statusBadge.label}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-3 py-2.5">
@@ -416,7 +675,8 @@ function CihazSorgulaInner() {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

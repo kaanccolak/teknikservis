@@ -42,6 +42,7 @@ export const createServiceOrderSchema = z
     complaint: z.string().optional(),
     accessories: z.string().optional(),
     physicalDamage: z.string().optional(),
+    estimatedPrice: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.noSerialNo && (data.serialNo?.length ?? 0) === 0) {
@@ -68,7 +69,30 @@ export const createServiceOrderSchema = z
         path: ["phone"],
       });
     }
+
+    const ep = data.estimatedPrice?.trim() ?? "";
+    if (ep !== "") {
+      const n = Number(ep.replace(",", "."));
+      if (Number.isNaN(n) || n < 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Geçerli bir tutar girin",
+          path: ["estimatedPrice"],
+        });
+      }
+    }
   });
+
+/** Formdaki tahmini fiyat metnini veritabanı alanına çevirir; boş veya 0 → null. */
+export function formEstimatedPriceToDb(
+  raw: string | undefined,
+): number | null {
+  const ep = raw?.trim() ?? "";
+  if (ep === "") return null;
+  const n = Number(ep.replace(",", "."));
+  if (Number.isNaN(n) || n <= 0) return null;
+  return n;
+}
 
 export type CreateServiceOrderFormValues = z.input<
   typeof createServiceOrderSchema

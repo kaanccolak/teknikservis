@@ -11,7 +11,19 @@ datasource db {
 model Shop {
   id               String            @id @default(cuid())
   name             String
+  phone            String?
+  phoneDigits      String?
+  email            String?
+  address          String?
+  taxOrTcNo        String?
+  taxOffice        String?
+  website          String?
+  logoUrl          String?
+  waPhoneNumberId  String?
+  waAccessToken    String?
+  waEnabled        Boolean           @default(false)
   createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
   cariler          Cari[]
   orders           ServiceOrder[]
@@ -21,6 +33,44 @@ model Shop {
   spareParts       SparePart[]
   sparePartUsages  SparePartUsage[]
   settings         Setting[]
+  externalServices ExternalService[]
+  paymentPlans     PaymentPlan[]
+  secondHandDevices SecondHandDevice[]
+}
+
+model PaymentPlan {
+  id           String    @id @default(cuid())
+  shopId       String
+  shop         Shop      @relation(fields: [shopId], references: [id])
+  title        String
+  amount       Float?
+  dueDate      DateTime
+  isRecurring  Boolean   @default(false)
+  recurringDay Int?
+  category     String?
+  notes        String?
+  isCompleted  Boolean   @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+
+  @@index([shopId])
+}
+
+model ExternalService {
+  id            String         @id @default(cuid())
+  shopId        String
+  shop          Shop           @relation(fields: [shopId], references: [id])
+  name          String
+  contactName   String?
+  phone         String?
+  address       String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  serviceOrders ServiceOrder[]
+
+  @@index([shopId])
 }
 
 model Customer {
@@ -43,6 +93,7 @@ model DeviceType {
   createdAt  DateTime    @default(now())
   orders     ServiceOrder[]
   spareParts SparePart[]
+  secondHandDevices SecondHandDevice[]
 }
 
 model Brand {
@@ -56,6 +107,7 @@ model Brand {
   createdAt    DateTime      @default(now())
   orders       ServiceOrder[]
   spareParts   SparePart[]
+  secondHandDevices SecondHandDevice[]
 }
 
 model DeviceModel {
@@ -68,6 +120,49 @@ model DeviceModel {
   createdAt  DateTime @default(now())
   orders     ServiceOrder[]
   spareParts SparePart[]
+  secondHandDevices SecondHandDevice[]
+}
+
+model SecondHandDevice {
+  id                String       @id @default(cuid())
+  shopId            String
+  shop              Shop         @relation(fields: [shopId], references: [id])
+  deviceCode        String       @unique
+
+  sellerName        String
+  sellerPhone       String?
+  sellerPhoneDigits String?
+  sellerTcNo        String?
+
+  deviceTypeId      String?
+  brandId           String?
+  deviceModelId     String?
+  deviceType        DeviceType?  @relation(fields: [deviceTypeId], references: [id])
+  brand             Brand?       @relation(fields: [brandId], references: [id])
+  deviceModel       DeviceModel? @relation(fields: [deviceModelId], references: [id])
+  serialNo          String?
+  noSerialNo        Boolean      @default(false)
+
+  hasInvoice        Boolean      @default(false)
+  hasWarranty       Boolean      @default(false)
+  hasBox            Boolean      @default(false)
+
+  purchasePrice     Float        @default(0)
+
+  notes             String?
+
+  isSold            Boolean      @default(false)
+  soldAt            DateTime?
+  soldPrice         Float?
+  buyerName         String?
+  buyerPhone        String?
+  buyerPhoneDigits  String?
+  buyerTcNo         String?
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([shopId])
 }
 
 model ServiceOrder {
@@ -105,14 +200,19 @@ model ServiceOrder {
 
   technicianNote String?
   totalPrice     Float?
+  estimatedPrice Float?
 
-  /// Uygulama durumları: in_service, waiting_approval, approval_given, waiting_part, completed, delivered (eski kayıtlarda başka anahtarlar olabilir).
+  /// Uygulama durumları: in_service, returned_device, waiting_approval, approval_given, waiting_part, sent_to_external, repair_failed, … (eski kayıtlarda başka anahtarlar olabilir).
   status String @default("in_service")
 
   arrivedByCargo Boolean  @default(false)
   cargoInfo      String?
   arrivedAt      DateTime @default(now())
   trackingCode   String?
+
+  externalServiceId String?
+  externalService   ExternalService? @relation(fields: [externalServiceId], references: [id])
+  externalNote      String?
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

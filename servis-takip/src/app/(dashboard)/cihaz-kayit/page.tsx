@@ -2,10 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import {
+  SecondHandDeviceForm,
+  type SecondHandRegisterInfo,
+} from "./second-hand-form";
+
+import { WhatsAppBrandIcon } from "@/components/whatsapp-brand-icon";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -40,6 +47,11 @@ import {
   toDatetimeLocalValue,
 } from "@/lib/datetime-local";
 import { cn } from "@/lib/utils";
+import {
+  formatPriceForWa,
+  sendWhatsApp,
+  WA_TEMPLATES,
+} from "@/lib/whatsapp";
 import {
   createServiceOrderSchema,
   type CreateServiceOrderFormValues,
@@ -100,6 +112,7 @@ const defaultValuesBase: Omit<CreateServiceOrderFormValues, "arrivedAt"> = {
   complaint: "",
   accessories: "",
   physicalDamage: "",
+  estimatedPrice: "",
 };
 
 function getDefaultValues(): CreateServiceOrderFormValues {
@@ -109,7 +122,31 @@ function getDefaultValues(): CreateServiceOrderFormValues {
   };
 }
 
-export default function CihazKayitPage() {
+function deviceSummaryFromLists(
+  data: Pick<
+    CreateServiceOrderFormValues,
+    "deviceTypeId" | "brandId" | "deviceModelId"
+  >,
+  deviceTypes: IdName[],
+  brands: IdName[],
+  models: IdName[],
+) {
+  const dt = deviceTypes.find((x) => x.id === data.deviceTypeId)?.name;
+  const br = brands.find((x) => x.id === data.brandId)?.name;
+  const md = models.find((x) => x.id === data.deviceModelId)?.name;
+  return [dt, br, md].filter(Boolean).join(" · ") || "—";
+}
+
+function CihazKayitServiceInner({
+  onServiceOrderCreated,
+}: {
+  onServiceOrderCreated: (info: {
+    orderNumber: string;
+    customerName: string;
+    customerPhone: string;
+    deviceName: string;
+  }) => void;
+}) {
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
@@ -128,6 +165,7 @@ export default function CihazKayitPage() {
   const [cariLoading, setCariLoading] = useState(false);
   const [selectedCariId, setSelectedCariId] = useState<string | null>(null);
   const [selectedCariName, setSelectedCariName] = useState<string | null>(null);
+  const [isReturn, setIsReturn] = useState(false);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
 
@@ -161,6 +199,7 @@ export default function CihazKayitPage() {
       formValues.complaint,
       formValues.accessories,
       formValues.physicalDamage,
+      formValues.estimatedPrice,
     ];
     const hasText = textFields.some((v) => (v ?? "").trim() !== "");
     const hasSelection =
@@ -396,7 +435,11 @@ export default function CihazKayitPage() {
       const res = await fetch("/api/service-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, cariId: selectedCariId ?? undefined }),
+        body: JSON.stringify({
+          ...payload,
+          cariId: selectedCariId ?? undefined,
+          isReturn,
+        }),
       });
       const json = (await res.json()) as {
         id?: string;
@@ -410,7 +453,19 @@ export default function CihazKayitPage() {
       }
 
       if (json.orderNumber) {
-        toast.success(`Kayıt oluşturuldu! No: #${json.orderNumber}`);
+        toast.success("Kayıt oluşturuldu");
+        const deviceName = deviceSummaryFromLists(
+          payload,
+          deviceTypes,
+          brands,
+          models,
+        );
+        onServiceOrderCreated({
+          orderNumber: json.orderNumber,
+          customerName: payload.customerName.trim(),
+          customerPhone: payload.phone,
+          deviceName,
+        });
         reset(getDefaultValues());
         window.__formIsDirty = false;
         setShowDateEditor(false);
@@ -419,6 +474,7 @@ export default function CihazKayitPage() {
         setPendingSelection(null);
         setSelectedCariId(null);
         setSelectedCariName(null);
+        setIsReturn(false);
       }
     } catch {
       toast.error("Bağlantı hatası. Tekrar deneyin.");
@@ -426,7 +482,7 @@ export default function CihazKayitPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Cihaz kayıt</h1>
         <p className="mt-1 text-sm text-slate-600">
@@ -542,24 +598,58 @@ export default function CihazKayitPage() {
 
             <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle>Kargo bilgisi</CardTitle>
+            <CardTitle>Teslim Bilgileri</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Controller
-              name="arrivedByCargo"
-              control={control}
-              render={({ field }) => (
-                <label className="flex cursor-pointer items-center gap-2">
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(c) => field.onChange(c === true)}
-                  />
-                  <span className="text-sm font-medium">
-                    Cihaz kargo ile geldi
-                  </span>
-                </label>
-              )}
-            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: "14px",
+                  color: "#374151",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={isReturn}
+                  onChange={(e) => setIsReturn(e.target.checked)}
+                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
+                />
+                Cihaz Tekrar Geldi
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: "14px",
+                  color: "#374151",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={arrivedByCargo}
+                  onChange={(e) =>
+                    setValue("arrivedByCargo", e.target.checked, {
+                      shouldDirty: true,
+                    })
+                  }
+                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
+                />
+                Cihaz kargo ile geldi
+              </label>
+            </div>
             <div className={cn("space-y-2", !arrivedByCargo && "hidden")}>
               <Label htmlFor="cargoInfo">Kargo bilgisi</Label>
               <Input id="cargoInfo" autoComplete="off" {...register("cargoInfo")} />
@@ -885,6 +975,42 @@ export default function CihazKayitPage() {
           </CardContent>
             </Card>
 
+            <Card className="border-slate-200/80 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle>Fiyat bilgisi</CardTitle>
+                <CardDescription>
+                  Müşteriye bildirilen tahmini tutar
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Label htmlFor="estimatedPrice">Tahmini fiyat</Label>
+                <div className="relative">
+                  <span
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
+                    aria-hidden
+                  >
+                    ₺
+                  </span>
+                  <Input
+                    id="estimatedPrice"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    autoComplete="off"
+                    placeholder="0,00"
+                    aria-invalid={!!errors.estimatedPrice}
+                    className="pl-8"
+                    {...register("estimatedPrice")}
+                  />
+                </div>
+                {errors.estimatedPrice ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {errors.estimatedPrice.message}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+
             <div className="flex justify-end">
               <Button type="submit" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? "Kaydediliyor…" : "Kaydet"}
@@ -1050,5 +1176,286 @@ export default function CihazKayitPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+type WaPostCreateDialog =
+  | {
+      kind: "service";
+      orderNumber: string;
+      customerName: string;
+      customerPhone: string;
+      deviceName: string;
+    }
+  | ({ kind: "secondhand" } & SecondHandRegisterInfo);
+
+function CihazKayitRoot() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const modeParam = searchParams.get("mode");
+  const [mode, setMode] = useState<"service" | "secondhand">(() =>
+    modeParam === "secondhand" ? "secondhand" : "service",
+  );
+  const [waShopReady, setWaShopReady] = useState(false);
+  const [createdWa, setCreatedWa] = useState<WaPostCreateDialog | null>(null);
+  const [waSending, setWaSending] = useState(false);
+
+  useEffect(() => {
+    setMode(modeParam === "secondhand" ? "secondhand" : "service");
+  }, [modeParam]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop")
+      .then((r) => r.json())
+      .then(
+        (j: {
+          waEnabled?: boolean;
+          waPhoneNumberId?: string | null;
+          waTokenConfigured?: boolean;
+        }) => {
+          if (cancelled) return;
+          setWaShopReady(
+            Boolean(
+              j.waEnabled &&
+                j.waPhoneNumberId?.trim() &&
+                j.waTokenConfigured,
+            ),
+          );
+        },
+      )
+      .catch(() => {
+        if (!cancelled) setWaShopReady(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function setModeNav(next: "service" | "secondhand") {
+    setMode(next);
+    if (next === "secondhand") {
+      router.replace("/cihaz-kayit?mode=secondhand", { scroll: false });
+    } else {
+      router.replace("/cihaz-kayit", { scroll: false });
+    }
+  }
+
+  const waPhoneOk =
+    createdWa &&
+    (createdWa.kind === "service"
+      ? (createdWa.customerPhone ?? "").replace(/\D/g, "").length >= 10
+      : (createdWa.sellerPhone ?? "").replace(/\D/g, "").length >= 10);
+
+  const canSendCreatedWa = Boolean(waShopReady && waPhoneOk);
+
+  async function sendCreatedWhatsApp() {
+    if (!createdWa) return;
+    setWaSending(true);
+    try {
+      if (createdWa.kind === "service") {
+        await sendWhatsApp(
+          createdWa.customerPhone,
+          WA_TEMPLATES.SERVICE_RECEIVED.name,
+          WA_TEMPLATES.SERVICE_RECEIVED.getParams(
+            createdWa.customerName,
+            createdWa.deviceName,
+            createdWa.orderNumber,
+          ),
+        );
+      } else {
+        await sendWhatsApp(
+          createdWa.sellerPhone,
+          WA_TEMPLATES.SECOND_HAND_PURCHASE.name,
+          WA_TEMPLATES.SECOND_HAND_PURCHASE.getParams(
+            createdWa.sellerName,
+            createdWa.deviceName,
+            formatPriceForWa(createdWa.purchasePrice),
+          ),
+        );
+      }
+      toast.success("WhatsApp mesajı gönderildi!");
+      setCreatedWa(null);
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "WhatsApp mesajı gönderilemedi",
+      );
+    } finally {
+      setWaSending(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          marginBottom: "24px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setModeNav("service")}
+          style={{
+            padding: "10px 20px",
+            borderRadius: "8px",
+            border: "2px solid",
+            borderColor: mode === "service" ? "#111" : "#e5e7eb",
+            background: mode === "service" ? "#111" : "white",
+            color: mode === "service" ? "white" : "#374151",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
+          🔧 Servis kaydı
+        </button>
+        <button
+          type="button"
+          onClick={() => setModeNav("secondhand")}
+          style={{
+            padding: "10px 20px",
+            borderRadius: "8px",
+            border: "2px solid",
+            borderColor: mode === "secondhand" ? "#7c3aed" : "#e5e7eb",
+            background: mode === "secondhand" ? "#7c3aed" : "white",
+            color: mode === "secondhand" ? "white" : "#374151",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
+          📱 İkinci el alım
+        </button>
+      </div>
+      {mode === "service" ? (
+        <CihazKayitServiceInner
+          onServiceOrderCreated={(info) =>
+            setCreatedWa({ kind: "service", ...info })
+          }
+        />
+      ) : (
+        <SecondHandDeviceForm
+          onRegistered={(info) =>
+            setCreatedWa({ kind: "secondhand", ...info })
+          }
+        />
+      )}
+
+      <Dialog
+        open={createdWa !== null}
+        onOpenChange={(open) => {
+          if (!open) setCreatedWa(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kayıt Oluşturuldu! ✓</DialogTitle>
+          </DialogHeader>
+          {createdWa ? (
+            <div className="space-y-4">
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="text-slate-500">Kayıt No:</span>{" "}
+                  <span className="text-xl font-bold tabular-nums text-slate-900">
+                    #
+                    {createdWa.kind === "service"
+                      ? createdWa.orderNumber
+                      : createdWa.deviceCode}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-slate-500">
+                    {createdWa.kind === "service" ? "Müşteri" : "Satıcı"}:
+                  </span>{" "}
+                  <span className="font-medium text-slate-900">
+                    {createdWa.kind === "service"
+                      ? createdWa.customerName
+                      : createdWa.sellerName}
+                  </span>
+                </p>
+                <p>
+                  <span className="text-slate-500">Cihaz:</span>{" "}
+                  <span className="font-medium text-slate-900">
+                    {createdWa.deviceName}
+                  </span>
+                </p>
+                {!waShopReady ? (
+                  <p className="text-xs text-amber-800">
+                    WhatsApp bildirimi için Şirketim sayfasından entegrasyonu
+                    tamamlayın.
+                  </p>
+                ) : !waPhoneOk ? (
+                  <p className="text-xs text-amber-800">
+                    Geçerli bir telefon yok; WhatsApp gönderilemez.
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={!canSendCreatedWa || waSending}
+                  title={
+                    !waShopReady
+                      ? "WhatsApp entegrasyonu kapalı"
+                      : !waPhoneOk
+                        ? "Telefon eksik"
+                        : undefined
+                  }
+                  onClick={() => void sendCreatedWhatsApp()}
+                  style={{
+                    background: !canSendCreatedWa ? "#9ca3af" : "#25D366",
+                    color: "white",
+                    padding: "10px 20px",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor:
+                      !canSendCreatedWa || waSending ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    opacity: waSending ? 0.85 : 1,
+                  }}
+                >
+                  {waSending ? (
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                  ) : (
+                    <WhatsAppBrandIcon size={18} />
+                  )}
+                  WhatsApp ile Bildir
+                </button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCreatedWa(null)}
+                  disabled={waSending}
+                >
+                  Atla
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default function CihazKayitPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="flex items-center justify-center gap-2 py-24 text-slate-600"
+          role="status"
+        >
+          <Loader2 className="size-6 animate-spin" aria-hidden />
+          <span>Yükleniyor…</span>
+        </div>
+      }
+    >
+      <CihazKayitRoot />
+    </Suspense>
   );
 }

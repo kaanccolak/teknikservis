@@ -30,6 +30,7 @@ import { normalizeNationalPhoneInput } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 import {
   createServiceOrderSchema,
+  formEstimatedPriceToDb,
   type CreateServiceOrderFormValues,
 } from "@/lib/validation/create-service-order";
 
@@ -48,6 +49,7 @@ type OrderApiRow = {
   complaint: string | null;
   accessories: string | null;
   physicalDamage: string | null;
+  estimatedPrice: number | null;
   arrivedByCargo: boolean;
   cargoInfo: string | null;
   arrivedAt: string;
@@ -93,6 +95,10 @@ function mapOrderToFormValues(order: OrderApiRow): CreateServiceOrderFormValues 
     complaint: order.complaint ?? "",
     accessories: order.accessories ?? "",
     physicalDamage: order.physicalDamage ?? "",
+    estimatedPrice:
+      order.estimatedPrice != null && !Number.isNaN(order.estimatedPrice)
+        ? String(order.estimatedPrice)
+        : "",
   };
 }
 
@@ -146,6 +152,7 @@ export default function ServisDuzenlePage() {
       complaint: "",
       accessories: "",
       physicalDamage: "",
+      estimatedPrice: "",
     },
   });
 
@@ -314,7 +321,11 @@ export default function ServisDuzenlePage() {
 
   const onSubmit = useCallback(
     async (data: CreateServiceOrderFormValues) => {
-      const payload = createServiceOrderSchema.parse(data);
+      const parsed = createServiceOrderSchema.parse(data);
+      const payload = {
+        ...parsed,
+        estimatedPrice: formEstimatedPriceToDb(parsed.estimatedPrice),
+      };
       try {
         const res = await fetch(`/api/service-orders/${encodeURIComponent(id)}`, {
           method: "PATCH",
@@ -779,6 +790,42 @@ export default function ServisDuzenlePage() {
               <Label htmlFor="physicalDamage">Fiziksel hasar / dış görünüm</Label>
               <Textarea id="physicalDamage" rows={3} {...register("physicalDamage")} />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200/80 bg-white shadow-sm">
+          <CardHeader>
+            <CardTitle>Fiyat bilgisi</CardTitle>
+            <CardDescription>
+              Müşteriye bildirilen tahmini tutar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Label htmlFor="estimatedPrice">Tahmini fiyat</Label>
+            <div className="relative">
+              <span
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500"
+                aria-hidden
+              >
+                ₺
+              </span>
+              <Input
+                id="estimatedPrice"
+                type="number"
+                min={0}
+                step="0.01"
+                autoComplete="off"
+                placeholder="0,00"
+                aria-invalid={!!errors.estimatedPrice}
+                className="pl-8"
+                {...register("estimatedPrice")}
+              />
+            </div>
+            {errors.estimatedPrice ? (
+              <p className="text-sm text-destructive" role="alert">
+                {errors.estimatedPrice.message}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 

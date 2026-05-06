@@ -4,7 +4,12 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import Barcode from "@/components/Barcode";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
+
+type ShopProfile = {
+  name: string;
+};
 
 type DukkanNushasiOrder = {
   id: string;
@@ -41,6 +46,7 @@ export default function DukkanNushasiPage() {
   const id = typeof params.id === "string" ? params.id : "";
 
   const [order, setOrder] = useState<DukkanNushasiOrder | null>(null);
+  const [shopProfile, setShopProfile] = useState<ShopProfile | null>(null);
   const [settings, setSettings] = useState<PrintSettings>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +76,9 @@ export default function DukkanNushasiPage() {
           margin-top: 0.5cm;
           margin-bottom: 0.5cm;
         }
+        svg {
+          display: block !important;
+        }
       }
     `;
   }, [settings]);
@@ -84,13 +93,15 @@ export default function DukkanNushasiPage() {
     setLoading(true);
     setError(null);
     try {
-      const [orderRes, settingsRes] = await Promise.all([
+      const [orderRes, settingsRes, shopRes] = await Promise.all([
         fetch(`/api/service-orders/${encodeURIComponent(id)}`),
         fetch("/api/settings"),
+        fetch("/api/shop"),
       ]);
 
       const orderData = await orderRes.json().catch(() => ({}));
       const settingsData = await settingsRes.json().catch(() => ({}));
+      const shopData = await shopRes.json().catch(() => ({}));
 
       if (!orderRes.ok) {
         setError(
@@ -102,6 +113,11 @@ export default function DukkanNushasiPage() {
 
       setOrder(orderData as DukkanNushasiOrder);
       setSettings(settingsData as PrintSettings);
+      if (shopRes.ok && typeof (shopData as ShopProfile)?.name === "string") {
+        setShopProfile({ name: (shopData as ShopProfile).name });
+      } else {
+        setShopProfile(null);
+      }
     } catch {
       setError("Bağlantı hatası");
       setOrder(null);
@@ -164,7 +180,10 @@ export default function DukkanNushasiPage() {
               CİHAZ ETİKETİ
             </p>
             <p className="text-[20px] font-bold leading-tight">
-              {textOrFallback(order.shop?.name, "Dükkan")}
+              {textOrFallback(
+                shopProfile?.name ?? order.shop?.name,
+                "Dükkan",
+              )}
             </p>
             <p className="mt-1 text-xs text-slate-500">
               {new Date(order.arrivedAt).toLocaleString("tr-TR")}
@@ -198,6 +217,33 @@ export default function DukkanNushasiPage() {
               {textOrFallback(order.complaint, "Belirtilmemiş")}
             </p>
           </div>
+
+          {order.orderNumber?.trim() ? (
+            <div
+              style={{
+                textAlign: "center",
+                display: "flex",
+                justifyContent: "center",
+                paddingTop: "16px",
+                borderTop: "1px solid #eee",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  margin: "20px 0",
+                }}
+              >
+                <Barcode
+                  value={order.orderNumber.trim()}
+                  width={2}
+                  height={50}
+                  fontSize={12}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </>

@@ -1,0 +1,776 @@
+"use client";
+
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type CSSProperties,
+} from "react";
+import { toast } from "sonner";
+
+type ShopFull = {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  taxOrTcNo: string | null;
+  taxOffice: string | null;
+  website: string | null;
+  waPhoneNumberId: string | null;
+  waEnabled: boolean;
+  waTokenConfigured?: boolean;
+};
+
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6)
+    return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+  if (digits.length <= 8)
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8)}`;
+}
+
+function phoneToDisplayField(stored: string | null | undefined): string {
+  if (!stored?.trim()) return "";
+  const t = stored.trim();
+  const withoutPrefix = t.startsWith("+90") ? t.replace(/^\+90\s*/, "") : t;
+  const digits = withoutPrefix.replace(/\D/g, "");
+  const national =
+    digits.startsWith("90") && digits.length >= 11
+      ? digits.slice(2, 12)
+      : digits.length > 10
+        ? digits.slice(-10)
+        : digits;
+  return formatPhone(national.slice(0, 10));
+}
+
+function phoneForDisplayRow(stored: string | null | undefined): string | undefined {
+  if (!stored?.trim()) return undefined;
+  const d = phoneToDisplayField(stored);
+  return d ? `+90 ${d}` : undefined;
+}
+
+function PageSkeleton() {
+  return (
+    <div className="mx-auto max-w-[600px] animate-pulse space-y-4">
+      <div className="h-10 w-full rounded bg-slate-100" />
+      <div className="h-7 w-48 rounded bg-slate-200" />
+      <div className="h-4 w-72 rounded bg-slate-100" />
+      <div className="space-y-3 pt-4">
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <div key={i} className="h-10 rounded bg-slate-100" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function SirketimPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [savingWa, setSavingWa] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"sirket" | "whatsapp">("sirket");
+  const [editing, setEditing] = useState(false);
+
+  const [shop, setShop] = useState<ShopFull | null>(null);
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
+  const [address, setAddress] = useState("");
+  const [taxOrTcNo, setTaxOrTcNo] = useState("");
+  const [taxOffice, setTaxOffice] = useState("");
+
+  const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
+  const [waAccessToken, setWaAccessToken] = useState("");
+  const [waEnabled, setWaEnabled] = useState(false);
+  const [showToken, setShowToken] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/shop");
+      const data = (await res.json()) as ShopFull | { error?: string };
+      if (!res.ok) {
+        setError(
+          (data as { error?: string }).error ?? "Bilgiler yüklenemedi",
+        );
+        setShop(null);
+        return;
+      }
+      const row = data as ShopFull;
+      setShop(row);
+      setWaPhoneNumberId(row.waPhoneNumberId ?? "");
+      setWaAccessToken("");
+      setWaEnabled(Boolean(row.waEnabled));
+    } catch {
+      setError("Bağlantı hatası");
+      setShop(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  function openEdit() {
+    if (!shop) return;
+    setName(shop.name ?? "");
+    setPhone(phoneToDisplayField(shop.phone));
+    setEmail(shop.email ?? "");
+    setWebsite(shop.website ?? "");
+    setAddress(shop.address ?? "");
+    setTaxOrTcNo(shop.taxOrTcNo ?? "");
+    setTaxOffice(shop.taxOffice ?? "");
+    setEditing(true);
+  }
+
+  function cancelEdit() {
+    setEditing(false);
+  }
+
+  function selectTab(tab: "sirket" | "whatsapp") {
+    setActiveTab(tab);
+    if (tab === "whatsapp") setEditing(false);
+  }
+
+  async function handleSave() {
+    if (name.trim().length < 2) {
+      toast.error("Şirket adı zorunludur (en az 2 karakter)");
+      return;
+    }
+    const digits = phone.replace(/\D/g, "");
+    if (phone.trim() && digits.length !== 10) {
+      toast.error("Geçerli bir telefon numarası girin (10 hane)");
+      return;
+    }
+    const phoneToSave = phone.trim() ? `+90 ${phone.trim()}` : null;
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          phone: phoneToSave,
+          email: email.trim() || null,
+          website: website.trim() || null,
+          address: address.trim() || null,
+          taxOrTcNo: taxOrTcNo.trim() || null,
+          taxOffice: taxOffice.trim() || null,
+        }),
+      });
+      const data = (await res.json()) as { error?: string; name?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("Şirket bilgileri güncellendi");
+      window.dispatchEvent(
+        new CustomEvent("shop-updated", {
+          detail: { name: name.trim() },
+        }),
+      );
+      setEditing(false);
+      await load();
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveWA() {
+    if (!shop) {
+      toast.error("Şirket bilgisi yüklenemedi");
+      return;
+    }
+    if (shop.name.trim().length < 2) {
+      toast.error("Şirket adı eksik; önce şirket bilgilerini tamamlayın");
+      return;
+    }
+
+    setSavingWa(true);
+    try {
+      const body: Record<string, unknown> = {
+        name: shop.name.trim(),
+        phone: shop.phone,
+        email: shop.email,
+        website: shop.website,
+        address: shop.address,
+        taxOrTcNo: shop.taxOrTcNo,
+        taxOffice: shop.taxOffice,
+        waPhoneNumberId: waPhoneNumberId.trim() || null,
+        waEnabled,
+      };
+      if (waAccessToken.trim()) {
+        body.waAccessToken = waAccessToken.trim();
+      }
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("WhatsApp ayarları kaydedildi");
+      setWaAccessToken("");
+      await load();
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingWa(false);
+    }
+  }
+
+  const inputStyle: CSSProperties = {
+    width: "100%",
+    padding: "10px 12px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "8px",
+    fontSize: "13px",
+  };
+
+  const labelStyle: CSSProperties = {
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#374151",
+    display: "block",
+    marginBottom: "6px",
+  };
+
+  return (
+    <div>
+      {error ? (
+        <p className="mb-4 text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {loading ? (
+        <PageSkeleton />
+      ) : shop ? (
+        <>
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "1px solid #e5e7eb",
+              marginBottom: "24px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => selectTab("sirket")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "sirket" ? "600" : "400",
+                color: activeTab === "sirket" ? "#111" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "sirket"
+                    ? "2px solid #111"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+              }}
+            >
+              Şirket Bilgileri
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("whatsapp")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "whatsapp" ? "600" : "400",
+                color: activeTab === "whatsapp" ? "#25D366" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "whatsapp"
+                    ? "2px solid #25D366"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                fill="#25D366"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.29-1.505A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.366l-.36-.214-3.733.893.924-3.638-.235-.374A9.818 9.818 0 1 1 12 21.818z" />
+              </svg>
+              WhatsApp API
+            </button>
+          </div>
+
+          {activeTab === "sirket" ? (
+            <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+              {!editing ? (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: "18px", fontWeight: "600" }}>
+                        Şirket Bilgileri
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#9ca3af",
+                          marginTop: "2px",
+                        }}
+                      >
+                        Fiş ve belgelerde kullanılır
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openEdit()}
+                      style={{
+                        padding: "7px 16px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        background: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      ✏ Düzenle
+                    </button>
+                  </div>
+
+                  {(
+                    [
+                      { label: "Şirket Adı", value: shop?.name },
+                      {
+                        label: "Telefon",
+                        value: phoneForDisplayRow(shop?.phone),
+                      },
+                      { label: "E-Posta", value: shop?.email },
+                      { label: "Web Sitesi", value: shop?.website },
+                      { label: "Adres", value: shop?.address },
+                      { label: "Vergi No / TC", value: shop?.taxOrTcNo },
+                      { label: "Vergi Dairesi", value: shop?.taxOffice },
+                    ] as const
+                  ).map(({ label, value }) => (
+                    <div
+                      key={label}
+                      style={{
+                        display: "flex",
+                        padding: "12px 0",
+                        borderBottom: "1px solid #f3f4f6",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "160px",
+                          fontSize: "13px",
+                          color: "#9ca3af",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {label}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          color: value ? "#111" : "#d1d5db",
+                        }}
+                      >
+                        {value || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <div style={{ marginBottom: "20px" }}>
+                    <div style={{ fontSize: "18px", fontWeight: "600" }}>
+                      Şirket Bilgileri
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#9ca3af",
+                        marginTop: "2px",
+                      }}
+                    >
+                      Bilgileri güncelleyin
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: "16px" }}>
+                    <div>
+                      <label htmlFor="shop-name" style={labelStyle}>
+                        Şirket Adı / Ünvan{" "}
+                        <span style={{ color: "#dc2626" }}>*</span>
+                      </label>
+                      <input
+                        id="shop-name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        autoComplete="organization"
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="shop-phone" style={labelStyle}>
+                        Telefon
+                      </label>
+                      <div
+                        style={{
+                          display: "flex",
+                          overflow: "hidden",
+                          borderRadius: "8px",
+                          border: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <span
+                          style={{
+                            flexShrink: 0,
+                            borderRight: "1px solid #e5e7eb",
+                            background: "#f9fafb",
+                            padding: "10px 12px",
+                            fontSize: "13px",
+                            color: "#6b7280",
+                          }}
+                        >
+                          +90
+                        </span>
+                        <input
+                          id="shop-phone"
+                          type="text"
+                          value={phone}
+                          onChange={(e) => {
+                            const d = e.target.value.replace(/\D/g, "");
+                            if (d.length > 10) return;
+                            setPhone(formatPhone(e.target.value));
+                          }}
+                          placeholder="5XX XXX XX XX"
+                          maxLength={13}
+                          autoComplete="tel-national"
+                          style={{
+                            ...inputStyle,
+                            border: "none",
+                            borderRadius: 0,
+                            flex: 1,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="shop-email" style={labelStyle}>
+                        E-Posta
+                      </label>
+                      <input
+                        id="shop-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="shop-website" style={labelStyle}>
+                        Web Sitesi
+                      </label>
+                      <input
+                        id="shop-website"
+                        type="url"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        placeholder="https://"
+                        autoComplete="url"
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="shop-address" style={labelStyle}>
+                        Adres
+                      </label>
+                      <textarea
+                        id="shop-address"
+                        rows={4}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        style={{
+                          ...inputStyle,
+                          minHeight: "96px",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: "16px",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                      }}
+                    >
+                      <div style={{ gridColumn: "span 1" }}>
+                        <label htmlFor="shop-tax" style={labelStyle}>
+                          Vergi No / TC Kimlik No
+                        </label>
+                        <input
+                          id="shop-tax"
+                          type="text"
+                          value={taxOrTcNo}
+                          onChange={(e) => setTaxOrTcNo(e.target.value)}
+                          style={inputStyle}
+                        />
+                      </div>
+                      <div style={{ gridColumn: "span 1" }}>
+                        <label htmlFor="shop-tax-office" style={labelStyle}>
+                          Vergi Dairesi
+                        </label>
+                        <input
+                          id="shop-tax-office"
+                          type="text"
+                          value={taxOffice}
+                          onChange={(e) => setTaxOffice(e.target.value)}
+                          style={inputStyle}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "10px",
+                      marginTop: "24px",
+                      paddingTop: "20px",
+                      borderTop: "1px solid #f3f4f6",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => cancelEdit()}
+                      disabled={saving}
+                      style={{
+                        padding: "10px 20px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        background: "white",
+                        cursor: saving ? "wait" : "pointer",
+                        color: "#374151",
+                      }}
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleSave()}
+                      disabled={saving}
+                      style={{
+                        padding: "10px 20px",
+                        background: saving ? "#9ca3af" : "#111827",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        cursor: saving ? "wait" : "pointer",
+                      }}
+                    >
+                      {saving ? "Kaydediliyor…" : "Kaydet"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "24px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
+                  WhatsApp Business API
+                </h1>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
+                  WhatsApp bildirimlerini aktif etmek için API bilgilerinizi
+                  girin
+                </p>
+              </div>
+
+              {shop.waEnabled ? (
+                <div
+                  style={{
+                    background: "#dcfce7",
+                    border: "1px solid #86efac",
+                    borderRadius: "8px",
+                    padding: "12px 16px",
+                    marginBottom: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "13px",
+                    color: "#16a34a",
+                  }}
+                >
+                  ✓ WhatsApp bildirimleri aktif
+                </div>
+              ) : (
+                <div
+                  style={{
+                    background: "#fef9c3",
+                    border: "1px solid #fde047",
+                    borderRadius: "8px",
+                    padding: "12px 16px",
+                    marginBottom: "20px",
+                    fontSize: "13px",
+                    color: "#854d0e",
+                  }}
+                >
+                  WhatsApp bildirimleri henüz aktif değil
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>Phone Number ID</label>
+                  <input
+                    type="text"
+                    value={waPhoneNumberId}
+                    onChange={(e) => setWaPhoneNumberId(e.target.value)}
+                    placeholder="123456789012345"
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>
+                    Access Token
+                    {shop.waTokenConfigured ? (
+                      <span style={{ fontWeight: 400, color: "#16a34a" }}>
+                        {" "}
+                        (Kayıtlı — yeni token için doldurun)
+                      </span>
+                    ) : null}
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showToken ? "text" : "password"}
+                      value={waAccessToken}
+                      onChange={(e) => setWaAccessToken(e.target.value)}
+                      placeholder="EAAxxxxx..."
+                      autoComplete="new-password"
+                      style={{
+                        ...inputStyle,
+                        padding: "10px 40px 10px 12px",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowToken(!showToken)}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#9ca3af",
+                      }}
+                      aria-label={showToken ? "Token gizle" : "Token göster"}
+                    >
+                      {showToken ? "🙈" : "👁"}
+                    </button>
+                  </div>
+                </div>
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    cursor: "pointer",
+                    padding: "10px",
+                    background: "#f9fafb",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={waEnabled}
+                    onChange={(e) => setWaEnabled(e.target.checked)}
+                    style={{ width: "16px", height: "16px" }}
+                  />
+                  <span style={{ fontSize: "13px", color: "#374151" }}>
+                    WhatsApp bildirimlerini aktif et
+                  </span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => void handleSaveWA()}
+                  disabled={savingWa}
+                  style={{
+                    padding: "10px 20px",
+                    background: savingWa ? "#86efac" : "#25D366",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: savingWa ? "wait" : "pointer",
+                    width: "fit-content",
+                  }}
+                >
+                  {savingWa ? "Kaydediliyor…" : "Ayarları Kaydet"}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+}

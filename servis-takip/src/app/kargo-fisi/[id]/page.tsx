@@ -1,7 +1,9 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+
+import Barcode from "@/components/Barcode";
 
 const getSizeCSS = (boyut: string, yon: string) => {
   const sizes: Record<string, string> = {
@@ -33,11 +35,17 @@ const getMarginCSS = (kenar: string) => {
   return margins[kenar] || '0.3cm'
 }
 
+type ShopSender = {
+  name: string
+  phone: string | null
+  address: string | null
+}
+
 export default function KargoFisi() {
   const params = useParams()
   const router = useRouter()
   const [cari, setCari] = useState<any>(null)
-  const [shop, setShop] = useState<any>(null)
+  const [shopSender, setShopSender] = useState<ShopSender | null>(null)
   const [loading, setLoading] = useState(true)
   const [printSettings, setPrintSettings] = useState({
     boyut: '80mm',
@@ -66,10 +74,23 @@ export default function KargoFisi() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`/api/cari/${params.id}`)
-        const data = await res.json()
+        const [cariRes, shopRes] = await Promise.all([
+          fetch(`/api/cari/${params.id}`),
+          fetch('/api/shop'),
+        ])
+        const data = await cariRes.json()
+        const shopData = await shopRes.json()
         setCari(data.cari)
-        setShop(data.shop)
+        if (shopRes.ok && typeof shopData?.name === 'string') {
+          setShopSender({
+            name: shopData.name,
+            phone: typeof shopData.phone === 'string' ? shopData.phone : null,
+            address:
+              typeof shopData.address === 'string' ? shopData.address : null,
+          })
+        } else {
+          setShopSender(null)
+        }
       } catch (e) {
         console.error(e)
       } finally {
@@ -110,6 +131,9 @@ export default function KargoFisi() {
             min-height: unset !important;
             height: auto !important;
           }
+          svg {
+            display: block !important;
+          }
         }
       `}} />
       <div className="page-bg" style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '20px' }}>
@@ -146,7 +170,7 @@ export default function KargoFisi() {
         <div className="fis-wrapper" style={{ width: '280px', margin: '0 auto', backgroundColor: 'white', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', borderRadius: '4px', fontSize: '12px' }}>
           <div style={{ textAlign: 'center', marginBottom: '12px' }}>
             <div style={{ fontWeight: 'bold', fontSize: '14px' }}>KARGO GÖNDERİ FİŞİ</div>
-            <div>{shop?.name || 'Servis Merkezi'}</div>
+            <div>{shopSender?.name || 'Servis Merkezi'}</div>
             <div style={{ color: '#666' }}>{today}</div>
           </div>
 
@@ -154,7 +178,13 @@ export default function KargoFisi() {
 
           <div style={{ border: '1px solid #000', padding: '8px', marginBottom: '8px' }}>
             <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Gönderici Bilgileri</div>
-            <div>{shop?.name || 'Servis Merkezi'}</div>
+            <div><strong>Şirket Adı:</strong> {shopSender?.name || 'Servis Merkezi'}</div>
+            {shopSender?.phone?.trim() ? (
+              <div><strong>Telefon:</strong> {shopSender.phone}</div>
+            ) : null}
+            {shopSender?.address?.trim() ? (
+              <div><strong>Adres:</strong> {shopSender.address}</div>
+            ) : null}
           </div>
 
           <div style={{ border: '1px solid #000', padding: '8px', marginBottom: '8px' }}>
@@ -173,9 +203,16 @@ export default function KargoFisi() {
             </div>
           )}
 
-          <div style={{ border: '1px dashed #000', padding: '8px', marginBottom: '8px', minHeight: '50px' }}>
-            {/* Barkod alanı */}
-          </div>
+          {cari.cariCode?.trim() ? (
+            <div style={{ textAlign: "center", margin: "12px 0" }}>
+              <Barcode
+                value={cari.cariCode.trim()}
+                width={2}
+                height={50}
+                fontSize={12}
+              />
+            </div>
+          ) : null}
 
           <div style={{ textAlign: 'center', marginTop: '16px' }}>
             <div style={{ borderTop: '1px solid #000', width: '120px', margin: '0 auto', paddingTop: '4px' }}>

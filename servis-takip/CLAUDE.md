@@ -20,21 +20,34 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. Single-ten
 ### Veritabanı
 
 - Her tabloda `shopId` alanı var — multi-tenant hazırlığı için, şimdilik tek shop kullanılıyor
-- Shop yoksa otomatik oluştur: ilk kaydı bul, yoksa "Varsayılan Dükkan" adıyla oluştur
+- **Shop** (tek kayıt): `name` (zorunlu), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, `createdAt`, `updatedAt`. Fişler ve sidebar başlığı `/api/shop` ile bu kayıttan beslenir.
+- Shop yoksa otomatik oluştur: ilk kaydı bul, yoksa "Varsayılan Dükkan" adıyla oluştur (`getOrCreateDefaultShop`)
 - Prisma client: `src/lib/prisma.ts` üzerinden import et, direkt `new PrismaClient()` kullanma
 - DATABASE_URL: Transaction pooler (port 6543) + ?pgbouncer=true&connection_limit=1
 - DIRECT_URL: Session pooler (port 5432)
 
 ### Servis Durumları
 
-Sadece şu durumlar geçerli, başka durum ekleme:
+Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/service-order-status.ts` içindeki liste / API doğrulaması:
 
 - in_service → Teknik Serviste
+- returned_device → Teknik Serviste (Tekrar Geldi) — cihaz kayıtta “Cihaz tekrar mı geldi?” işaretlenince başlangıç durumu
 - waiting_approval → Onay Bekliyor
 - approval_given → Onay Verildi
 - waiting_part → Parça Bekliyor
+- sent_to_external → Dış Servise Gönderildi (`externalServiceId`, `externalNote` ile birlikte atanır; servis detayda dış servis seçim diyaloğu açılır)
+- repair_failed → Tamiri Olmuyor
+- no_problem_found → Sorun Görülmedi
+- customer_return_request → Müşteri İade İstiyor
 - completed → Onarım Tamamlandı
 - delivered → Teslim Edildi
+- delivered_repair_failed → Teslim Edildi (Tamir Olmuyor)
+- delivered_no_problem → Teslim Edildi (Sorun Görülmedi)
+- delivered_customer_return → Teslim Edildi (Müşteri İade İstedi)
+
+**Teslim edildi grubu** (dashboard / `hideDelivered` / ciro `totalPrice` toplamı): `delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return`.
+
+**Tamamlananları gizle** (`hideCompleted`): `completed` + teslim edildi grubu.
 
 ### Kaldırılan Özellikler
 
@@ -48,11 +61,14 @@ Sadece şu durumlar geçerli, başka durum ekleme:
 - **SparePartUsage**: hangi kayıtta hangi parça kullanıldı (`sparePartId`, `serviceOrderId`, `quantity`, `costAtTime`, `shopId`).
 - **Cari**: `cariCode` (C202605001), `name`, `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `cargoInfo`, `cargoCode`.
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
+- **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
 
 ### Yeni Sayfalar
 
 - `/stok` — Yedek parça stok yönetimi
 - `/cari` — Cari yönetimi
+- `/dis-servis` — Dış servis firmaları CRUD (arama, Dialog ile ekle/düzenle, bağlı kayıt varken silme engeli)
+- `/sirketim` — Şirket bilgileri (ünvan, telefon, e-posta, web, adres, vergi; fişlerde kullanılır)
 - `/kargo-fisi/[id]` — Kargo gönderi fişi (dashboard dışı)
 - `/fis/[id]` — Müşteri Nüshası / Servis giriş fişi (dashboard dışı)
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
@@ -69,12 +85,15 @@ Sadece şu durumlar geçerli, başka durum ekleme:
 - `/api/customers/search` — **GET** (`?q=` ile müşteri arama, min 3 karakter)
 - `/api/exchange-rates` — **GET** (USD/EUR kurları, 5dk cache)
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
+- `/api/external-services` — **GET** (`?search=`), **POST**
+- `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
+- `/api/shop` — **GET** (ilk shop), **PATCH** (şirket bilgileri güncelle; `name` zorunlu)
 
 **Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
 
 ### Önemli Notlar
 
-- Fiş sayfaları (`fis`, `dukkan-nushasi`, `kargo-fisi`) dashboard layout'u dışında `src/app/` root altında, sidebar görünmez.
+- Fiş sayfaları (`fis`, `dukkan-nushasi`, `kargo-fisi`) dashboard layout'u dışında `src/app/` root altında, sidebar görünmez. Şirket ünvanı bu sayfalarda `GET /api/shop` ile alınır (siparişe gömülü `shop.name` yedek olarak kullanılabilir).
 - Telefon araması `phoneDigits` alanı üzerinden yapılır (normalize edilmiş rakamlar).
 - Kargo fişi aynı sekmede açılır (`router.push`, `window.open` değil).
 - Ciro kartı varsayılan gizli, göz ikonu ile açılır.
@@ -107,13 +126,21 @@ YYYYMM### — örnek: 202605001
 - **Toast:** sonner
 - **Silme:** AlertDialog ile onay
 - **Garanti bilgisi / Genel durum** (cihaz kayıt ve düzenleme): toggle buton grupları — **yeşil** olumlu (Garantili, Kurcalanmamış), **kırmızı** olumsuz (Garantisiz, Kurcalanmış); seçili değil: beyaz/gri border
-- Durum badge renkleri:
+- Durum badge renkleri (`serviceOrderStatusToneClass`):
   - in_service: mavi
+  - returned_device: mor
   - waiting_approval: turuncu
   - approval_given: açık yeşil
   - waiting_part: sarı
+  - sent_to_external: mor (violet)
+  - repair_failed: kırmızı
+  - no_problem_found: gri
+  - customer_return_request: turuncu
   - completed: gri
   - delivered: koyu yeşil
+  - delivered_repair_failed: koyu kırmızı
+  - delivered_no_problem: koyu gri
+  - delivered_customer_return: koyu turuncu
 
 ## Klasör Yapısı
 

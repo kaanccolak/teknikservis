@@ -23,6 +23,7 @@ const serviceOrderInclude = {
   deviceType: true,
   brand: true,
   deviceModel: true,
+  externalService: true,
   statusLogs: {
     orderBy: { createdAt: "desc" as const },
   },
@@ -106,6 +107,12 @@ function buildServiceOrderUpdate(
   if (body.totalPrice !== undefined) {
     prismaData.totalPrice = body.totalPrice;
   }
+  if (body.estimatedPrice !== undefined) {
+    prismaData.estimatedPrice =
+      body.estimatedPrice == null || body.estimatedPrice === 0
+        ? null
+        : body.estimatedPrice;
+  }
   if (body.status !== undefined) {
     prismaData.status = body.status;
     newStatus = body.status;
@@ -165,6 +172,24 @@ function buildServiceOrderUpdate(
     prismaData.physicalDamage = emptyToNull(body.physicalDamage);
   }
 
+  if (body.status !== undefined && body.status !== "sent_to_external") {
+    prismaData.externalService = { disconnect: true };
+    prismaData.externalNote = null;
+  } else {
+    if (body.externalServiceId !== undefined) {
+      const tid = body.externalServiceId?.trim() ?? "";
+      prismaData.externalService = tid
+        ? { connect: { id: tid } }
+        : { disconnect: true };
+    }
+    if (body.externalNote !== undefined) {
+      prismaData.externalNote =
+        body.externalNote === null
+          ? null
+          : emptyToNull(String(body.externalNote));
+    }
+  }
+
   if (statusChanged && newStatus !== undefined && newStatus === existingStatus) {
     delete prismaData.status;
     statusChanged = false;
@@ -201,6 +226,8 @@ export async function PATCH(
       flat.fieldErrors.phone?.[0] ??
       flat.fieldErrors.customerName?.[0] ??
       flat.fieldErrors.arrivedAt?.[0] ??
+      flat.fieldErrors.estimatedPrice?.[0] ??
+      flat.fieldErrors.externalServiceId?.[0] ??
       flat.formErrors[0];
     return NextResponse.json(
       {
@@ -228,7 +255,7 @@ export async function PATCH(
   try {
     existing = await prisma.serviceOrder.findFirst({
       where: { id, shopId: shop.id },
-      select: { id: true, status: true, customerId: true },
+      select: { id: true, status: true, customerId: true, externalServiceId: true },
     });
   } catch (e) {
     return jsonServerError(
@@ -244,6 +271,25 @@ export async function PATCH(
 
   if (body.status !== undefined && !SERVICE_ORDER_STATUS_VALUES.has(body.status)) {
     return NextResponse.json({ error: "Geçersiz durum" }, { status: 400 });
+  }
+
+  const extIdToVerify =
+    body.status === "sent_to_external"
+      ? (body.externalServiceId?.trim() ?? "")
+      : body.externalServiceId != null && String(body.externalServiceId).trim() !== ""
+        ? String(body.externalServiceId).trim()
+        : "";
+  if (extIdToVerify) {
+    const ex = await prisma.externalService.findFirst({
+      where: { id: extIdToVerify, shopId: shop.id },
+      select: { id: true },
+    });
+    if (!ex) {
+      return NextResponse.json(
+        { error: "Geçersiz dış servis seçimi" },
+        { status: 400 },
+      );
+    }
   }
 
   const { prismaData, statusChanged, newStatus } = buildServiceOrderUpdate(

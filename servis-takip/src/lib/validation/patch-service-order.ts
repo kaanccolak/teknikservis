@@ -18,6 +18,7 @@ export const patchServiceOrderSchema = z
   .object({
     status: statusEnum.optional(),
     totalPrice: z.number().min(0).max(99_999_999).nullable().optional(),
+    estimatedPrice: z.number().min(0).max(99_999_999).nullable().optional(),
     technicianNote: z.string().max(20_000).nullable().optional(),
     customerName: z.string().min(2, "En az 2 karakter girin").optional(),
     phone: z.string().optional(),
@@ -43,6 +44,8 @@ export const patchServiceOrderSchema = z
     complaint: z.string().optional(),
     accessories: z.string().optional(),
     physicalDamage: z.string().optional(),
+    externalServiceId: z.string().nullable().optional(),
+    externalNote: z.string().max(20_000).nullable().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
@@ -96,6 +99,17 @@ export const patchServiceOrderSchema = z
               ? "Telefon numarasını eksiksiz girin (5XX XXX XX XX)."
               : "Geçerli bir Türkiye cep numarası girin (5XX).",
           path: ["phone"],
+        });
+      }
+    }
+
+    if (data.status === "sent_to_external") {
+      const ext = data.externalServiceId?.trim() ?? "";
+      if (!ext) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Dış servis seçin",
+          path: ["externalServiceId"],
         });
       }
     }

@@ -3,7 +3,6 @@
 import {
   ArrowLeft,
   Loader2,
-  MessageSquare,
   Pencil,
   Printer,
   Trash2,
@@ -11,7 +10,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type CSSProperties,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -24,6 +28,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -35,20 +47,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WhatsAppWhiteIcon } from "@/components/whatsapp-brand-icon";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
 import {
-  SERVICE_ORDER_STATUS_OPTIONS,
-  serviceOrderStatusLabel,
-  serviceOrderStatusToneClass,
-} from "@/lib/service-order-status";
+  formatPriceForWa,
+  sendWhatsApp,
+  WA_TEMPLATES,
+} from "@/lib/whatsapp";
+import { serviceOrderStatusLabel } from "@/lib/service-order-status";
+import {
+  getStatusUiConfig,
+  STATUS_GROUPS,
+} from "@/lib/service-order-status-ui-config";
+import { STATUS_CONFIG } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
 
 type Customer = { id: string; name: string; phone: string | null };
@@ -81,10 +93,22 @@ type EligibleSparePart = {
   cost: number;
 };
 
+type ExternalServiceRow = {
+  id: string;
+  name: string;
+  contactName: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+};
+
 type ServiceOrderDetail = {
   id: string;
   orderNumber: string | null;
   status: string;
+  externalServiceId?: string | null;
+  externalNote?: string | null;
+  externalService?: ExternalServiceRow | null;
   serialNo: string | null;
   noSerialNo: boolean;
   warrantyStatus: string | null;
@@ -100,6 +124,7 @@ type ServiceOrderDetail = {
   modelName: string | null;
   technicianNote: string | null;
   totalPrice: number | null;
+  estimatedPrice: number | null;
   customer: Customer;
   cari?: NamedEntity | null;
   deviceType: NamedEntity | null;
@@ -149,19 +174,6 @@ function warrantyLabel(w: string | null) {
   return "—";
 }
 
-function statusSelectItemsFor(currentStatus: string) {
-  const base = Object.fromEntries(
-    SERVICE_ORDER_STATUS_OPTIONS.map((o) => [o.value, o.label]),
-  ) as Record<string, string>;
-  if (currentStatus && !base[currentStatus]) {
-    return {
-      ...base,
-      [currentStatus]: serviceOrderStatusLabel(currentStatus),
-    };
-  }
-  return base;
-}
-
 function DetailRow({
   label,
   children,
@@ -207,6 +219,13 @@ export default function ServisDetayPage() {
   const [savingNote, setSavingNote] = useState(false);
   const [savingPrice, setSavingPrice] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [externalSendOpen, setExternalSendOpen] = useState(false);
+  const [externalServicesList, setExternalServicesList] = useState<
+    ExternalServiceRow[]
+  >([]);
+  const [loadingExternalServices, setLoadingExternalServices] = useState(false);
+  const [externalSendServiceId, setExternalSendServiceId] = useState("");
+  const [externalSendNote, setExternalSendNote] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -216,6 +235,15 @@ export default function ServisDetayPage() {
   const [loadingSpares, setLoadingSpares] = useState(false);
   const [savingSpare, setSavingSpare] = useState(false);
   const [removingUsageId, setRemovingUsageId] = useState<string | null>(null);
+
+  const [editingEstimated, setEditingEstimated] = useState(false);
+  const [estimatedPrice, setEstimatedPrice] = useState("");
+  const [savingEstimated, setSavingEstimated] = useState(false);
+
+  const [waShopReady, setWaShopReady] = useState(false);
+  const [waSendingPrice, setWaSendingPrice] = useState(false);
+  const [waApprovalOpen, setWaApprovalOpen] = useState(false);
+  const [waSendingApproval, setWaSendingApproval] = useState(false);
 
   const nativeSelectClassName =
     "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
@@ -259,6 +287,15 @@ export default function ServisDetayPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!order || editingEstimated) return;
+    setEstimatedPrice(
+      order.estimatedPrice != null && !Number.isNaN(order.estimatedPrice)
+        ? String(order.estimatedPrice)
+        : "",
+    );
+  }, [order?.estimatedPrice, order?.id, editingEstimated]);
 
   const loadSpareOptions = useCallback(async (orderId: string) => {
     setLoadingSpares(true);
@@ -372,13 +409,97 @@ export default function ServisDetayPage() {
     return data as ServiceOrderDetail;
   }
 
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop")
+      .then((r) => r.json())
+      .then(
+        (j: {
+          waEnabled?: boolean;
+          waPhoneNumberId?: string | null;
+          waTokenConfigured?: boolean;
+        }) => {
+          if (cancelled) return;
+          setWaShopReady(
+            Boolean(
+              j.waEnabled &&
+                j.waPhoneNumberId?.trim() &&
+                j.waTokenConfigured,
+            ),
+          );
+        },
+      )
+      .catch(() => {
+        if (!cancelled) setWaShopReady(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const loadExternalServices = useCallback(async () => {
+    setLoadingExternalServices(true);
+    try {
+      const res = await fetch("/api/external-services");
+      const data = (await res.json()) as ExternalServiceRow[] | { error?: string };
+      if (!res.ok) {
+        setExternalServicesList([]);
+        return;
+      }
+      setExternalServicesList(data as ExternalServiceRow[]);
+    } catch {
+      setExternalServicesList([]);
+    } finally {
+      setLoadingExternalServices(false);
+    }
+  }, []);
+
   async function handleStatusChange(next: string | null) {
     if (!order || next == null || next === order.status) return;
+    if (next === "sent_to_external") {
+      setExternalSendServiceId(order.externalServiceId ?? "");
+      setExternalSendNote(order.externalNote ?? "");
+      setExternalSendOpen(true);
+      void loadExternalServices();
+      return;
+    }
+    const offerApprovalWa =
+      next === "approval_given" &&
+      Boolean(order.customer.phone?.trim()) &&
+      waShopReady;
+
     setSavingStatus(true);
     try {
       const updated = await patchOrder({ status: next });
       setOrder(updated);
       toast.success("Durum güncellendi");
+      if (offerApprovalWa) {
+        setWaApprovalOpen(true);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
+    } finally {
+      setSavingStatus(false);
+    }
+  }
+
+  async function submitExternalSend() {
+    if (!order) return;
+    const sid = externalSendServiceId.trim();
+    if (!sid) {
+      toast.error("Dış servis seçin");
+      return;
+    }
+    setSavingStatus(true);
+    try {
+      const updated = await patchOrder({
+        status: "sent_to_external",
+        externalServiceId: sid,
+        externalNote: externalSendNote.trim() || null,
+      });
+      setOrder(updated);
+      setExternalSendOpen(false);
+      toast.success("Kayıt dış servise gönderildi olarak işaretlendi");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
     } finally {
@@ -459,6 +580,109 @@ export default function ServisDetayPage() {
     }
   }
 
+  async function handleWAPriceNotification() {
+    if (!order) return;
+    let priceValue: number | null = null;
+    if (order.totalPrice != null && order.totalPrice > 0) {
+      priceValue = order.totalPrice;
+    } else {
+      const raw = priceDraft.trim().replace(",", ".");
+      if (raw) {
+        const x = Number(raw);
+        if (Number.isFinite(x) && x > 0) priceValue = x;
+      }
+    }
+    if (priceValue == null || priceValue <= 0) {
+      toast.error("Önce ücret girin");
+      return;
+    }
+    const phone = order.customer.phone;
+    if (!phone?.replace(/\D/g, "").length) {
+      toast.error("Müşteri telefonu yok");
+      return;
+    }
+    if (!waShopReady) {
+      toast.error("WhatsApp entegrasyonu aktif değil");
+      return;
+    }
+    setWaSendingPrice(true);
+    try {
+      await sendWhatsApp(
+        phone,
+        WA_TEMPLATES.PRICE_NOTIFICATION.name,
+        WA_TEMPLATES.PRICE_NOTIFICATION.getParams(
+          order.customer.name,
+          formatPriceForWa(priceValue),
+          order.orderNumber ?? formatServiceOrderNo(order),
+        ),
+      );
+      toast.success("WhatsApp mesajı gönderildi!");
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "WhatsApp mesajı gönderilemedi",
+      );
+    } finally {
+      setWaSendingPrice(false);
+    }
+  }
+
+  async function handleSendApprovalWhatsApp() {
+    if (!order?.customer.phone?.trim()) return;
+    if (!waShopReady) {
+      toast.error("WhatsApp entegrasyonu aktif değil");
+      return;
+    }
+    setWaSendingApproval(true);
+    try {
+      await sendWhatsApp(
+        order.customer.phone,
+        WA_TEMPLATES.APPROVAL_RECEIVED.name,
+        WA_TEMPLATES.APPROVAL_RECEIVED.getParams(
+          order.customer.name,
+          order.orderNumber ?? formatServiceOrderNo(order),
+        ),
+      );
+      toast.success("WhatsApp mesajı gönderildi!");
+      setWaApprovalOpen(false);
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "WhatsApp mesajı gönderilemedi",
+      );
+    } finally {
+      setWaSendingApproval(false);
+    }
+  }
+
+  async function handleSaveEstimated() {
+    if (!order) return;
+    const raw = estimatedPrice.trim().replace(",", ".");
+    let value: number | null;
+    if (raw === "") {
+      value = null;
+    } else {
+      const n = Number(raw);
+      if (Number.isNaN(n) || n < 0) {
+        toast.error("Geçerli bir tutar girin");
+        return;
+      }
+      value = n === 0 ? null : n;
+    }
+    setSavingEstimated(true);
+    try {
+      const updated = await patchOrder({ estimatedPrice: value });
+      setOrder(updated);
+      setEditingEstimated(false);
+      toast.success("Tahmini fiyat güncellendi");
+      await load();
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "Tahmini fiyat güncellenemedi",
+      );
+    } finally {
+      setSavingEstimated(false);
+    }
+  }
+
   if (loading) {
     return (
       <div
@@ -492,18 +716,168 @@ export default function ServisDetayPage() {
   }
 
   const titleNo = formatServiceOrderNo(order);
+  const currentStatusUi = getStatusUiConfig(order.status);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 border-b border-slate-200/80 pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-        <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 lg:min-w-[12rem]">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-            onClick={handleBack}
-          >
+      <style>{`
+        .status-btn:hover:not(.active):not(:disabled) {
+          background: var(--hover-bg) !important;
+          border-color: var(--hover-color) !important;
+          color: var(--hover-color) !important;
+        }
+      `}</style>
+
+      <Dialog
+        open={externalSendOpen}
+        onOpenChange={setExternalSendOpen}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dış Servise Gönder</DialogTitle>
+            <DialogDescription>
+              Kaydı hangi dış servise gönderdiğinizi seçin. Yeni firma eklemek için{" "}
+              <Link
+                href="/dis-servis"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Dış Servisler
+              </Link>{" "}
+              sayfasını kullanın.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="ext-svc">Dış servis</Label>
+              {loadingExternalServices ? (
+                <p className="flex items-center gap-2 text-sm text-slate-600">
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  Yükleniyor…
+                </p>
+              ) : (
+                <select
+                  id="ext-svc"
+                  value={externalSendServiceId}
+                  onChange={(e) => setExternalSendServiceId(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
+                >
+                  <option value="">Seçin</option>
+                  {externalServicesList.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!loadingExternalServices && externalServicesList.length === 0 ? (
+                <p className="text-xs text-amber-800">
+                  Henüz dış servis tanımı yok. Önce liste oluşturun.
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ext-note">Dış servise gönderme notu (isteğe bağlı)</Label>
+              <Textarea
+                id="ext-note"
+                rows={3}
+                value={externalSendNote}
+                onChange={(e) => setExternalSendNote(e.target.value)}
+                placeholder="Takip no, iletişim, özel talimat…"
+                className="resize-y"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setExternalSendOpen(false)}
+              disabled={savingStatus}
+            >
+              İptal
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void submitExternalSend()}
+              disabled={
+                savingStatus ||
+                !externalSendServiceId.trim() ||
+                loadingExternalServices
+              }
+            >
+              {savingStatus ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Kaydediliyor…
+                </>
+              ) : (
+                "Gönder"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={waApprovalOpen} onOpenChange={setWaApprovalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Onay Durumu Güncellendi</DialogTitle>
+            <DialogDescription>
+              Müşteriye WhatsApp ile onay bildirimi göndermek ister misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setWaApprovalOpen(false)}
+              disabled={waSendingApproval}
+            >
+              Atla
+            </Button>
+            <Button
+              type="button"
+              className="bg-[#25D366] text-white hover:bg-[#20bd5a]"
+              onClick={() => void handleSendApprovalWhatsApp()}
+              disabled={waSendingApproval || !waShopReady}
+            >
+              {waSendingApproval ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Gönderiliyor…
+                </>
+              ) : (
+                <>
+                  <WhatsAppWhiteIcon size={14} className="mr-2" />
+                  Gönder
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "12px",
+          marginBottom: "24px",
+          paddingBottom: "16px",
+          borderBottom: "1px solid #e5e7eb",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <Button type="button" variant="outline" size="sm" onClick={handleBack}>
             <ArrowLeft className="mr-2 size-4" aria-hidden />
             Geri Dön
           </Button>
@@ -565,36 +939,28 @@ export default function ServisDetayPage() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
-        <h1 className="min-w-0 flex-1 text-center text-xl font-semibold tracking-tight text-slate-900 lg:text-2xl">
-          Kayıt No #{titleNo}
-        </h1>
-        <div className="flex flex-wrap items-center justify-center gap-2 lg:w-auto lg:min-w-[280px] lg:justify-end">
-          <Badge
-            variant="outline"
-            className={cn(
-              "border font-medium shadow-none",
-              serviceOrderStatusToneClass(order.status),
-            )}
+        <div style={{ textAlign: "right" }}>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#9ca3af",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
           >
-            {serviceOrderStatusLabel(order.status)}
-          </Badge>
-          <Select
-            value={order.status}
-            onValueChange={(v) => void handleStatusChange(v)}
-            disabled={savingStatus}
-            items={statusSelectItemsFor(order.status)}
+            Kayıt No
+          </div>
+          <div
+            style={{
+              fontSize: "22px",
+              fontWeight: 700,
+              fontFamily:
+                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              color: "#111",
+            }}
           >
-            <SelectTrigger size="sm" className="min-w-[11rem]">
-              <SelectValue placeholder="Durumu Güncelle" />
-            </SelectTrigger>
-            <SelectContent>
-              {SERVICE_ORDER_STATUS_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            #{titleNo}
+          </div>
         </div>
       </div>
 
@@ -669,6 +1035,51 @@ export default function ServisDetayPage() {
               </dl>
             </CardContent>
           </Card>
+
+          {order.status === "sent_to_external" ? (
+            <div
+              style={{
+                border: "1px solid #ddd6fe",
+                borderRadius: "8px",
+                padding: "16px",
+                background: "#f5f3ff",
+                marginTop: "12px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#7c3aed",
+                  fontWeight: 600,
+                  marginBottom: "8px",
+                }}
+              >
+                DIŞ SERVİS BİLGİSİ
+              </div>
+              {order.externalService ? (
+                <>
+                  <div className="text-sm text-slate-800">
+                    Servis: {order.externalService.name}
+                  </div>
+                  <div className="text-sm text-slate-800">
+                    Yetkili: {order.externalService.contactName ?? "—"}
+                  </div>
+                  <div className="text-sm text-slate-800">
+                    Telefon: {order.externalService.phone ?? "—"}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-600">
+                  Dış servis seçilmemiş veya kayıt silinmiş.
+                </p>
+              )}
+              {order.externalNote?.trim() ? (
+                <div className="mt-2 text-sm text-slate-800">
+                  Not: {order.externalNote}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <Card>
             <CardHeader className="border-b border-slate-100 pb-4">
@@ -881,29 +1292,219 @@ export default function ServisDetayPage() {
               <CardTitle>Durum Güncelle</CardTitle>
               <CardDescription>
                 Mevcut:{" "}
-                <span className="font-medium text-slate-800">
-                  {serviceOrderStatusLabel(order.status)}
+                <span
+                  className="font-semibold"
+                  style={{ color: currentStatusUi.color }}
+                >
+                  {currentStatusUi.label}
                 </span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              {SERVICE_ORDER_STATUS_OPTIONS.map((o) => {
-                const active = order.status === o.value;
-                return (
-                  <Button
-                    key={o.value}
-                    type="button"
-                    variant={active ? "secondary" : "outline"}
-                    className="h-auto w-full justify-start py-2.5 text-left font-normal"
-                    disabled={savingStatus || active}
-                    onClick={() => void handleStatusChange(o.value)}
-                  >
-                    {o.label}
-                  </Button>
-                );
-              })}
+            <CardContent className="pt-4">
+              <div>
+                {STATUS_GROUPS.map((group, gi) => (
+                  <div key={group.title}>
+                    {gi > 0 ? (
+                      <div
+                        style={{
+                          margin: "4px 0",
+                          borderTop: "1px solid #e5e7eb",
+                        }}
+                        role="separator"
+                      />
+                    ) : null}
+                    <div style={{ marginBottom: "12px" }}>
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#9ca3af",
+                          fontWeight: 600,
+                          letterSpacing: "0.05em",
+                          textTransform: "uppercase",
+                          marginBottom: "6px",
+                          paddingLeft: "2px",
+                        }}
+                      >
+                        {group.title}
+                      </div>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "6px",
+                        }}
+                      >
+                        {group.statuses.map((statusKey) => {
+                          const config = STATUS_CONFIG[statusKey];
+                          if (!config) return null;
+                          const isActive = order.status === statusKey;
+                          return (
+                            <button
+                              key={statusKey}
+                              type="button"
+                              onClick={() => void handleStatusChange(statusKey)}
+                              disabled={isActive || savingStatus}
+                              className={`status-btn ${isActive ? "active" : ""}`}
+                              style={
+                                {
+                                  padding: "8px 10px",
+                                  borderRadius: "6px",
+                                  fontSize: "11px",
+                                  fontWeight: isActive ? 600 : 400,
+                                  cursor:
+                                    isActive || savingStatus
+                                      ? "default"
+                                      : "pointer",
+                                  textAlign: "left",
+                                  transition: "all 0.15s",
+                                  border: `1.5px solid ${isActive ? config.color : config.border}`,
+                                  background: isActive ? config.bg : "white",
+                                  color: isActive ? config.color : "#374151",
+                                  "--hover-color": config.color,
+                                  "--hover-bg": config.bg,
+                                } as CSSProperties
+                              }
+                            >
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  width: "6px",
+                                  height: "6px",
+                                  borderRadius: "50%",
+                                  background: config.color,
+                                  marginRight: "6px",
+                                  verticalAlign: "middle",
+                                }}
+                              />
+                              {config.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
+
+          <div
+            style={{
+              border: "1px solid #e9ecef",
+              borderRadius: "8px",
+              padding: "16px",
+              marginBottom: "12px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+                marginBottom: "12px",
+              }}
+            >
+              Tahmini Fiyat
+            </div>
+
+            {!editingEstimated ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontSize: "18px", fontWeight: "600" }}>
+                  {order.estimatedPrice != null &&
+                  !Number.isNaN(order.estimatedPrice)
+                    ? `₺${order.estimatedPrice.toLocaleString("tr-TR", {
+                        minimumFractionDigits: 2,
+                      })}`
+                    : "—"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEditingEstimated(true)}
+                  style={{
+                    fontSize: "12px",
+                    color: "#666",
+                    background: "none",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    padding: "4px 8px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Düzenle
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ color: "#666" }}>₺</span>
+                <input
+                  type="number"
+                  value={estimatedPrice}
+                  onChange={(e) => setEstimatedPrice(e.target.value)}
+                  style={{
+                    flex: 1,
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    padding: "6px 8px",
+                    fontSize: "14px",
+                  }}
+                  placeholder="0.00"
+                  min={0}
+                  step="0.01"
+                  disabled={savingEstimated}
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleSaveEstimated()}
+                  disabled={savingEstimated}
+                  style={{
+                    background: "#111",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "6px 12px",
+                    cursor: savingEstimated ? "wait" : "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  {savingEstimated ? "…" : "Kaydet"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingEstimated(false);
+                    setEstimatedPrice(
+                      order.estimatedPrice != null &&
+                        !Number.isNaN(order.estimatedPrice)
+                        ? String(order.estimatedPrice)
+                        : "",
+                    );
+                  }}
+                  disabled={savingEstimated}
+                  style={{
+                    background: "none",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    padding: "6px 8px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  İptal
+                </button>
+              </div>
+            )}
+          </div>
 
           <Card>
             <CardHeader className="border-b border-slate-100 pb-4">
@@ -955,17 +1556,51 @@ export default function ServisDetayPage() {
                     "Ücreti Kaydet"
                   )}
                 </Button>
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  className="gap-1.5"
-                  onClick={() =>
-                    toast.info("SMS özelliği yakında aktif olacak")
+                  disabled={
+                    !waShopReady ||
+                    waSendingPrice ||
+                    !order.customer.phone?.replace(/\D/g, "").length
                   }
+                  title={
+                    !waShopReady
+                      ? "WhatsApp entegrasyonu kapalı"
+                      : !order.customer.phone?.replace(/\D/g, "").length
+                        ? "Müşteri telefonu yok"
+                        : undefined
+                  }
+                  onClick={() => void handleWAPriceNotification()}
+                  style={{
+                    background:
+                      !waShopReady ||
+                      !order.customer.phone?.replace(/\D/g, "").length
+                        ? "#9ca3af"
+                        : "#25D366",
+                    color: "white",
+                    padding: "8px 14px",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor:
+                      !waShopReady ||
+                      waSendingPrice ||
+                      !order.customer.phone?.replace(/\D/g, "").length
+                        ? "not-allowed"
+                        : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "12px",
+                    opacity: waSendingPrice ? 0.85 : 1,
+                  }}
                 >
-                  <MessageSquare className="size-4 shrink-0" aria-hidden />
-                  SMS Gönder
-                </Button>
+                  {waSendingPrice ? (
+                    <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                  ) : (
+                    <WhatsAppWhiteIcon size={14} />
+                  )}
+                  WhatsApp ile Bildir
+                </button>
               </div>
             </CardContent>
           </Card>

@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import Barcode from "@/components/Barcode";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
+
+type ShopProfile = {
+  name: string;
+};
 
 type FisOrder = {
   id: string;
@@ -60,6 +65,7 @@ export default function ServisFisPage() {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : "";
   const [order, setOrder] = useState<FisOrder | null>(null);
+  const [shopProfile, setShopProfile] = useState<ShopProfile | null>(null);
   const [settings, setSettings] = useState<PrintSettings>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +94,9 @@ export default function ServisFisPage() {
           margin-top: 0.5cm;
           margin-bottom: 0.5cm;
         }
+        svg {
+          display: block !important;
+        }
       }
     `;
   }, [settings]);
@@ -97,18 +106,25 @@ export default function ServisFisPage() {
     setLoading(true);
     setError(null);
     try {
-      const [orderRes, settingsRes] = await Promise.all([
+      const [orderRes, settingsRes, shopRes] = await Promise.all([
         fetch(`/api/service-orders/${encodeURIComponent(id)}`),
         fetch("/api/settings"),
+        fetch("/api/shop"),
       ]);
       const orderData = await orderRes.json().catch(() => ({}));
       const settingsData = await settingsRes.json().catch(() => ({}));
+      const shopData = await shopRes.json().catch(() => ({}));
       if (!orderRes.ok) {
         setError(typeof orderData.error === "string" ? orderData.error : "Kayıt yüklenemedi");
         return;
       }
       setOrder(orderData as FisOrder);
       setSettings(settingsData as PrintSettings);
+      if (shopRes.ok && typeof (shopData as ShopProfile)?.name === "string") {
+        setShopProfile({ name: (shopData as ShopProfile).name });
+      } else {
+        setShopProfile(null);
+      }
     } catch {
       setError("Kayıt yüklenemedi");
     } finally {
@@ -166,7 +182,9 @@ export default function ServisFisPage() {
         >
           <div className="mb-6 flex items-start justify-between border-b-2 border-slate-900 pb-5">
             <div>
-              <p className="text-[22px] font-bold leading-tight">{order.shop.name}</p>
+              <p className="text-[22px] font-bold leading-tight">
+                {shopProfile?.name ?? order.shop.name}
+              </p>
               <p className="mt-1 text-xs text-slate-500">SERVİS GİRİŞ FİŞİ</p>
             </div>
             <div className="text-right">
@@ -262,6 +280,31 @@ export default function ServisFisPage() {
               </p>
             </div>
           </div>
+
+          {order.orderNumber?.trim() ? (
+            <div
+              style={{
+                textAlign: "center",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  margin: "20px 0",
+                }}
+              >
+                <Barcode
+                  value={order.orderNumber.trim()}
+                  width={2}
+                  height={50}
+                  fontSize={12}
+                />
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-4 grid grid-cols-2 gap-10">
             <div className="text-center">

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
+import { SERVICE_ORDER_DELIVERED_STATUSES } from "@/lib/service-order-status";
 
 /** Takvim günü (sunucu yerel saati) */
 function localDayBounds(d = new Date()): { start: Date; end: Date } {
@@ -124,7 +125,7 @@ async function sumDeliveredRevenue(
   const agg = await prisma.serviceOrder.aggregate({
     where: {
       shopId,
-      status: "delivered",
+      status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
       updatedAt: { gte: start, lte: end },
     },
     _sum: { totalPrice: true },
@@ -173,7 +174,7 @@ export async function GET(request: Request) {
   const { start: dayStart, end: dayEnd } = localDayBounds();
 
   try {
-    const [statusGroups, completedToday, recentOrders, revenueAgg] =
+    const [statusGroups, completedToday, recentOrders, revenueAgg, externalService] =
       await Promise.all([
         prisma.serviceOrder.groupBy({
           by: ["status"],
@@ -208,10 +209,13 @@ export async function GET(request: Request) {
         prisma.serviceOrder.aggregate({
           where: {
             shopId,
-            status: "delivered",
+            status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
             updatedAt: { gte: dayStart, lte: dayEnd },
           },
           _sum: { totalPrice: true },
+        }),
+        prisma.serviceOrder.count({
+          where: { shopId, status: "sent_to_external" },
         }),
       ]);
 
@@ -223,7 +227,10 @@ export async function GET(request: Request) {
 
     const totalAll = statusGroups.reduce((sum, row) => sum + row._count._all, 0);
     const completedTotal = get("completed");
-    const deliveredTotal = get("delivered");
+    const deliveredTotal = SERVICE_ORDER_DELIVERED_STATUSES.reduce(
+      (s, st) => s + get(st),
+      0,
+    );
     const totalActive = totalAll - completedTotal - deliveredTotal;
 
     const waitingApproval = get("waiting_approval");
@@ -241,6 +248,7 @@ export async function GET(request: Request) {
       inService,
       completedToday,
       revenue,
+      externalService,
       recentOrders,
     };
 
