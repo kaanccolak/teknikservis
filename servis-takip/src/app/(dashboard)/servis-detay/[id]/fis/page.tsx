@@ -23,29 +23,12 @@ type FisOrder = {
   deviceTypeName: string | null;
   brandName: string | null;
   modelName: string | null;
-  totalPrice: number | null;
   shop: { name: string };
   customer: { name: string; phone: string | null };
   deviceType: { name: string } | null;
   brand: { name: string } | null;
   deviceModel: { name: string } | null;
-  sparePartUsages: Array<{
-    id: string;
-    quantity: number;
-    costAtTime: number;
-    sparePart: { name: string; partCode: string | null };
-  }>;
 };
-
-function formatTry(n: number | null | undefined) {
-  if (n == null || Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-}
 
 function formatArrivedAt(iso: string) {
   const d = new Date(iso);
@@ -151,17 +134,6 @@ export default function ServisFisPage() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  const partsTotal =
-    order?.sparePartUsages?.reduce(
-      (acc, u) => acc + u.quantity * u.costAtTime,
-      0,
-    ) ?? 0;
-  const labor =
-    order?.totalPrice != null
-      ? Math.max(0, order.totalPrice - partsTotal)
-      : null;
-  const grandTotal = order?.totalPrice ?? null;
 
   const deviceType = order?.deviceType?.name ?? order?.deviceTypeName ?? "—";
   const brand = order?.brand?.name ?? order?.brandName ?? "—";
@@ -392,104 +364,6 @@ export default function ServisFisPage() {
                 <div style={{ marginTop: "4pt", whiteSpace: "pre-wrap" }}>
                   {dash(order.physicalDamage)}
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {(order.sparePartUsages?.length ?? 0) > 0 ? (
-            <section className="fis-section" style={{ marginBottom: "12pt" }}>
-              <div
-                className="font-semibold"
-                style={{ marginBottom: "6pt", fontSize: "10pt" }}
-              >
-                Kullanılan Parçalar
-              </div>
-              <table className="fis-table w-full border-collapse border border-black text-left text-sm">
-                <thead>
-                  <tr className="border-b-2 border-black">
-                    <th className="font-semibold" style={{ padding: "8pt 10pt" }}>
-                      Parça Adı
-                    </th>
-                    <th
-                      className="border-l border-black font-semibold"
-                      style={{ padding: "8pt 10pt", width: "12%" }}
-                    >
-                      Adet
-                    </th>
-                    <th
-                      className="border-l border-black font-semibold"
-                      style={{ padding: "8pt 10pt", width: "22%" }}
-                    >
-                      Birim Fiyat
-                    </th>
-                    <th
-                      className="border-l border-black font-semibold"
-                      style={{ padding: "8pt 10pt", width: "22%" }}
-                    >
-                      Toplam
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.sparePartUsages.map((u) => {
-                    const line = u.quantity * u.costAtTime;
-                    const name =
-                      u.sparePart.name +
-                      (u.sparePart.partCode
-                        ? ` (${u.sparePart.partCode})`
-                        : "");
-                    return (
-                      <tr key={u.id} className="border-b border-black">
-                        <td style={{ padding: "8pt 10pt" }}>{name}</td>
-                        <td
-                          className="border-l border-black tabular-nums"
-                          style={{ padding: "8pt 10pt" }}
-                        >
-                          {u.quantity}
-                        </td>
-                        <td
-                          className="border-l border-black tabular-nums"
-                          style={{ padding: "8pt 10pt" }}
-                        >
-                          {formatTry(u.costAtTime)}
-                        </td>
-                        <td
-                          className="border-l border-black tabular-nums font-medium"
-                          style={{ padding: "8pt 10pt" }}
-                        >
-                          {formatTry(line)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </section>
-          ) : null}
-
-          <section
-            className="fis-section text-right"
-            style={{ marginBottom: "16pt" }}
-          >
-            <div className="inline-block min-w-[200px] text-left text-sm">
-              <div className="flex justify-between gap-8 border-b border-black py-1">
-                <span className="font-semibold">Parça Toplamı:</span>
-                <span className="tabular-nums">{formatTry(partsTotal)}</span>
-              </div>
-              <div className="flex justify-between gap-8 border-b border-black py-1">
-                <span className="font-semibold">İşçilik:</span>
-                <span className="tabular-nums">
-                  {labor != null ? formatTry(labor) : "—"}
-                </span>
-              </div>
-              <div
-                className="flex justify-between gap-8 py-2"
-                style={{ fontSize: "12pt" }}
-              >
-                <span className="font-bold">Genel Toplam:</span>
-                <span className="tabular-nums font-bold">
-                  {formatTry(grandTotal)}
-                </span>
               </div>
             </div>
           </section>
