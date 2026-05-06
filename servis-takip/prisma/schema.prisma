@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Shop {
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  customers   Customer[]
+  orders      ServiceOrder[]
+  deviceTypes DeviceType[]
+  brands      Brand[]
+  models      DeviceModel[]
+}
+
+model Customer {
+  id        String         @id @default(cuid())
+  shopId    String
+  shop      Shop           @relation(fields: [shopId], references: [id])
+  name      String
+  phone     String? @db.VarChar(20)
+  createdAt DateTime       @default(now())
+  orders    ServiceOrder[]
+}
+
+model DeviceType {
+  id        String         @id @default(cuid())
+  shopId    String
+  shop      Shop           @relation(fields: [shopId], references: [id])
+  name      String
+  brands    Brand[]
+  createdAt DateTime       @default(now())
+  orders ServiceOrder[]
+}
+
+model Brand {
+  id           String        @id @default(cuid())
+  shopId       String
+  shop         Shop          @relation(fields: [shopId], references: [id])
+  deviceTypeId String
+  deviceType   DeviceType    @relation(fields: [deviceTypeId], references: [id])
+  name         String
+  models       DeviceModel[]
+  createdAt    DateTime      @default(now())
+  orders ServiceOrder[]
+}
+
+model DeviceModel {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id])
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id])
+  name      String
+  createdAt DateTime @default(now())
+  orders ServiceOrder[]
+}
+
+model ServiceOrder {
+  id          String   @id @default(cuid())
+  /// YYYYMM001; eski satırlar null olabilir (tamamlanınca NOT NULL’a çekilebilir).
+  orderNumber String?  @unique
+  shopId     String
+  shop       Shop     @relation(fields: [shopId], references: [id])
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  deviceTypeId   String?
+  brandId        String?
+  deviceModelId  String?
+  deviceType  DeviceType?  @relation(fields: [deviceTypeId], references: [id])
+  brand       Brand?       @relation(fields: [brandId], references: [id])
+  deviceModel DeviceModel? @relation(fields: [deviceModelId], references: [id])
+
+  deviceTypeName String?
+  brandName      String?
+  modelName      String?
+
+  serialNo   String?
+  noSerialNo Boolean @default(false)
+
+  /// guaranteed | no_warranty
+  warrantyStatus String?
+  isTampered     Boolean @default(false)
+
+  complaint      String?
+  accessories    String?
+  physicalDamage String?
+
+  technicianNote String?
+  totalPrice     Float?
+
+  /// Uygulama durumları: in_service, waiting_approval, approval_given, waiting_part, completed, delivered (eski kayıtlarda başka anahtarlar olabilir).
+  status String @default("in_service")
+
+  arrivedByCargo Boolean  @default(false)
+  cargoInfo      String?
+  arrivedAt      DateTime @default(now())
+  trackingCode   String?
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  statusLogs StatusLog[]
+}
+
+model StatusLog {
+  id             String       @id @default(cuid())
+  serviceOrderId String
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+  oldStatus      String?
+  newStatus      String
+  note           String?
+  createdAt      DateTime     @default(now())
+}
