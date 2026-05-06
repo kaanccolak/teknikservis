@@ -9,6 +9,7 @@ export type PaymentPlanRow = {
   notes: string | null;
   isCompleted: boolean;
   completedAt: string | null;
+  createdAt?: string;
 };
 
 export const PAYMENT_CATEGORIES = {

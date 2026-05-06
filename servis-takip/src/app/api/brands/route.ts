@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getCache, invalidateCache, setCache } from "@/lib/cache";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -9,6 +10,12 @@ export async function GET(request: Request) {
     .get("deviceTypeId")
     ?.trim();
   try {
+    const cacheKey = deviceTypeId ? `brands-${deviceTypeId}` : "brands-all";
+    const cached = getCache<unknown>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
     const shop = await getOrCreateDefaultShop();
 
     if (!deviceTypeId) {
@@ -17,6 +24,7 @@ export async function GET(request: Request) {
         orderBy: [{ name: "asc" }],
         select: { id: true, name: true, deviceTypeId: true },
       });
+      setCache(cacheKey, items);
       return NextResponse.json(items);
     }
 
@@ -34,6 +42,7 @@ export async function GET(request: Request) {
       orderBy: { name: "asc" },
       select: { id: true, name: true, deviceTypeId: true },
     });
+    setCache(cacheKey, items);
     return NextResponse.json(items);
   } catch (e) {
     return jsonServerError("GET /api/brands", e, "Markalar yüklenemedi");
@@ -79,6 +88,8 @@ export async function POST(request: Request) {
       },
       select: { id: true, name: true, deviceTypeId: true },
     });
+    invalidateCache(`brands-${deviceTypeId}`);
+    invalidateCache("brands-all");
     return NextResponse.json(created);
   } catch (e) {
     return jsonServerError(

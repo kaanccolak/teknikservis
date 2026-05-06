@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { invalidateCache, invalidateCachePrefix } from "@/lib/cache";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -36,6 +37,10 @@ export async function DELETE(
     }
 
     await prisma.deviceType.delete({ where: { id } });
+    invalidateCache("device-types");
+    invalidateCache(`brands-${id}`);
+    invalidateCache("brands-all");
+    invalidateCachePrefix("models-");
     return NextResponse.json({ ok: true });
   } catch (e) {
     return jsonServerError(

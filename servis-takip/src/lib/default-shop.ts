@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getShop, setShopCache } from "@/lib/getShop";
 
 // Supabase transaction pooler kullanıyorsanız DATABASE_URL sonuna
 // ?pgbouncer=true eklemek Prisma hatalarını önleyebilir.
@@ -13,9 +14,7 @@ export const DEFAULT_SHOP_NAME = "Varsayılan Dükkan";
  * (interactive transaction kullanılmaz).
  */
 export async function getOrCreateDefaultShop() {
-  let shop = await prisma.shop.findFirst({
-    orderBy: { createdAt: "asc" },
-  });
+  let shop = await getShop();
   if (shop) {
     return shop;
   }
@@ -24,6 +23,7 @@ export async function getOrCreateDefaultShop() {
     shop = await prisma.shop.create({
       data: { name: DEFAULT_SHOP_NAME },
     });
+    setShopCache(shop);
     return shop;
   } catch (createErr) {
     console.error(
@@ -34,6 +34,7 @@ export async function getOrCreateDefaultShop() {
       orderBy: { createdAt: "asc" },
     });
     if (shop) {
+      setShopCache(shop);
       return shop;
     }
     throw createErr;

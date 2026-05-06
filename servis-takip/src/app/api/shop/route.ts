@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
+import { invalidateShopCache } from "@/lib/getShop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
@@ -110,6 +111,7 @@ export async function PATCH(request: Request) {
       },
     });
     const { waAccessToken: _t, ...safe } = row;
+    invalidateShopCache();
     return NextResponse.json({
       ...safe,
       waTokenConfigured: Boolean(_t && String(_t).trim().length > 0),

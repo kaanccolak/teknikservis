@@ -1,17 +1,25 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
+import { getCache, invalidateCache, setCache } from "@/lib/cache";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+const CACHE_KEY = "device-types";
+
 export async function GET() {
   try {
+    const cached = getCache<unknown>(CACHE_KEY);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
     const shop = await getOrCreateDefaultShop();
     const items = await prisma.deviceType.findMany({
       where: { shopId: shop.id },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     });
+    setCache(CACHE_KEY, items);
     return NextResponse.json(items);
   } catch (e) {
     return jsonServerError(
@@ -49,6 +57,8 @@ export async function POST(request: Request) {
       data: { shopId: shop.id, name },
       select: { id: true, name: true },
     });
+    invalidateCache(CACHE_KEY);
+    invalidateCache("brands-all");
     return NextResponse.json(created);
   } catch (e) {
     return jsonServerError(

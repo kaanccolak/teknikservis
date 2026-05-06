@@ -268,9 +268,12 @@ function StatCard({
 function RevenueCiroCard({
   revenue,
   onRevenueChange,
+  dailyRevenueFromDashboard,
 }: {
   revenue: number;
   onRevenueChange: (n: number) => void;
+  /** Ana dashboard yüklemesindeki günlük ciro; period=daily iken ek API çağrısı yapılmaz */
+  dailyRevenueFromDashboard: number;
 }) {
   const [ciroGoster, setCiroGoster] = useState(false);
   const [period, setPeriod] = useState<RevenuePeriod>("daily");
@@ -306,6 +309,14 @@ function RevenueCiroCard({
     let cancelled = false;
     const isStale = () => cancelled;
 
+    if (period === "daily") {
+      onRevenueChangeRef.current(dailyRevenueFromDashboard);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (period !== "range") {
       const p = new URLSearchParams({ ciroOnly: "true", period });
       void fetchCiro(p, isStale);
@@ -331,11 +342,16 @@ function RevenueCiroCard({
       cancelled = true;
       window.clearTimeout(t);
     };
-    // fetchCiro: useCallback([]) — stable; only filters should refetch
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period, startDate, endDate]);
+  }, [period, startDate, endDate, dailyRevenueFromDashboard, fetchCiro]);
 
   const fetchCiroManual = useCallback(() => {
+    if (period === "daily") {
+      void fetchCiro(
+        new URLSearchParams({ ciroOnly: "true", period: "daily" }),
+        () => false,
+      );
+      return;
+    }
     if (period !== "range") {
       void fetchCiro(
         new URLSearchParams({ ciroOnly: "true", period }),
@@ -546,29 +562,16 @@ function UpcomingPaymentsCard() {
   const [plans, setPlans] = useState<PaymentPlanRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        "/api/payment-plans?upcoming=true&limit=5",
-        { cache: "no-store" },
-      );
-      const data = (await res.json()) as PaymentPlanRow[] | { error?: string };
-      if (res.ok && Array.isArray(data)) {
-        setPlans(data);
-      } else {
-        setPlans([]);
-      }
-    } catch {
-      setPlans([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    setLoading(true);
+    fetch("/api/payment-plans?upcoming=true&limit=5")
+      .then((r) => r.json())
+      .then((data: { plans?: PaymentPlanRow[] }) => {
+        setPlans(data.plans || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   async function toggleComplete(plan: PaymentPlanRow) {
     const next = !plan.isCompleted;
@@ -586,7 +589,12 @@ function UpcomingPaymentsCard() {
         const j = (await res.json()) as { error?: string };
         throw new Error(j.error ?? "İşlem başarısız");
       }
-      await load();
+      const refresh = await fetch(
+        "/api/payment-plans?upcoming=true&limit=5",
+        { cache: "no-store" },
+      );
+      const j2 = (await refresh.json()) as { plans?: PaymentPlanRow[] };
+      if (refresh.ok) setPlans(j2.plans ?? []);
     } catch (e) {
       setPlans(snapshot);
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
@@ -1062,6 +1070,7 @@ export default function DashboardPage() {
           <RevenueCiroCard
             revenue={data.revenue}
             onRevenueChange={handleRevenueChange}
+            dailyRevenueFromDashboard={data.revenue}
           />
         </div>
         <StatCard def={statCardExternal} counts={data} />

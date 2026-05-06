@@ -109,9 +109,6 @@ function BekleyenCihazlarInner() {
   const dateTo = searchParams.get("dateTo") || "";
 
   const [searchInput, setSearchInput] = useState(searchParam);
-  const [debouncedSearch, setDebouncedSearch] = useState(
-    () => searchParam.trim(),
-  );
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
@@ -140,15 +137,7 @@ function BekleyenCihazlarInner() {
 
   useEffect(() => {
     setSearchInput(searchParam);
-    setDebouncedSearch(searchParam.trim());
   }, [searchParam]);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      setDebouncedSearch(searchInput.trim());
-    }, 300);
-    return () => window.clearTimeout(t);
-  }, [searchInput]);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,44 +213,60 @@ function BekleyenCihazlarInner() {
     };
   }, [brandFilter]);
 
-  const loadOrders = useCallback(async () => {
-    setListError(null);
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("hideDelivered", "true");
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      if (statusFromUrl && statusFromUrl !== "all") {
-        params.set("status", statusFromUrl);
-      }
-      if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);
-      if (brandFilter) params.set("brandId", brandFilter);
-      if (modelFilter) params.set("deviceModelId", modelFilter);
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
+  useEffect(() => {
+    const ac = new AbortController();
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        setListError(null);
+        setLoading(true);
+        try {
+          const params = new URLSearchParams();
+          params.set("hideDelivered", "true");
+          const q = searchInput.trim();
+          if (q) params.set("search", q);
+          if (statusFromUrl && statusFromUrl !== "all") {
+            params.set("status", statusFromUrl);
+          }
+          if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);
+          if (brandFilter) params.set("brandId", brandFilter);
+          if (modelFilter) params.set("deviceModelId", modelFilter);
+          if (dateFrom) params.set("dateFrom", dateFrom);
+          if (dateTo) params.set("dateTo", dateTo);
 
-      const res = await fetch(`/api/service-orders?${params.toString()}`);
-      const data = (await res.json()) as
-        | ServiceOrderListResponse
-        | { error?: string };
-      if (!res.ok) {
-        setListError(
-          typeof data === "object" && data && "error" in data
-            ? String((data as { error: string }).error)
-            : "Kayıtlar yüklenemedi",
-        );
-        setOrders([]);
-        return;
-      }
-      setOrders((data as ServiceOrderListResponse).orders);
-    } catch {
-      setListError("Bağlantı hatası");
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
+          const res = await fetch(`/api/service-orders?${params.toString()}`, {
+            signal: ac.signal,
+          });
+          const data = (await res.json()) as
+            | ServiceOrderListResponse
+            | { error?: string };
+          if (ac.signal.aborted) return;
+          if (!res.ok) {
+            setListError(
+              typeof data === "object" && data && "error" in data
+                ? String((data as { error: string }).error)
+                : "Kayıtlar yüklenemedi",
+            );
+            setOrders([]);
+            return;
+          }
+          setOrders((data as ServiceOrderListResponse).orders);
+        } catch (e) {
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!ac.signal.aborted) {
+            setListError("Bağlantı hatası");
+            setOrders([]);
+          }
+        } finally {
+          if (!ac.signal.aborted) setLoading(false);
+        }
+      })();
+    }, 300);
+    return () => {
+      ac.abort();
+      window.clearTimeout(timer);
+    };
   }, [
-    debouncedSearch,
+    searchInput,
     statusFromUrl,
     deviceTypeFilter,
     brandFilter,
@@ -270,13 +275,8 @@ function BekleyenCihazlarInner() {
     dateTo,
   ]);
 
-  useEffect(() => {
-    void loadOrders();
-  }, [loadOrders]);
-
   const clearFilters = useCallback(() => {
     setSearchInput("");
-    setDebouncedSearch("");
     router.replace(pathname);
   }, [pathname, router]);
 

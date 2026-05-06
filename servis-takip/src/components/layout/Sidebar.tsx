@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BarChart,
   Building2,
   Calendar,
   Landmark,
@@ -35,11 +36,12 @@ const navItems: {
   { href: "/cihaz-sorgula", label: "Cihaz Sorgula" },
   { href: "/ikinci-el", label: "İkinci El Cihazlar" },
   { href: "/bekleyen-cihazlar", label: "Bekleyen Cihazlar" },
-  { href: "/tanimlar", label: "Tanımlar", icon: Settings },
+  { href: "/dis-servis", label: "Dış Servisler", icon: Truck },
   { href: "/stok", label: "Stok Yönetimi", icon: Package },
   { href: "/cari", label: "Cari Yönetimi", icon: Building2 },
-  { href: "/dis-servis", label: "Dış Servisler", icon: Truck },
   { href: "/planlarim", label: "Planlarım", icon: Calendar },
+  { href: "/tanimlar", label: "Tanımlar", icon: Settings },
+  { href: "/raporlar", label: "Raporlar", icon: BarChart },
   { href: "/sirketim", label: "Şirketim", icon: Landmark },
 ];
 

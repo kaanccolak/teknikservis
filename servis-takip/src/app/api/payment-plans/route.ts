@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
+import { getShop } from "@/lib/getShop";
 import {
   addOneMonthWithDay,
   startOfDayLocal,
@@ -50,44 +51,49 @@ async function advanceRecurringPlansForShop(shopId: string) {
   }
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const upcoming = searchParams.get("upcoming") === "true";
-  const limitRaw = searchParams.get("limit");
-  const limit =
-    limitRaw != null ? Math.min(50, Math.max(1, parseInt(limitRaw, 10) || 5)) : undefined;
-
-  let shop;
+export async function GET(req: Request) {
   try {
-    shop = await getOrCreateDefaultShop();
-  } catch (e) {
-    return jsonServerError(
-      "GET /api/payment-plans (shop)",
-      e,
-      "Dükkan bilgisi alınamadı",
-    );
-  }
+    const { searchParams } = new URL(req.url);
+    const upcoming = searchParams.get("upcoming");
+    const limitParam = searchParams.get("limit");
+    const limitParsed =
+      limitParam != null && limitParam !== ""
+        ? parseInt(limitParam, 10)
+        : NaN;
+    const limit =
+      Number.isFinite(limitParsed) && limitParsed > 0 ? limitParsed : undefined;
 
-  try {
-    await advanceRecurringPlansForShop(shop.id);
+    const shop = await getShop();
+    if (!shop) {
+      return NextResponse.json({ error: "Shop bulunamadı" }, { status: 404 });
+    }
 
-    const rows = await prisma.paymentPlan.findMany({
+    const plans = await prisma.paymentPlan.findMany({
       where: {
         shopId: shop.id,
-        ...(upcoming ? { isCompleted: false } : {}),
+        ...(upcoming === "true" ? { isCompleted: false } : {}),
       },
-      orderBy: upcoming
-        ? [{ dueDate: "asc" }]
-        : [{ isCompleted: "asc" }, { dueDate: "asc" }],
-      ...(limit != null ? { take: limit } : {}),
+      select: {
+        id: true,
+        title: true,
+        amount: true,
+        dueDate: true,
+        isRecurring: true,
+        recurringDay: true,
+        category: true,
+        isCompleted: true,
+        completedAt: true,
+        notes: true,
+        createdAt: true,
+      },
+      orderBy: { dueDate: "asc" },
+      ...(limit ? { take: limit } : {}),
     });
-    return NextResponse.json(rows);
-  } catch (e) {
-    return jsonServerError(
-      "GET /api/payment-plans",
-      e,
-      "Ödeme planları alınamadı",
-    );
+
+    return NextResponse.json({ plans });
+  } catch (error) {
+    console.error("Payment plans error:", error);
+    return NextResponse.json({ error: "Hata oluştu" }, { status: 500 });
   }
 }
 

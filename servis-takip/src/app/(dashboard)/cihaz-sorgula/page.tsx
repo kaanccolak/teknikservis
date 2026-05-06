@@ -81,9 +81,6 @@ function CihazSorgulaInner() {
       : "all";
 
   const [search, setSearch] = useState(searchParam);
-  const [debouncedSearch, setDebouncedSearch] = useState(
-    () => searchParam.trim(),
-  );
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [hideCompleted, setHideCompleted] = useState(hideDelivered);
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
@@ -120,7 +117,6 @@ function CihazSorgulaInner() {
 
   useEffect(() => {
     setSearch(searchParam);
-    setDebouncedSearch(searchParam.trim());
   }, [searchParam]);
 
   useEffect(() => {
@@ -191,59 +187,69 @@ function CihazSorgulaInner() {
     };
   }, [brandFilter]);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 300);
-    return () => window.clearTimeout(t);
-  }, [search]);
-
   const clearFilters = useCallback(() => {
     setSearch("");
-    setDebouncedSearch("");
     setStatusFilter("all");
     setHideCompleted(true);
     router.replace(pathname);
   }, [pathname, router]);
 
-  const loadOrders = useCallback(async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      if (statusFilter && statusFilter !== "all") {
-        params.set("status", statusFilter);
-      }
-      if (hideCompleted) params.set("hideDelivered", "true");
-      if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);
-      if (brandFilter) params.set("brandId", brandFilter);
-      if (modelFilter) params.set("deviceModelId", modelFilter);
-      if (dateFrom) params.set("dateFrom", dateFrom);
-      if (dateTo) params.set("dateTo", dateTo);
-      const res = await fetch(`/api/service-orders?${params.toString()}`);
-      const data = (await res.json()) as ServiceOrderListResponse | { error?: string };
-      if (!res.ok) {
-        setError(
-          typeof data === "object" && data && "error" in data
-            ? String((data as { error: string }).error)
-            : "Kayıtlar yüklenemedi",
-        );
-        setOrders([]);
-        setTotal(0);
-        return;
-      }
-      setOrders((data as ServiceOrderListResponse).orders);
-      setTotal((data as ServiceOrderListResponse).total);
-    } catch {
-      setError("Bağlantı hatası");
-      setOrders([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const ac = new AbortController();
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        setError(null);
+        setLoading(true);
+        try {
+          const params = new URLSearchParams();
+          const q = search.trim();
+          if (q) params.set("search", q);
+          if (statusFilter && statusFilter !== "all") {
+            params.set("status", statusFilter);
+          }
+          if (hideCompleted) params.set("hideDelivered", "true");
+          if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);
+          if (brandFilter) params.set("brandId", brandFilter);
+          if (modelFilter) params.set("deviceModelId", modelFilter);
+          if (dateFrom) params.set("dateFrom", dateFrom);
+          if (dateTo) params.set("dateTo", dateTo);
+          const res = await fetch(`/api/service-orders?${params.toString()}`, {
+            signal: ac.signal,
+          });
+          const data = (await res.json()) as
+            | ServiceOrderListResponse
+            | { error?: string };
+          if (ac.signal.aborted) return;
+          if (!res.ok) {
+            setError(
+              typeof data === "object" && data && "error" in data
+                ? String((data as { error: string }).error)
+                : "Kayıtlar yüklenemedi",
+            );
+            setOrders([]);
+            setTotal(0);
+            return;
+          }
+          setOrders((data as ServiceOrderListResponse).orders);
+          setTotal((data as ServiceOrderListResponse).total);
+        } catch (e) {
+          if (e instanceof DOMException && e.name === "AbortError") return;
+          if (!ac.signal.aborted) {
+            setError("Bağlantı hatası");
+            setOrders([]);
+            setTotal(0);
+          }
+        } finally {
+          if (!ac.signal.aborted) setLoading(false);
+        }
+      })();
+    }, 300);
+    return () => {
+      ac.abort();
+      window.clearTimeout(timer);
+    };
   }, [
-    debouncedSearch,
+    search,
     statusFilter,
     hideCompleted,
     deviceTypeFilter,
@@ -252,10 +258,6 @@ function CihazSorgulaInner() {
     dateFrom,
     dateTo,
   ]);
-
-  useEffect(() => {
-    void loadOrders();
-  }, [loadOrders]);
 
   function exportCsv() {
     const headers = [

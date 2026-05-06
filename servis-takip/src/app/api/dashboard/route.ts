@@ -137,6 +137,16 @@ const cacheHeaders = {
   "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
 };
 
+const TERMINAL_STATUSES = [
+  "completed",
+  ...SERVICE_ORDER_DELIVERED_STATUSES,
+] as const;
+
+const COMPLETED_TODAY_STATUSES = [
+  "completed",
+  ...SERVICE_ORDER_DELIVERED_STATUSES,
+] as const;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const ciroOnly = searchParams.get("ciroOnly") === "true";
@@ -174,69 +184,72 @@ export async function GET(request: Request) {
   const { start: dayStart, end: dayEnd } = localDayBounds();
 
   try {
-    const [statusGroups, completedToday, recentOrders, revenueAgg, externalService] =
-      await Promise.all([
-        prisma.serviceOrder.groupBy({
-          by: ["status"],
-          where: { shopId },
-          _count: { _all: true },
-        }),
-        prisma.serviceOrder.count({
-          where: {
-            shopId,
-            status: "completed",
-            updatedAt: { gte: dayStart, lte: dayEnd },
-          },
-        }),
-        prisma.serviceOrder.findMany({
-          where: { shopId },
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            orderNumber: true,
-            arrivedAt: true,
-            status: true,
-            deviceTypeName: true,
-            brandName: true,
-            modelName: true,
-            customer: { select: { name: true } },
-            deviceType: { select: { name: true } },
-            brand: { select: { name: true } },
-            deviceModel: { select: { name: true } },
-          },
-        }),
-        prisma.serviceOrder.aggregate({
-          where: {
-            shopId,
-            status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
-            updatedAt: { gte: dayStart, lte: dayEnd },
-          },
-          _sum: { totalPrice: true },
-        }),
-        prisma.serviceOrder.count({
-          where: { shopId, status: "sent_to_external" },
-        }),
-      ]);
-
-    const countMap = Object.fromEntries(
-      statusGroups.map((c) => [c.status, c._count._all]),
-    ) as Record<string, number>;
-
-    const get = (status: string) => countMap[status] ?? 0;
-
-    const totalAll = statusGroups.reduce((sum, row) => sum + row._count._all, 0);
-    const completedTotal = get("completed");
-    const deliveredTotal = SERVICE_ORDER_DELIVERED_STATUSES.reduce(
-      (s, st) => s + get(st),
-      0,
-    );
-    const totalActive = totalAll - completedTotal - deliveredTotal;
-
-    const waitingApproval = get("waiting_approval");
-    const approvalGiven = get("approval_given");
-    const waitingPart = get("waiting_part");
-    const inService = get("in_service");
+    const [
+      totalActive,
+      inService,
+      waitingApproval,
+      approvalGiven,
+      waitingPart,
+      externalService,
+      completedToday,
+      recentOrders,
+      revenueAgg,
+    ] = await Promise.all([
+      prisma.serviceOrder.count({
+        where: {
+          shopId,
+          status: { notIn: [...TERMINAL_STATUSES] },
+        },
+      }),
+      prisma.serviceOrder.count({
+        where: { shopId, status: "in_service" },
+      }),
+      prisma.serviceOrder.count({
+        where: { shopId, status: "waiting_approval" },
+      }),
+      prisma.serviceOrder.count({
+        where: { shopId, status: "approval_given" },
+      }),
+      prisma.serviceOrder.count({
+        where: { shopId, status: "waiting_part" },
+      }),
+      prisma.serviceOrder.count({
+        where: { shopId, status: "sent_to_external" },
+      }),
+      prisma.serviceOrder.count({
+        where: {
+          shopId,
+          status: { in: [...COMPLETED_TODAY_STATUSES] },
+          updatedAt: { gte: dayStart, lte: dayEnd },
+        },
+      }),
+      prisma.serviceOrder.findMany({
+        where: { shopId },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          orderNumber: true,
+          arrivedAt: true,
+          status: true,
+          deviceTypeName: true,
+          brandName: true,
+          modelName: true,
+          customer: { select: { name: true } },
+          deviceType: { select: { name: true } },
+          brand: { select: { name: true } },
+          deviceModel: { select: { name: true } },
+        },
+      }),
+      prisma.serviceOrder.aggregate({
+        where: {
+          shopId,
+          status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
+          updatedAt: { gte: dayStart, lte: dayEnd },
+        },
+        _sum: { totalPrice: true },
+      }),
+    ]);
 
     const revenue = Number(revenueAgg._sum.totalPrice ?? 0);
 

@@ -86,15 +86,16 @@ export default function PlanlarimPage() {
     setError(null);
     try {
       const res = await fetch("/api/payment-plans");
-      const data = (await res.json()) as PaymentPlanRow[] | { error?: string };
+      const data = (await res.json()) as {
+        plans?: PaymentPlanRow[];
+        error?: string;
+      };
       if (!res.ok) {
-        setError(
-          (data as { error?: string }).error ?? "Planlar yüklenemedi",
-        );
+        setError(data.error ?? "Planlar yüklenemedi");
         setPlans([]);
         return;
       }
-      setPlans(data as PaymentPlanRow[]);
+      setPlans(data.plans ?? []);
     } catch {
       setError("Bağlantı hatası");
       setPlans([]);

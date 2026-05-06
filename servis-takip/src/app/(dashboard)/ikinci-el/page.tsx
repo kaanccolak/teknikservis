@@ -71,11 +71,10 @@ function IkinciElInner() {
   const searchParams = useSearchParams();
   const searchParam = searchParams.get("search") ?? "";
   const soldParamRaw = searchParams.get("sold") ?? "";
-  const soldFilter: "all" | "stock" | "sold" =
+  const statusFilter: "all" | "stock" | "sold" =
     soldParamRaw === "stock" || soldParamRaw === "sold" ? soldParamRaw : "all";
 
   const [search, setSearch] = useState(searchParam);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchParam.trim());
   const [items, setItems] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -85,13 +84,7 @@ function IkinciElInner() {
 
   useEffect(() => {
     setSearch(searchParam);
-    setDebouncedSearch(searchParam.trim());
   }, [searchParam]);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
-    return () => window.clearTimeout(t);
-  }, [search]);
 
   const updateURL = useCallback(
     (q: string) => {
@@ -104,7 +97,7 @@ function IkinciElInner() {
     [pathname, router, searchParams],
   );
 
-  const setSoldFilter = useCallback(
+  const setStatusFilter = useCallback(
     (v: "all" | "stock" | "sold") => {
       const p = new URLSearchParams(searchParams.toString());
       if (v === "all") p.delete("sold");
@@ -115,13 +108,14 @@ function IkinciElInner() {
     [pathname, router, searchParams],
   );
 
-  const load = useCallback(async () => {
+  const fetchSecondHand = useCallback(async () => {
     setError(null);
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      if (soldFilter !== "all") params.set("sold", soldFilter);
+      const q = search.trim();
+      if (q) params.set("search", q);
+      if (statusFilter !== "all") params.set("sold", statusFilter);
       const res = await fetch(`/api/second-hand?${params}`);
       const data = (await res.json()) as
         | { items?: Row[]; total?: number; error?: string; details?: string }
@@ -149,11 +143,11 @@ function IkinciElInner() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, soldFilter]);
+  }, [search, statusFilter]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void fetchSecondHand();
+  }, [search, statusFilter]);
 
   async function confirmDelete() {
     if (!deleteId) return;
@@ -169,7 +163,7 @@ function IkinciElInner() {
       }
       toast.success("Kayıt silindi");
       setDeleteId(null);
-      void load();
+      void fetchSecondHand();
     } catch {
       toast.error("Bağlantı hatası");
     } finally {
@@ -232,39 +226,39 @@ function IkinciElInner() {
           <Button
             type="button"
             size="sm"
-            variant={soldFilter === "all" ? "default" : "outline"}
+            variant={statusFilter === "all" ? "default" : "outline"}
             className={
-              soldFilter === "all"
+              statusFilter === "all"
                 ? "bg-slate-800 text-white hover:bg-slate-900"
                 : ""
             }
-            onClick={() => setSoldFilter("all")}
+            onClick={() => setStatusFilter("all")}
           >
             Tümü
           </Button>
           <Button
             type="button"
             size="sm"
-            variant={soldFilter === "stock" ? "default" : "outline"}
+            variant={statusFilter === "stock" ? "default" : "outline"}
             className={
-              soldFilter === "stock"
+              statusFilter === "stock"
                 ? "bg-blue-600 text-white hover:bg-blue-700"
                 : ""
             }
-            onClick={() => setSoldFilter("stock")}
+            onClick={() => setStatusFilter("stock")}
           >
             Stokta
           </Button>
           <Button
             type="button"
             size="sm"
-            variant={soldFilter === "sold" ? "default" : "outline"}
+            variant={statusFilter === "sold" ? "default" : "outline"}
             className={
-              soldFilter === "sold"
+              statusFilter === "sold"
                 ? "bg-emerald-600 text-white hover:bg-emerald-700"
                 : ""
             }
-            onClick={() => setSoldFilter("sold")}
+            onClick={() => setStatusFilter("sold")}
           >
             Satıldı
           </Button>
