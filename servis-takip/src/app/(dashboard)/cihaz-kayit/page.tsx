@@ -3,7 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { KeyboardEvent, RefObject } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -84,6 +92,16 @@ type CariRow = {
 
 const nativeSelectClassName =
   "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60";
+
+function handleEnterKey(
+  e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  nextRef: RefObject<HTMLElement | null>,
+) {
+  if (e.key !== "Enter") return;
+  if (e.currentTarget instanceof HTMLTextAreaElement && e.shiftKey) return;
+  e.preventDefault();
+  nextRef.current?.focus();
+}
 
 function formatArrivedAtDisplay(datetimeLocal: string) {
   const d = parseDatetimeLocal(datetimeLocal);
@@ -169,6 +187,17 @@ function CihazKayitServiceInner({
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
 
+  const customerNameRef = useRef<HTMLInputElement | null>(null);
+  const phoneRef = useRef<HTMLInputElement | null>(null);
+  const deviceTypeRef = useRef<HTMLSelectElement | null>(null);
+  const brandRef = useRef<HTMLSelectElement | null>(null);
+  const modelRef = useRef<HTMLSelectElement | null>(null);
+  const serialNoRef = useRef<HTMLInputElement | null>(null);
+  const complaintRef = useRef<HTMLTextAreaElement | null>(null);
+  const accessoriesRef = useRef<HTMLTextAreaElement | null>(null);
+  const physicalDamageRef = useRef<HTMLTextAreaElement | null>(null);
+  const submitRef = useRef<HTMLButtonElement | null>(null);
+
   const {
     register,
     control,
@@ -181,6 +210,10 @@ function CihazKayitServiceInner({
     resolver: zodResolver(createServiceOrderSchema),
     defaultValues: getDefaultValues(),
   });
+
+  const complaintField = register("complaint");
+  const accessoriesField = register("accessories");
+  const physicalDamageField = register("physicalDamage");
 
   const deviceTypeId = watch("deviceTypeId");
   const brandId = watch("brandId");
@@ -545,9 +578,14 @@ function CihazKayitServiceInner({
                       onKeyDown={(e) => {
                         if (e.key === "Escape") {
                           setCustomerPanelOpen(false);
+                          return;
                         }
+                        handleEnterKey(e, phoneRef);
                       }}
-                      ref={field.ref}
+                      ref={(el) => {
+                        field.ref(el);
+                        customerNameRef.current = el as HTMLInputElement | null;
+                      }}
                     />
                   )}
                 />
@@ -579,11 +617,13 @@ function CihazKayitServiceInner({
                   control={control}
                   render={({ field }) => (
                     <TrPhoneInput
+                      ref={phoneRef}
                       id="phone"
                       aria-invalid={!!errors.phone}
                       value={field.value ?? ""}
                       onValueChange={field.onChange}
                       onBlur={field.onBlur}
+                      onKeyDown={(e) => handleEnterKey(e, deviceTypeRef)}
                     />
                   )}
                 />
@@ -719,9 +759,11 @@ function CihazKayitServiceInner({
                   control={control}
                   render={({ field }) => (
                     <select
+                      ref={deviceTypeRef}
                       id="form-device-type"
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
+                      onKeyDown={(e) => handleEnterKey(e, brandRef)}
                       aria-invalid={!!errors.deviceTypeId}
                       className={nativeSelectClassName}
                     >
@@ -749,9 +791,11 @@ function CihazKayitServiceInner({
                   control={control}
                   render={({ field }) => (
                     <select
+                      ref={brandRef}
                       id="form-brand"
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
+                      onKeyDown={(e) => handleEnterKey(e, modelRef)}
                       disabled={!deviceTypeId || brands.length === 0}
                       aria-invalid={!!errors.brandId}
                       className={nativeSelectClassName}
@@ -786,9 +830,11 @@ function CihazKayitServiceInner({
                   control={control}
                   render={({ field }) => (
                     <select
+                      ref={modelRef}
                       id="form-model"
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
+                      onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
                       disabled={!brandId || models.length === 0}
                       aria-invalid={!!errors.deviceModelId}
                       className={nativeSelectClassName}
@@ -831,7 +877,11 @@ function CihazKayitServiceInner({
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
-                    ref={field.ref}
+                    onKeyDown={(e) => handleEnterKey(e, complaintRef)}
+                    ref={(el) => {
+                      field.ref(el);
+                      serialNoRef.current = el as HTMLInputElement | null;
+                    }}
                   />
                 )}
               />
@@ -956,11 +1006,29 @@ function CihazKayitServiceInner({
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="complaint">Şikayet / arıza bilgisi</Label>
-              <Textarea id="complaint" rows={5} {...register("complaint")} />
+              <Textarea
+                id="complaint"
+                rows={5}
+                {...complaintField}
+                ref={(el) => {
+                  complaintField.ref(el);
+                  complaintRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, accessoriesRef)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="accessories">Cihazla gelen aksesuarlar</Label>
-              <Textarea id="accessories" rows={3} {...register("accessories")} />
+              <Textarea
+                id="accessories"
+                rows={3}
+                {...accessoriesField}
+                ref={(el) => {
+                  accessoriesField.ref(el);
+                  accessoriesRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, physicalDamageRef)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="physicalDamage">
@@ -969,7 +1037,12 @@ function CihazKayitServiceInner({
               <Textarea
                 id="physicalDamage"
                 rows={3}
-                {...register("physicalDamage")}
+                {...physicalDamageField}
+                ref={(el) => {
+                  physicalDamageField.ref(el);
+                  physicalDamageRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, submitRef)}
               />
             </div>
           </CardContent>
@@ -1012,7 +1085,12 @@ function CihazKayitServiceInner({
             </Card>
 
             <div className="flex justify-end">
-              <Button type="submit" size="lg" disabled={isSubmitting}>
+              <Button
+                ref={submitRef}
+                type="submit"
+                size="lg"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Kaydediliyor…" : "Kaydet"}
               </Button>
             </div>

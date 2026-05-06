@@ -23,7 +23,16 @@ export type TrPhoneInputProps = Omit<
 
 export const TrPhoneInput = forwardRef<HTMLInputElement, TrPhoneInputProps>(
   function TrPhoneInput(
-    { value, onValueChange, className, disabled, id, placeholder, ...rest },
+    {
+      value,
+      onValueChange,
+      className,
+      disabled,
+      id,
+      placeholder,
+      onKeyDown: onKeyDownProp,
+      ...rest
+    },
     ref,
   ) {
     const [maxDigitsExceeded, setMaxDigitsExceeded] = useState(false);
@@ -44,6 +53,8 @@ export const TrPhoneInput = forwardRef<HTMLInputElement, TrPhoneInputProps>(
 
     const onKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
+        onKeyDownProp?.(e);
+        if (e.defaultPrevented) return;
         if (disabled) return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         if (e.key.length !== 1) return;
@@ -64,7 +75,7 @@ export const TrPhoneInput = forwardRef<HTMLInputElement, TrPhoneInputProps>(
 
         e.preventDefault();
       },
-      [disabled, value.length],
+      [disabled, onKeyDownProp, value.length],
     );
 
     const onPaste = useCallback(
