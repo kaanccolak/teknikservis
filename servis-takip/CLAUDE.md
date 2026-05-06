@@ -36,6 +36,32 @@ Sadece şu durumlar geçerli, başka durum ekleme:
 - completed → Onarım Tamamlandı
 - delivered → Teslim Edildi
 
+### Kaldırılan Özellikler
+
+- **"Ücret Bildirilecek"** servis durumu kaldırıldı.
+- **"Servisine Gönderildi"** ve **"Teslim Edilecek"** durumları kaldırıldı.
+- **"Servisteki Cihazlar"** rotası/sidebar metni **"Bekleyen Cihazlar"** (`/bekleyen-cihazlar`) olarak yeniden adlandırıldı.
+
+### Yeni Modeller
+
+- **SparePart**: yedek parça stok yönetimi (`name`, `partCode`, `cost`, `stock`, isteğe bağlı `deviceTypeId`, `brandId`, `deviceModelId`; hepsi null = genel parça).
+- **SparePartUsage**: hangi kayıtta hangi parça kullanıldı (`sparePartId`, `serviceOrderId`, `quantity`, `costAtTime`, `shopId`).
+
+### Yeni Sayfalar
+
+- `/stok` — Yedek parça stok yönetimi
+- `/servis-detay/[id]/fis` — Servis giriş fişi (print-friendly; ücret/parça tablosu yok, giriş belgesi)
+- `/servis-detay/[id]/duzenle` — Kayıt düzenleme
+
+### Yeni API Route'lar
+
+- `/api/spare-parts` — **GET** (filtreler: `?search`, `?deviceTypeId`, `?brandId`, `?deviceModelId`, `?stockStatus`, `?forServiceOrderId`), **POST**
+- `/api/spare-parts/[id]` — **PATCH**, **DELETE**
+- `/api/spare-parts/[id]/stock` — **PATCH** (`{ quantity, type: "add" | "subtract" }`)
+- `/api/service-orders/[id]/spare-parts` — **GET**, **POST**; **DELETE** `?usageId=` (stok iadesi)
+
+**Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
+
 ### Kayıt Numarası Formatı
 
 YYYYMM### — örnek: 202605001
@@ -48,16 +74,6 @@ YYYYMM### — örnek: 202605001
 
 +90 5XX XXX XX XX — veritabanına bu formatta kaydet
 
-### Yedek parça stok (SparePart / SparePartUsage)
-
-- **SparePart**: `shopId`, `name`, `partCode?`, `cost`, `stock`, isteğe bağlı `deviceTypeId` / `brandId` / `deviceModelId` (hepsi null = genel parça; siparişteki cihazla eşleşen veya genel parçalar servise eklenebilir).
-- **SparePartUsage**: servis kaydına bağlı kullanım; `quantity`, `costAtTime` (ekleme anındaki `SparePart.cost`), `shopId`.
-- **GET `/api/spare-parts`**: `?deviceTypeId`, `?brandId`, `?deviceModelId`, `?search`, `?stockStatus=all|in_stock|critical|empty`, `?forServiceOrderId` (o kayıt cihazına uygun + genel parçalar; OR filtre sunucuda).
-- **POST/PATCH/DELETE** `/api/spare-parts`, **PATCH** `/api/spare-parts/[id]/stock` (`{ quantity, type: "add"|"subtract" }`).
-- **Servis kaydı parça**: **GET/POST** `/api/service-orders/[id]/spare-parts`, **DELETE** `?usageId=` — POST stok düşer, DELETE stoku iade eder.
-- **Servis kaydı silme** (`DELETE /api/service-orders/[id]`): önce kullanımlar için stok iadesi, sonra `SparePartUsage` silinir, ardından `StatusLog` ve `ServiceOrder`.
-- **UI**: Stok sayfası `/stok` (Sidebar: Stok Yönetimi). Servis detayda “Kullanılan Parçalar” kartı (native select, sonner).
-
 ### API Route Kuralları
 
 - Tüm GET route'larında ?search=, ?status=, ?hideDelivered= parametrelerini destekle
@@ -67,10 +83,11 @@ YYYYMM### — örnek: 202605001
 ### UI Kuralları
 
 - shadcn/ui bileşenlerini kullan
-- Native HTML select kullan (shadcn Select bileşeni değil — dropdown pozisyon sorunu var)
+- **Native HTML `<select>` kullan** (shadcn `Select` değil — dropdown pozisyon sorunu var)
 - Türkçe tüm label ve mesajlar
-- Toast için sonner kullan
-- Silme işlemlerinde AlertDialog ile onay al
+- **Toast:** sonner
+- **Silme:** AlertDialog ile onay
+- **Garanti bilgisi / Genel durum** (cihaz kayıt ve düzenleme): toggle buton grupları — **yeşil** olumlu (Garantili, Kurcalanmamış), **kırmızı** olumsuz (Garantisiz, Kurcalanmış); seçili değil: beyaz/gri border
 - Durum badge renkleri:
   - in_service: mavi
   - waiting_approval: turuncu
@@ -82,15 +99,17 @@ YYYYMM### — örnek: 202605001
 ## Klasör Yapısı
 
 ```
-src/app/(dashboard)/          # Korumalı sayfalar (auth gelince)
-src/app/(dashboard)/stok/     # Yedek parça stok yönetimi
-src/app/(auth)/               # Login sayfası
-src/app/api/                  # API route'ları
-src/app/api/spare-parts/      # Parça CRUD + stok
+src/app/(dashboard)/                          # Korumalı sayfalar (auth gelince)
+src/app/(dashboard)/stok/                     # Yedek parça stok
+src/app/(dashboard)/servis-detay/[id]/fis/    # Servis giriş fişi (yazdır)
+src/app/(dashboard)/servis-detay/[id]/duzenle/  # Kayıt düzenleme
+src/app/(auth)/                               # Login sayfası
+src/app/api/
+src/app/api/spare-parts/                      # Parça CRUD + stok
 src/app/api/service-orders/[id]/spare-parts/  # Kayıt parça kullanımı
-src/components/layout/        # Sidebar, TopBar
-src/lib/prisma.ts             # Prisma singleton
-src/lib/supabase/             # Supabase client (browser + server)
+src/components/layout/                        # Sidebar, TopBar
+src/lib/prisma.ts
+src/lib/supabase/
 ```
 
 ## Bilinen Sorunlar ve Çözümleri
@@ -102,8 +121,10 @@ src/lib/supabase/             # Supabase client (browser + server)
 
 ## Yapılacaklar (TODO)
 
+- [x] Stok yönetimi
+- [x] Servis fişi yazdırma
+- [x] Kayıt düzenleme / silme
 - [ ] Auth / Login koruması (Supabase Auth)
-- [ ] Servis fişi yazdırma
-- [ ] SMS entegrasyonu
 - [ ] Dükkan adı ayarı
+- [ ] SMS entegrasyonu
 - [ ] Multi-tenant geçişi
