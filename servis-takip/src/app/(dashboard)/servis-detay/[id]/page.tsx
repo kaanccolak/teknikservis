@@ -297,6 +297,7 @@ export default function ServisDetayPage() {
         ? String(order.estimatedPrice)
         : "",
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `order` tamamını eklemek senkron döngüsüne yol açabilir
   }, [order?.estimatedPrice, order?.id, editingEstimated]);
 
   const loadSpareOptions = useCallback(async (orderId: string) => {

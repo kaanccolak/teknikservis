@@ -23,7 +23,9 @@ export async function getShop(): Promise<Shop | null> {
 }
 
 /** Önbellek kaldırıldı; `default-shop` uyumluluğu için no-op. */
-export function setShopCache(_shop: Shop): void {}
+export function setShopCache(shop: Shop): void {
+  void shop;
+}
 
 export function invalidateShopCache() {
   // Artık kullanılmıyor

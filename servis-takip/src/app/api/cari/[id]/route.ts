@@ -36,12 +36,16 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  let json: any;
+  let body: unknown;
   try {
-    json = await request.json();
+    body = await request.json();
   } catch {
     return NextResponse.json({ error: "Geçersiz istek gövdesi" }, { status: 400 });
   }
+  const json =
+    body && typeof body === "object" && !Array.isArray(body)
+      ? (body as Record<string, unknown>)
+      : {};
   let shop;
   try {
     shop = await getOrCreateDefaultShop();
@@ -52,15 +56,32 @@ export async function PATCH(
     const row = await prisma.cari.updateMany({
       where: { id, shopId: shop.id },
       data: {
-        name: String(json?.name ?? "").trim(),
-        phone: json.phone?.trim() || null,
-        phoneDigits: normalizeDigits(json.phone),
-        email: json.email?.trim() || null,
-        address: json.address?.trim() || null,
-        taxOrTcNo: json.taxOrTcNo?.trim() || null,
-        taxOffice: json.taxOffice?.trim() || null,
-        cargoInfo: json.cargoInfo?.trim() || null,
-        cargoCode: json.cargoCode?.trim() || null,
+        name: String(json.name ?? "").trim(),
+        phone:
+          typeof json.phone === "string" ? json.phone.trim() || null : null,
+        phoneDigits: normalizeDigits(
+          typeof json.phone === "string" ? json.phone : undefined,
+        ),
+        email:
+          typeof json.email === "string" ? json.email.trim() || null : null,
+        address:
+          typeof json.address === "string" ? json.address.trim() || null : null,
+        taxOrTcNo:
+          typeof json.taxOrTcNo === "string"
+            ? json.taxOrTcNo.trim() || null
+            : null,
+        taxOffice:
+          typeof json.taxOffice === "string"
+            ? json.taxOffice.trim() || null
+            : null,
+        cargoInfo:
+          typeof json.cargoInfo === "string"
+            ? json.cargoInfo.trim() || null
+            : null,
+        cargoCode:
+          typeof json.cargoCode === "string"
+            ? json.cargoCode.trim() || null
+            : null,
       },
     });
     if (row.count === 0) return NextResponse.json({ error: "Cari bulunamadı" }, { status: 404 });

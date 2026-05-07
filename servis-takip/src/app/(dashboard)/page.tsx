@@ -349,11 +349,8 @@ function RevenueCiroCard({
   );
 
   useEffect(() => {
-    const { start, end } = getPeriodDates("daily");
-    if (start && end) {
-      void fetchCiro(start, end);
-    }
-  }, [fetchCiro, getPeriodDates]);
+    onRevenueChangeRef.current(dailyRevenueFromDashboard);
+  }, [dailyRevenueFromDashboard]);
 
   useEffect(() => {
     if (period !== "range" || !startDate || !endDate) return;

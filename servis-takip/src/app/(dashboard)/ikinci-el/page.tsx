@@ -147,7 +147,7 @@ function IkinciElInner() {
 
   useEffect(() => {
     void fetchSecondHand();
-  }, [search, statusFilter]);
+  }, [fetchSecondHand]);
 
   async function confirmDelete() {
     if (!deleteId) return;

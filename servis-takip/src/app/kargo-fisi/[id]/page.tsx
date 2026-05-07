@@ -35,16 +35,28 @@ const getMarginCSS = (kenar: string) => {
   return margins[kenar] || '0.3cm'
 }
 
+type SettingEntry = { key: string; value: string };
+
+type CariApiRow = {
+  name: string;
+  phone?: string | null;
+  address?: string | null;
+  taxOrTcNo?: string | null;
+  cargoInfo?: string | null;
+  cargoCode?: string | null;
+  cariCode?: string | null;
+};
+
 type ShopSender = {
-  name: string
-  phone: string | null
-  address: string | null
-}
+  name: string;
+  phone: string | null;
+  address: string | null;
+};
 
 export default function KargoFisi() {
   const params = useParams()
   const router = useRouter()
-  const [cari, setCari] = useState<any>(null)
+  const [cari, setCari] = useState<CariApiRow | null>(null)
   const [shopSender, setShopSender] = useState<ShopSender | null>(null)
   const [loading, setLoading] = useState(true)
   const [printSettings, setPrintSettings] = useState({
@@ -61,7 +73,7 @@ export default function KargoFisi() {
           ? data.settings
           : Object.entries(data ?? {}).map(([key, value]) => ({ key, value }))
         const get = (key: string) =>
-          settings.find((s: any) => s.key === key)?.value
+          (settings as SettingEntry[]).find((s) => s.key === key)?.value
         setPrintSettings({
           boyut: get('kargo_fisi_boyut') || '80mm',
           yon: get('kargo_fisi_yon') || 'portrait',
@@ -78,9 +90,11 @@ export default function KargoFisi() {
           fetch(`/api/cari/${params.id}`),
           fetch('/api/shop'),
         ])
-        const data = await cariRes.json()
-        const shopData = await shopRes.json()
-        setCari(data.cari)
+        const data = (await cariRes.json()) as {
+          cari?: CariApiRow | null;
+        };
+        const shopData = await shopRes.json();
+        setCari(data.cari ?? null);
         if (shopRes.ok && typeof shopData?.name === 'string') {
           setShopSender({
             name: shopData.name,

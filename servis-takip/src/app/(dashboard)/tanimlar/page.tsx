@@ -692,7 +692,11 @@ function PrintSettingsTab() {
             kargo_fisi_yon: settings.kargo_fisi_yon,
             kargo_fisi_kenar: settings.kargo_fisi_kenar,
           };
-    part === "servis" ? setSavingServis(true) : setSavingKargo(true);
+    if (part === "servis") {
+      setSavingServis(true);
+    } else {
+      setSavingKargo(true);
+    }
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
@@ -708,7 +712,11 @@ function PrintSettingsTab() {
     } catch {
       toast.error("Ayarlar kaydedilemedi");
     } finally {
-      part === "servis" ? setSavingServis(false) : setSavingKargo(false);
+      if (part === "servis") {
+        setSavingServis(false);
+      } else {
+        setSavingKargo(false);
+      }
     }
   }
 

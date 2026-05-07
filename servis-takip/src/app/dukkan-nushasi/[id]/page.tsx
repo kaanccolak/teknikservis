@@ -163,7 +163,7 @@ export default function DukkanNushasiPage() {
         }}
       >
         💡 Üst/alt bilgileri (tarih, URL) kaldırmak için tarayıcının yazdırma
-        ayarlarında "Üstbilgiler ve altbilgiler" seçeneğini kapatın.
+        ayarlarında &quot;Üstbilgiler ve altbilgiler&quot; seçeneğini kapatın.
       </p>
 
       {loading ? (
