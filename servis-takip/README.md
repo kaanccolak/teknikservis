@@ -27,6 +27,10 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Sayfadan ayrılma uyarısı (form doldurulmuşken)
 - **Kayıt düzenleme ve silme**
 - Ciro takibi (günlük / haftalık / aylık / yıllık / **tarih aralığı**)
+- WhatsApp Business API entegrasyonu (fiyat bildirimi, servis bildirimi)
+- Servis detay sayfasında durum rengine göre cihaz bilgileri kartı boyama
+- Ciro hesabı StatusLog bazlı (durum geri alınınca ciro düşer)
+- Ciro filtresi düzeltmesi (Bugün/Bu Hafta/Bu Ay/Bu Yıl)
 - Bekleme süresi takibi (renk kodlu)
 - Durum geçmişi
 - Arama ve filtreleme
@@ -130,10 +134,10 @@ src/
 - [x] Telefon normalize arama
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
-- [ ] Auth / Login koruması (Supabase Auth)
-- [ ] Multi-tenant geçişi (shopId bazlı)
-- [ ] WhatsApp Business API aktivasyonu (altyapı hazır)
-- [ ] Domain bağlama
-- [ ] Production deploy (Vercel)
+- [x] WhatsApp Business API altyapısı ve entegrasyonu
+- [ ] WhatsApp mesaj şablonları (Meta onayı bekleniyor)
+- [ ] Auth / Login koruması
+- [ ] Multi-tenant geçişi
+- [ ] Production deploy
 
 ---

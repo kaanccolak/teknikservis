@@ -139,6 +139,26 @@ YYYYMM### — örnek: 202605001
 - Hata durumlarında Türkçe mesaj döndür
 - Response'larda ilişkili tabloları include et (customer, deviceType, brand, deviceModel)
 
+### WhatsApp Entegrasyonu
+
+- `/api/whatsapp/send` → **POST** (şablon mesaj gönderir)
+- `src/lib/whatsapp.ts` → `WA_TEMPLATES` ve `sendWhatsApp` helper
+- Şablon adı: `fiyat_bildirimi` (Meta'da onay bekliyor)
+- Phone Number ID ve Access Token `Shop` tablosunda saklanır (`waPhoneNumberId`, `waAccessToken`, `waEnabled`)
+- `/sirketim` sayfasındaki WhatsApp API sekmesinden yapılandırılır
+- Test token geçicidir (24 saat); kalıcı token için System User gerekir
+
+### Ciro Hesabı
+
+- Ciro `StatusLog` tablosuna göre hesaplanır
+- O gün/hafta/ay delivered statüsüne geçen ve hala delivered olan kayıtlar dahil edilir
+- Durum geri alınırsa kayıt ciroya dahil edilmez
+
+### Durum Renkleri
+
+- Cihaz Bilgileri kartı mevcut durumun rengini kullanır (`statusBadge.bg`, `statusBadge.border`)
+- `src/lib/statusConfig.ts` içindeki `getStatusBadge` fonksiyonu kullanılır
+
 ## UI Kuralları
 
 - shadcn/ui bileşenlerini kullan
