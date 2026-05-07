@@ -134,19 +134,34 @@ function LoginPageContent() {
   }
 
   async function handleForgotPassword() {
-    if (!resetEmail.trim()) {
+    const emailTrim = resetEmail.trim();
+    if (!emailTrim) {
       toast.error("E-posta adresinizi girin");
       return;
     }
     setResetLoading(true);
     try {
+      const checkRes = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailTrim }),
+      });
+      const checkData = (await checkRes.json()) as { exists?: boolean };
+
+      if (!checkRes.ok) {
+        toast.error("E-posta kontrolü yapılamadı");
+        return;
+      }
+
+      if (!checkData.exists) {
+        toast.error("Bu e-posta adresi sistemimizde kayıtlı değil");
+        return;
+      }
+
       const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        resetEmail.trim(),
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-        },
-      );
+      const { error } = await supabase.auth.resetPasswordForEmail(emailTrim, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       if (error) {
         toast.error("Hata: " + error.message);
       } else {
