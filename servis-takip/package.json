@@ -11,7 +11,8 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "fix-order-numbers": "tsx src/scripts/fix-order-numbers.ts",
-    "fix-phone-digits": "tsx src/scripts/fix-phone-digits.ts"
+    "fix-phone-digits": "tsx src/scripts/fix-phone-digits.ts",
+    "seed:demo": "tsx src/scripts/seed-demo.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
