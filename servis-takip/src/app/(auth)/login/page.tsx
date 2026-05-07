@@ -1,8 +1,9 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,11 @@ import { cn } from "@/lib/utils";
 
 type TabMode = "login" | "register";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
+
   const [mode, setMode] = useState<TabMode>("login");
 
   const [email, setEmail] = useState("");
@@ -28,6 +32,13 @@ export default function LoginPage() {
   const [registerPasswordRepeat, setRegisterPasswordRepeat] = useState("");
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
+
+  useEffect(() => {
+    if (isDemo) {
+      setEmail("demo@demo.tr");
+      setPassword("demodemo");
+    }
+  }, [isDemo]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -158,6 +169,22 @@ export default function LoginPage() {
 
         {mode === "login" ? (
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
+            {isDemo ? (
+              <div
+                style={{
+                  background: "#F0EFFE",
+                  border: "1px solid #C5BEFF",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  marginBottom: "16px",
+                  fontSize: "13px",
+                  color: "#534AB7",
+                }}
+              >
+                Demo hesabı otomatik dolduruldu. Giriş yaparak uygulamayı
+                keşfedin.
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="login-email">E-posta</Label>
               <Input
@@ -285,7 +312,31 @@ export default function LoginPage() {
             </Button>
           </form>
         )}
+
+        <p className="mt-8 text-center text-sm">
+          <Link
+            href="/landing"
+            className="inline-flex items-center justify-center gap-1.5 font-medium text-[#534AB7] hover:underline"
+          >
+            <ArrowLeft className="size-4 shrink-0" aria-hidden />
+            Anasayfaya Dön
+          </Link>
+        </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-neutral-100 px-4">
+          <span className="text-sm text-neutral-500">Yükleniyor…</span>
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }

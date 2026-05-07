@@ -15,52 +15,45 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Korumalı rotalar — login değilse /login'e yönlendir
-  const protectedPaths = [
-    "/",
-    "/cihaz-kayit",
-    "/cihaz-sorgula",
-    "/ikinci-el",
-    "/bekleyen-cihazlar",
-    "/dis-servis",
-    "/stok",
-    "/cari",
-    "/planlarim",
-    "/tanimlar",
-    "/raporlar",
-    "/sirketim",
-    "/whatsapp-ayarlari",
-    "/servis-detay",
-  ];
-
-  const isProtected = protectedPaths.some(
-    (path) =>
-      request.nextUrl.pathname === path ||
-      request.nextUrl.pathname.startsWith(path + "/")
-  );
-
-  if (isProtected && !user) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
   // Login sayfasına gidiyorsa ve zaten giriş yaptıysa dashboard'a yönlendir
   if (request.nextUrl.pathname === "/login" && user) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Korumasız sayfalar
+  const publicPaths = ["/login", "/landing"];
+
+  const isPublic = publicPaths.some(
+    (path) =>
+      request.nextUrl.pathname === path ||
+      request.nextUrl.pathname.startsWith(path + "/"),
+  );
+
+  if (isPublic) {
+    return supabaseResponse;
+  }
+
+  // Korumalı rotalar kontrolü
+  const isProtected =
+    !isPublic && request.nextUrl.pathname !== "/login";
+
+  if (isProtected && !user) {
+    return NextResponse.redirect(new URL("/landing", request.url));
   }
 
   return supabaseResponse;
@@ -68,6 +61,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -37,6 +37,12 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - CSV export
 - **Enter tuşu ile form navigasyonu** (cihaz kayıt formunda sonraki alana geçiş)
 - **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
+- **Auth / Login koruması** (Supabase Auth)
+- **Multi-tenant mimari** (her dükkan kendi verisini görür)
+- **Landing page** (modern SaaS tasarımı)
+- **Demo hesabı otomatik giriş** (`/login?demo=true`)
+- **Kayıt olunca otomatik Shop oluşturma** (`/api/auth/register`)
+- **Şirket bazlı veri izolasyonu** (`shopId`)
 
 ## Tech Stack
 
@@ -90,27 +96,39 @@ npx prisma db push
 npm run dev
 ```
 
+### Supabase Auth kurulumu
+
+Geliştirme için önerilen ayarlar:
+
+- **Authentication → Settings → Email confirmation**: kapalı (development)
+- **Site URL**: `http://localhost:3000`
+- **Redirect URL**: `http://localhost:3000/api/auth/callback`
+
+Production’da e-posta onayını açabilirsin; redirect URL’leri ortama göre güncelle.
+
 ## Proje Yapısı
 
 ```
 src/
 ├── app/
-│   ├── (auth)/login/          # Giriş sayfası
-│   ├── (dashboard)/           # Ana uygulama
-│   │   ├── page.tsx           # Gösterge paneli
-│   │   ├── cihaz-kayit/       # Yeni kayıt formu
-│   │   ├── cihaz-sorgula/     # Kayıt listesi ve arama
-│   │   ├── bekleyen-cihazlar/ # Bekleyen cihaz listesi
-│   │   ├── raporlar/          # Raporlar (servis / finansal / ikinci el)
-│   │   ├── stok/              # Yedek parça stok
-│   │   ├── servis-detay/[id]/ # Kayıt detay, fiş, düzenleme
-│   │   └── tanimlar/          # Cihaz türü/marka/model yönetimi
-│   └── api/                   # API route'ları
+│   ├── landing/              # Tanıtım (SaaS landing, public)
+│   ├── (auth)/login/         # Giriş / kayıt
+│   ├── (dashboard)/          # Korumalı uygulama
+│   │   ├── page.tsx          # Gösterge paneli
+│   │   ├── cihaz-kayit/
+│   │   ├── cihaz-sorgula/
+│   │   ├── bekleyen-cihazlar/
+│   │   ├── raporlar/
+│   │   ├── stok/
+│   │   ├── servis-detay/[id]/
+│   │   └── tanimlar/
+│   └── api/                  # API route'ları (auth/register, shop, …)
+├── middleware.ts             # Supabase auth, korumalı rotalar
 ├── components/
-│   └── layout/                # Sidebar, TopBar
+│   └── layout/               # Sidebar, TopBar
 ├── lib/
-│   └── supabase/              # Supabase client
-└── types/                     # TypeScript tipleri
+│   └── supabase/
+└── types/
 ```
 
 ## Servis Durumları
@@ -135,9 +153,13 @@ src/
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
 - [x] WhatsApp Business API altyapısı ve entegrasyonu
-- [ ] WhatsApp mesaj şablonları (Meta onayı bekleniyor)
-- [ ] Auth / Login koruması
-- [ ] Multi-tenant geçişi
-- [ ] Production deploy
+- [x] Auth / Login koruması
+- [x] Multi-tenant geçişi
+- [x] Landing page
+- [ ] Şifre sıfırlama
+- [ ] Vercel deploy
+- [ ] WhatsApp şablon onayı (Meta değerlendirmede)
+- [ ] SMS entegrasyonu
+- [ ] Mobil uyumlu tasarım
 
 ---

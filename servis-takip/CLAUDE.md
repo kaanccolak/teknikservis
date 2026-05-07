@@ -4,7 +4,7 @@ Bu dosya Claude ve Cursor gibi AI araçlarının projeyi doğru anlaması için 
 
 ## Proje Özeti
 
-Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. Single-tenant şu an, multi-tenant'a hazır mimari (her tabloda shopId var).
+Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-tenant mimari**: oturum açmış kullanıcı kendi **Shop** kaydına (`Shop.userId`) bağlı veriyi görür; `shopId` ile tablo bazında izolasyon.
 
 ## Tech Stack
 
@@ -13,15 +13,38 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. Single-ten
 - **Stil**: Tailwind CSS + shadcn/ui
 - **Veritabanı**: PostgreSQL (Supabase)
 - **ORM**: Prisma 5.22
-- **Auth**: Supabase Auth (henüz aktif değil)
+- **Auth**: Supabase Auth (middleware ile dashboard koruması aktif)
 
 ## Önemli Kurallar
 
+### Auth sistemi
+
+- **Supabase Auth** kullanılıyor.
+- **`src/middleware.ts`** — Dashboard rotalarını korur; `/api/*` matcher dışında (API route’lar doğrudan işlenir).
+- **`/landing`** ve **`/login`** → herkese açık.
+- **Giriş yoksa** ve rota korumalıysa → **`/landing`** yönlendirilir (login değil).
+- **Giriş varken `/login`** → **`/`** (panele yönlendirilir).
+- **Çıkış** (`Sidebar`) → **`/landing`**.
+
+### Multi-tenant
+
+- Her kullanıcının bir **Shop** kaydı olabilir: **`Shop.userId`** (`String? @unique`) ile kullanıcıya bağlanır.
+- **`src/lib/getShop.ts`** — Oturumdaki kullanıcı için `prisma.shop.findUnique({ where: { userId } })`; oturum yoksa `null`. **`prisma.shop.findFirst()` ile “ilk shop” kullanma** (API’lerde veri sızıntısı riski).
+- **`getOrCreateDefaultShop()`** (`src/lib/default-shop.ts`) — Önce oturumlu kullanıcıya göre shop bulur/oluşturur; oturum yoksa legacy davranış (anonim ilk shop / varsayılan dükkan).
+- Tüm ilişkili kayıtlar **`shopId`** ile bağlıdır; kayıt sırasında oluşturulan shop ile tutarlı kalınmalıdır.
+
+### Landing page
+
+- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public**.
+- **“Demo İncele”** → **`/login?demo=true`** → e-posta / şifre otomatik doldurulur (`demo@demo.tr` / `demodemo`).
+- **“Kullanmaya Başlayın”** / alt CTA **“Hemen Başlayın”** → **`#fiyatlandirma`** bölümüne `scrollIntoView({ behavior: 'smooth' })`.
+- **“Servis Paneli”** → **`/login`**.
+
 ### Veritabanı
 
-- Her tabloda `shopId` alanı var — multi-tenant hazırlığı için, şimdilik tek shop kullanılıyor
-- **Shop** (tek kayıt): `name` (zorunlu), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, `createdAt`, `updatedAt`. Fişler ve sidebar başlığı `/api/shop` ile bu kayıttan beslenir.
-- Shop yoksa otomatik oluştur: ilk kaydı bul, yoksa "Varsayılan Dükkan" adıyla oluştur (`getOrCreateDefaultShop`)
+- Her iş kaydında **`shopId`** — tenant izolasyonu.
+- **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, WhatsApp alanları, `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir.
+- Shop yoksa **`getOrCreateDefaultShop`** ile oluşturulur (oturumluysa kullanıcıya bağlı; değilse legacy varsayılan).
 - Prisma client: `src/lib/prisma.ts` üzerinden import et, direkt `new PrismaClient()` kullanma
 - DATABASE_URL: Transaction pooler (port 6543) + ?pgbouncer=true&connection_limit=1
 - DIRECT_URL: Session pooler (port 5432)
@@ -74,9 +97,11 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
 - `/raporlar` — Raporlar (**3 sekme:** Servis, Finansal, İkinci El)
+- `/landing` — Tanıtım / SaaS landing (public, dashboard layout yok)
 
 ### Yeni API Route'lar
 
+- `/api/auth/register` — **POST** (`{ userId, shopName }`) — kayıt sonrası oturumlu kullanıcı için **Shop** oluşturur (`userId` doğrulaması)
 - `/api/spare-parts` — **GET** (filtreler: `?search`, `?deviceTypeId`, `?brandId`, `?deviceModelId`, `?stockStatus`, `?forServiceOrderId`), **POST**
 - `/api/spare-parts/[id]` — **PATCH**, **DELETE**
 - `/api/spare-parts/[id]/stock` — **PATCH** (`{ quantity, type: "add" | "subtract" }`)
@@ -88,12 +113,15 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
-- `/api/shop` — **GET** (ilk shop), **PATCH** (şirket bilgileri güncelle; `name` zorunlu)
+- `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu)
 
 **Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
 
 ### Önemli Notlar
 
+- **`Shop.userId`** (`@unique`) — oturumlu kullanıcı başına en fazla bir Shop.
+- **Tek seferlik migration script**: `src/scripts/migrate-shop.ts` (eski `userId`’siz shop → yeni kullanıcı shop’una taşıma; prod’da bir kez çalıştırıldıysa tekrarlama).
+- **Supabase**: geliştirmede **e-posta onayı kapalı** önerilir; production’da açılabilir (redirect URL’leri güncelle).
 - Fiş sayfaları (`fis`, `dukkan-nushasi`, `kargo-fisi`) dashboard layout'u dışında `src/app/` root altında, sidebar görünmez. Şirket ünvanı bu sayfalarda `GET /api/shop` ile alınır (siparişe gömülü `shop.name` yedek olarak kullanılabilir).
 - Telefon araması `phoneDigits` alanı üzerinden yapılır (normalize edilmiş rakamlar).
 - Kargo fişi aynı sekmede açılır (`router.push`, `window.open` değil).
@@ -104,7 +132,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 ## Performans Notları
 
 - `src/lib/cache.ts` — bellek içi cache (**device-types**, **brands**, **models**; yaklaşık **5 dk TTL**). Tanımlar / ilgili API’lerde POST/DELETE sonrası **invalidate** edilir.
-- `src/lib/getShop.ts` — shop önbelleği (**~1 dk TTL**).
+- `src/lib/getShop.ts` — Oturumdaki kullanıcının shop'unu döndürür; **TTL önbelleği yok** (`setShopCache` / `invalidateShopCache` uyumluluk için no-op olabilir).
 - Ağır dashboard / listeleme uçlarında mümkün olduğunca **`Promise.all`** ile paralel Prisma sorguları.
 - **`$queryRaw`** yerine tercihen **`findMany` + JS tarafında gruplama** (okunabilirlik ve tip güvenliği).
 - **`useEffect` bağımlılık dizilerini** dikkatli tut; aynı veriyi iki kez çekmeyi önle (Strict Mode + gereksiz `[load]` zincirleri).
@@ -186,23 +214,21 @@ YYYYMM### — örnek: 202605001
 ## Klasör Yapısı
 
 ```
-src/app/(dashboard)/                          # Korumalı sayfalar (auth gelince)
-src/app/(dashboard)/stok/                     # Yedek parça stok
-src/app/(dashboard)/cari/                     # Cari yönetimi
-src/app/(dashboard)/servis-detay/[id]/duzenle/  # Kayıt düzenleme
-src/app/(dashboard)/raporlar/                  # Raporlar (3 sekme)
-src/app/fis/[id]/                             # Müşteri nüshası
-src/app/dukkan-nushasi/[id]/                  # Cihaz etiketi
-src/app/kargo-fisi/[id]/                      # Kargo gönderi fişi
-src/app/(auth)/                               # Login sayfası
+src/middleware.ts                             # Auth, public rotalar, /landing yönlendirme
+src/app/landing/                            # SaaS landing (public)
+src/app/(dashboard)/                          # Korumalı uygulama
+src/app/(dashboard)/stok/
+src/app/(dashboard)/cari/
+src/app/(dashboard)/servis-detay/[id]/duzenle/
+src/app/(dashboard)/raporlar/
+src/app/fis/[id]/
+src/app/dukkan-nushasi/[id]/
+src/app/kargo-fisi/[id]/
+src/app/(auth)/login/
 src/app/api/
-src/app/api/spare-parts/                      # Parça CRUD + stok
-src/app/api/service-orders/[id]/spare-parts/  # Kayıt parça kullanımı
-src/app/api/cari/                             # Cari CRUD
-src/app/api/customers/search/                 # Geçmiş müşteri arama
-src/app/api/exchange-rates/                   # Kur servisi
-src/app/api/settings/                         # Yazdırma/uygulama ayarları
-src/components/layout/                        # Sidebar, TopBar
+src/app/api/auth/register/                    # Kayıt sonrası Shop oluşturma
+src/scripts/migrate-shop.ts                   # Tek seferlik shop veri taşıma (referans)
+src/components/layout/
 src/lib/prisma.ts
 src/lib/supabase/
 ```
@@ -224,8 +250,12 @@ src/lib/supabase/
 - [x] Telefon normalize arama
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
-- [ ] Auth / Login koruması (Supabase Auth)
-- [ ] Multi-tenant geçişi (shopId bazlı)
-- [ ] WhatsApp Business API aktivasyonu (altyapı hazır)
+- [x] Auth / Login koruması (Supabase Auth)
+- [x] Multi-tenant (shop + `userId`)
+- [x] Landing page
+- [ ] Şifre sıfırlama
+- [ ] Vercel deploy
+- [ ] WhatsApp şablon onayı (Meta değerlendirmede)
+- [ ] SMS entegrasyonu
+- [ ] Mobil uyumlu tasarım
 - [ ] Domain bağlama
-- [ ] Production deploy (Vercel)
