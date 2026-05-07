@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import * as cheerio from "cheerio"
 
+export const dynamic = "force-dynamic";
+
 const guncellemeNow = () =>
   new Date().toLocaleTimeString("tr-TR", {
     hour: "2-digit",

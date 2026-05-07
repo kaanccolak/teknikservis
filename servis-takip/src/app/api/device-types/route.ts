@@ -5,6 +5,8 @@ import { getCache, invalidateCache, setCache } from "@/lib/cache";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 const CACHE_KEY = "device-types";
 
 export async function GET() {

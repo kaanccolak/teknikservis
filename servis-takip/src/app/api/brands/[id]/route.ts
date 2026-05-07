@@ -5,6 +5,8 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } },

@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 import { SERVICE_ORDER_DELIVERED_STATUSES } from "@/lib/service-order-status";
 
+export const dynamic = "force-dynamic";
+
 /** Takvim günü (sunucu yerel saati) */
 function localDayBounds(d = new Date()): { start: Date; end: Date } {
   const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);

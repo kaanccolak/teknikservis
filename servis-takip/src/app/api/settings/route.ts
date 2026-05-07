@@ -4,6 +4,8 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 const DEFAULTS: Record<string, string> = {
   servis_fisi_boyut: "A4",
   servis_fisi_yon: "portrait",

@@ -4,6 +4,8 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { getErrorDetails, jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 const usageInclude = {
   sparePart: {
     include: {

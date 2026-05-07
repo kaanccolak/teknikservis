@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
 }

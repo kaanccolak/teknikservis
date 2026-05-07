@@ -10,6 +10,8 @@ import {
   trPhoneDigitsOnly,
 } from "@/lib/tr-phone";
 
+export const dynamic = "force-dynamic";
+
 const includeRelations = {
   deviceType: true,
   brand: true,

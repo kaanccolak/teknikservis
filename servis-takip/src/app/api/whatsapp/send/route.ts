@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   let body: {
     phone?: string;

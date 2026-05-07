@@ -4,6 +4,8 @@ import { invalidateShopCache } from "@/lib/getShop";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {

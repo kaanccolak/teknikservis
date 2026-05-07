@@ -3,7 +3,14 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -80,7 +87,7 @@ function phoneToDisplayField(stored: string | null | undefined): string {
   return formatPhone(national.slice(0, 10));
 }
 
-export default function DisServisPage() {
+function DisServisContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const duzenleId = searchParams.get("duzenle");
@@ -531,5 +538,13 @@ export default function DisServisPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+export default function DisServisPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <DisServisContent />
+    </Suspense>
   );
 }

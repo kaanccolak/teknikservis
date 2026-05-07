@@ -22,6 +22,8 @@ import {
   formEstimatedPriceToDb,
 } from "@/lib/validation/create-service-order";
 
+export const dynamic = "force-dynamic";
+
 function emptyToNull(s: string | undefined): string | null {
   const t = s?.trim();
   return t ? t : null;

@@ -10,6 +10,8 @@ import {
   trPhoneDigitsOnly,
 } from "@/lib/tr-phone";
 
+export const dynamic = "force-dynamic";
+
 function normalizeSearchDigits(s: string): string {
   return s.replace(/\D/g, "");
 }

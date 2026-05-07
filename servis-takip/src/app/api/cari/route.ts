@@ -4,6 +4,8 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 function normalizeDigits(value: string | undefined): string | null {
   const digits = (value ?? "").replace(/\D/g, "");
   return digits.length > 0 ? digits : null;

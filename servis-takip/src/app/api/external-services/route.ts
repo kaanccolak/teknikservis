@@ -4,6 +4,8 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 function optStr(v: unknown): string | null {
   if (v === undefined || v === null) return null;
   const s = String(v).trim();

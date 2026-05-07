@@ -9,6 +9,8 @@ import {
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 
+export const dynamic = "force-dynamic";
+
 const CATEGORY_KEYS = new Set([
   "kira",
   "kredi",

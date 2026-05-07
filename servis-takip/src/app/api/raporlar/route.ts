@@ -7,6 +7,8 @@ import {
   SERVICE_ORDER_DELIVERED_STATUSES,
 } from "@/lib/service-order-status";
 
+export const dynamic = "force-dynamic";
+
 type RaporlarTab = "servis" | "finansal" | "ikinciEl";
 
 function periodBounds(

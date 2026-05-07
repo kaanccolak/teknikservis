@@ -16,6 +16,8 @@ import {
   type PatchServiceOrderBody,
 } from "@/lib/validation/patch-service-order";
 
+export const dynamic = "force-dynamic";
+
 const serviceOrderInclude = {
   shop: { select: { name: true } },
   customer: true,
