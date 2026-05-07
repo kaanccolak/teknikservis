@@ -6,6 +6,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 
 ## Özellikler
 
+- **Müşteri durum sorgulama** (`/sorgula`, şifre gerektirmez) — kayıt no + telefon ile kayıt özeti; **tamir olmuyor** durumunda **tamir olmama nedeni** gösterimi
 - Cihaz kayıt ve takip
 - Müşteri yönetimi
 - Cari yönetimi (firma/müşteri kaydı, cari kodu: C202605001 formatı)
@@ -43,6 +44,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Demo hesabı otomatik giriş** (`/login?demo=true`)
 - **Kayıt olunca otomatik Shop oluşturma** (`/api/auth/register`)
 - **Şirket bazlı veri izolasyonu** (`shopId`)
+- **Şifre sıfırlama** — giriş sayfasından “Şifremi unuttum”; kayıtlı e-posta kontrolü + sıfırlama bağlantısı; **`/reset-password`** ile yeni şifre
 
 ## Tech Stack
 
@@ -82,7 +84,11 @@ DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 NEXT_PUBLIC_SUPABASE_URL="https://..."
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
+# Şifre sıfırlama öncesi e-posta kontrolü (yalnızca sunucu — /api/auth/check-email)
+SUPABASE_SERVICE_ROLE_KEY="..."
 ```
+
+Supabase Dashboard → **Authentication → URL Configuration** içine **`/reset-password`** için tam URL ekleyin (örn. `https://your-domain.vercel.app/reset-password` ve `http://localhost:3000/reset-password`).
 
 4. Veritabanını oluştur:
 
@@ -90,11 +96,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 npx prisma db push
 ```
 
+İsteğe bağlı demo verisi (ilk oturumlu kullanıcıya bağlı `Shop`, `userId` dolu):
+
+```bash
+npm run seed:demo
+```
+
 5. Geliştirme sunucusunu başlat:
 
 ```bash
 npm run dev
 ```
+
+Üretim derlemesi: **`npm run build`** → `prisma generate && next build`.
 
 ### Supabase Auth kurulumu
 
@@ -112,6 +126,8 @@ Production’da e-posta onayını açabilirsin; redirect URL’leri ortama göre
 src/
 ├── app/
 │   ├── landing/              # Tanıtım (SaaS landing, public)
+│   ├── sorgula/              # Müşteri sorgulama (public)
+│   ├── reset-password/       # Şifre sıfırlama formu (public)
 │   ├── (auth)/login/         # Giriş / kayıt
 │   ├── (dashboard)/          # Korumalı uygulama
 │   │   ├── page.tsx          # Gösterge paneli
@@ -122,7 +138,7 @@ src/
 │   │   ├── stok/
 │   │   ├── servis-detay/[id]/
 │   │   └── tanimlar/
-│   └── api/                  # API route'ları (auth/register, shop, …)
+│   └── api/                  # REST API (auth/register, auth/check-email, shop, sorgula, …)
 ├── middleware.ts             # Supabase auth, korumalı rotalar
 ├── components/
 │   └── layout/               # Sidebar, TopBar
@@ -156,8 +172,9 @@ src/
 - [x] Auth / Login koruması
 - [x] Multi-tenant geçişi
 - [x] Landing page
-- [ ] Şifre sıfırlama
-- [ ] Vercel deploy
+- [x] Şifre sıfırlama (Supabase + check-email + reset-password sayfası)
+- [x] Müşteri sorgulama sayfası (`/sorgula`)
+- [x] Vercel build uyumu (`prisma generate`, API route `dynamic`, Suspense ile useSearchParams sayfaları)
 - [ ] WhatsApp şablon onayı (Meta değerlendirmede)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumlu tasarım

@@ -21,10 +21,14 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 - **Supabase Auth** kullanılıyor.
 - **`src/middleware.ts`** — Dashboard rotalarını korur; `/api/*` matcher dışında (API route’lar doğrudan işlenir).
-- **`/landing`** ve **`/login`** → herkese açık.
+- **Herkese açık rotalar** (`publicPaths`): **`/login`**, **`/landing`**, **`/sorgula`**, **`/reset-password`** ve bunların alt yolları.
+- **Matcher** içinde **`/`** açıkça tanımlıdır; kök adres için middleware tetiklenir (aksi halde kök korumalı kalıp yönlendirme çalışmayabilirdi).
 - **Giriş yoksa** ve rota korumalıysa → **`/landing`** yönlendirilir (login değil).
 - **Giriş varken `/login`** → **`/`** (panele yönlendirilir).
 - **Çıkış** (`Sidebar`) → **`/landing`**.
+- **Şifre sıfırlama**: Login sayfasında **Şifremi unuttum** → e-posta ile **`resetPasswordForEmail`** (`redirectTo`: `{origin}/reset-password`). Öncesinde **`POST /api/auth/check-email`** ile kayıtlı e-posta kontrolü (Supabase **Admin** `listUsers`; sunucuda **`SUPABASE_SERVICE_ROLE_KEY`** gerekir).
+- **`src/app/reset-password/page.tsx`** — Kök dizinde, **public**; oturum/hash sonrası **`updateUser({ password })`**. Geçersiz oturumda girişe dönüş butonu (`window.location.href`).
+- Supabase Dashboard → **Authentication → URL Configuration**: **`/reset-password`** redirect URL eklenmeli (prod + localhost).
 
 ### Multi-tenant
 
@@ -42,6 +46,7 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 ### Veritabanı
 
+- **`ServiceOrder.repairFailedReason`** (`String?`) — durum **`repair_failed`** iken servis detayda modal ile girilen tamir olmama nedeni; müşteri **`/sorgula`** sonucunda da gösterilir (durum + dolu neden).
 - Her iş kaydında **`shopId`** — tenant izolasyonu.
 - **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, WhatsApp alanları, `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir.
 - Shop yoksa **`getOrCreateDefaultShop`** ile oluşturulur (oturumluysa kullanıcıya bağlı; değilse legacy varsayılan).
@@ -86,6 +91,10 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
 - **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
 
+### Public müşteri yüzeyi
+
+- **`/sorgula`** (`src/app/sorgula/page.tsx`) — Kayıt no (9 hane) + cep (10 hane, **5** ile başlar); **`GET /api/sorgula`** ile sonuç; **`repair_failed`** + **`repairFailedReason`** varsa kutu ile gösterilir. Anlık doğrulama mesajları + toast ile gönderim öncesi kontroller.
+
 ### Yeni Sayfalar
 
 - `/stok` — Yedek parça stok yönetimi
@@ -98,10 +107,13 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
 - `/raporlar` — Raporlar (**3 sekme:** Servis, Finansal, İkinci El)
 - `/landing` — Tanıtım / SaaS landing (public, dashboard layout yok)
+- `/sorgula` — Müşteri cihaz durumu sorgulama (dashboard dışı, public)
+- `/reset-password` — Şifre sıfırlama formu (e-posta bağlantısı sonrası, public)
 
 ### Yeni API Route'lar
 
 - `/api/auth/register` — **POST** (`{ userId, shopName }`) — kayıt sonrası oturumlu kullanıcı için **Shop** oluşturur (`userId` doğrulaması)
+- `/api/auth/check-email` — **POST** (`{ email }`) — `{ exists: boolean }`; şifre sıfırlama öncesi e-posta kayıtlı mı (service role).
 - `/api/spare-parts` — **GET** (filtreler: `?search`, `?deviceTypeId`, `?brandId`, `?deviceModelId`, `?stockStatus`, `?forServiceOrderId`), **POST**
 - `/api/spare-parts/[id]` — **PATCH**, **DELETE**
 - `/api/spare-parts/[id]/stock` — **PATCH** (`{ quantity, type: "add" | "subtract" }`)
@@ -117,6 +129,12 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 **Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
 
+### Build ve deploy (Vercel)
+
+- **`npm run build`** → **`prisma generate && next build`** — CI’da Prisma Client üretimi garanti.
+- **`src/app/api/**/route.ts`** — Tüm route dosyalarında **`export const dynamic = "force-dynamic"`** (statik önbelleğe alınmayan API davranışı). Çok satırlı import bloklarının **ortasına** bu satır yazılmamalı (parse hatası).
+- **`useSearchParams`** kullanan istemci sayfaları **`Suspense`** ile sarılmalı (`login`, **`dis-servis`**, `cihaz-sorgula`, `bekleyen-cihazlar` vb.).
+
 ### Önemli Notlar
 
 - **`Shop.userId`** (`@unique`) — oturumlu kullanıcı başına en fazla bir Shop.
@@ -128,6 +146,12 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - Ciro kartı varsayılan gizli, göz ikonu ile açılır.
 - Döviz kurları: alış -2%, satış +2% olarak revize edilir.
 - Tarayıcı header/footer yazdırmada kullanıcı tarafından manuel kapatılmalıdır.
+- **Servis detay** — **Tamiri Olmuyor** seçimi doğrudan durumu değiştirmez; önce modal ile **`repairFailedReason`** alınır, sonra **`PATCH`** ile hem durum hem neden güncellenir.
+- **Dashboard ciro kartı** — Günlük varsayılan yüklemede ana dashboard’daki ciro ile uyum için **`dailyRevenueFromDashboard`** ile gereksiz ek **`/api/dashboard`** çağrısı önlenir.
+
+## Demo verisi (isteğe bağlı)
+
+- **`npm run seed:demo`** (`src/scripts/seed-demo.ts`) — İlk **`Shop.userId`** dolu kayıt (demo hesabı) için örnek tanımlar, müşteriler, servis kayıtları, stok, ikinci el, planlar, cari. **`Demo`** adıyla aramaz; shop seçimi **`userId IS NOT NULL`** ile yapılır.
 
 ## Performans Notları
 
@@ -225,6 +249,8 @@ src/app/fis/[id]/
 src/app/dukkan-nushasi/[id]/
 src/app/kargo-fisi/[id]/
 src/app/(auth)/login/
+src/app/sorgula/                         # Müşteri sorgula (public)
+src/app/reset-password/                  # Şifre sıfırlama (public)
 src/app/api/
 src/app/api/auth/register/                    # Kayıt sonrası Shop oluşturma
 src/scripts/migrate-shop.ts                   # Tek seferlik shop veri taşıma (referans)
@@ -253,8 +279,9 @@ src/lib/supabase/
 - [x] Auth / Login koruması (Supabase Auth)
 - [x] Multi-tenant (shop + `userId`)
 - [x] Landing page
-- [ ] Şifre sıfırlama
-- [ ] Vercel deploy
+- [x] Şifre sıfırlama (akış + reset-password + check-email)
+- [x] Public müşteri sorgulama (`/sorgula`, `repairFailedReason` gösterimi)
+- [x] Vercel build uyumu (`prisma generate`, API `dynamic`, Suspense)
 - [ ] WhatsApp şablon onayı (Meta değerlendirmede)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumlu tasarım
