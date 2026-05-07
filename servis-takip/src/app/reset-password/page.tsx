@@ -97,8 +97,14 @@ export default function ResetPasswordPage() {
               Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen
               yeni bir sıfırlama talebinde bulunun.
             </p>
-            <Button asChild className="w-full bg-neutral-900 text-white hover:bg-neutral-800">
-              <Link href="/login">Giriş sayfasına dön</Link>
+            <Button
+              type="button"
+              className="w-full bg-neutral-900 text-white hover:bg-neutral-800"
+              onClick={() => {
+                window.location.href = "/login";
+              }}
+            >
+              Giriş sayfasına dön
             </Button>
           </div>
         ) : checkingSession ? (
