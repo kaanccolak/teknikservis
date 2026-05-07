@@ -46,6 +46,7 @@ export const patchServiceOrderSchema = z
     physicalDamage: z.string().optional(),
     externalServiceId: z.string().nullable().optional(),
     externalNote: z.string().max(20_000).nullable().optional(),
+    repairFailedReason: z.string().max(20_000).nullable().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {

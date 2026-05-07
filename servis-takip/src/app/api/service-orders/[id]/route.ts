@@ -172,6 +172,13 @@ function buildServiceOrderUpdate(
     prismaData.physicalDamage = emptyToNull(body.physicalDamage);
   }
 
+  if (body.repairFailedReason !== undefined) {
+    prismaData.repairFailedReason =
+      body.repairFailedReason === null || String(body.repairFailedReason).trim() === ""
+        ? null
+        : String(body.repairFailedReason).trim();
+  }
+
   if (body.status !== undefined && body.status !== "sent_to_external") {
     prismaData.externalService = { disconnect: true };
     prismaData.externalNote = null;

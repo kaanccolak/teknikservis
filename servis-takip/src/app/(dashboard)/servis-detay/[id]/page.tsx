@@ -116,6 +116,7 @@ type ServiceOrderDetail = {
   accessories: string | null;
   physicalDamage: string | null;
   arrivedByCargo: boolean;
+  repairFailedReason?: string | null;
   cargoInfo: string | null;
   arrivedAt: string;
   deviceTypeName: string | null;
@@ -219,6 +220,8 @@ export default function ServisDetayPage() {
   const [savingPrice, setSavingPrice] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
   const [externalSendOpen, setExternalSendOpen] = useState(false);
+  const [showRepairFailedModal, setShowRepairFailedModal] = useState(false);
+  const [repairFailedReason, setRepairFailedReason] = useState("");
   const [externalServicesList, setExternalServicesList] = useState<
     ExternalServiceRow[]
   >([]);
@@ -455,6 +458,11 @@ export default function ServisDetayPage() {
 
   async function handleStatusChange(next: string | null) {
     if (!order || next == null || next === order.status) return;
+    if (next === "repair_failed") {
+      setRepairFailedReason("");
+      setShowRepairFailedModal(true);
+      return;
+    }
     if (next === "sent_to_external") {
       setExternalSendServiceId(order.externalServiceId ?? "");
       setExternalSendNote(order.externalNote ?? "");
@@ -475,6 +483,30 @@ export default function ServisDetayPage() {
       if (offerApprovalWa) {
         setWaApprovalOpen(true);
       }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
+    } finally {
+      setSavingStatus(false);
+    }
+  }
+
+  async function handleRepairFailedConfirm() {
+    if (!repairFailedReason.trim()) {
+      toast.error("Lütfen tamir olmama nedenini girin");
+      return;
+    }
+    if (!order) return;
+    setShowRepairFailedModal(false);
+    setSavingStatus(true);
+    try {
+      const updated = await patchOrder({
+        status: "repair_failed",
+        repairFailedReason: repairFailedReason.trim(),
+      });
+      setOrder(updated);
+      setRepairFailedReason("");
+      toast.success("Durum güncellendi");
+      await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
     } finally {
@@ -815,6 +847,80 @@ export default function ServisDetayPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={showRepairFailedModal}
+        onOpenChange={setShowRepairFailedModal}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tamir Olmama Nedeni</DialogTitle>
+            <DialogDescription>
+              Bu cihazın neden tamir edilemediğini belirtin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div style={{ marginTop: "8px" }}>
+            <textarea
+              value={repairFailedReason}
+              onChange={(e) => setRepairFailedReason(e.target.value)}
+              placeholder="Örn: Yedek parça bulunamadı, hasar çok fazla, ekonomik tamir mümkün değil..."
+              rows={4}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                fontSize: "14px",
+                resize: "vertical",
+                fontFamily: "inherit",
+              }}
+            />
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#9ca3af",
+                marginTop: "6px",
+              }}
+            >
+              Bu bilgi kayıt detayında görüntülenecek.
+            </p>
+          </div>
+
+          <DialogFooter style={{ marginTop: "16px" }}>
+            <button
+              type="button"
+              onClick={() => setShowRepairFailedModal(false)}
+              style={{
+                padding: "8px 16px",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                background: "white",
+                cursor: "pointer",
+                fontSize: "13px",
+              }}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRepairFailedConfirm()}
+              style={{
+                padding: "8px 20px",
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "500",
+              }}
+            >
+              Kaydet
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={waApprovalOpen} onOpenChange={setWaApprovalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1116,6 +1222,32 @@ export default function ServisDetayPage() {
                   </DetailRow>
                 ) : null}
               </dl>
+              {order.status === "repair_failed" &&
+              order.repairFailedReason?.trim() ? (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    padding: "12px",
+                    background: "#fef2f2",
+                    borderRadius: "8px",
+                    border: "1px solid #fecaca",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#dc2626",
+                      fontWeight: "500",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Tamir Olmama Nedeni
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#374151" }}>
+                    {order.repairFailedReason}
+                  </div>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 

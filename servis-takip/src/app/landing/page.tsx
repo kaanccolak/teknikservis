@@ -30,6 +30,13 @@ export default function LandingPage() {
             <span className="lp-brand-name">Servis Takip</span>
           </div>
           <div className="lp-nav-right">
+            <button
+              type="button"
+              className="lp-btn-sorgula"
+              onClick={() => router.push("/sorgula")}
+            >
+              Cihaz Sorgula
+            </button>
             <button type="button" className="lp-btn-servis-panel" onClick={goLogin}>
               Servis Paneli
             </button>
@@ -410,7 +417,23 @@ export default function LandingPage() {
         .lp-nav-right {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 12px;
+        }
+
+        .lp-btn-sorgula {
+          padding: 8px 20px;
+          border-radius: 8px;
+          border: 1px solid #e0e0e0;
+          background: white;
+          color: #534ab7;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        .lp-btn-sorgula:hover {
+          background: #fafafa;
         }
 
         .lp-btn-servis-panel {
