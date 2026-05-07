@@ -33,6 +33,11 @@ function LoginPageContent() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
 
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
   useEffect(() => {
     if (isDemo) {
       setEmail("demo@demo.tr");
@@ -128,6 +133,32 @@ function LoginPageContent() {
     setRegisterLoading(false);
   }
 
+  async function handleForgotPassword() {
+    if (!resetEmail.trim()) {
+      toast.error("E-posta adresinizi girin");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        resetEmail.trim(),
+        {
+          redirectTo: `${window.location.origin}/reset-password`,
+        },
+      );
+      if (error) {
+        toast.error("Hata: " + error.message);
+      } else {
+        setResetSent(true);
+      }
+    } catch {
+      toast.error("Bir hata oluştu");
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-100 px-4 py-10">
       <div className="w-full max-w-[400px] rounded-xl border border-neutral-200 bg-white p-8 shadow-md">
@@ -140,35 +171,126 @@ function LoginPageContent() {
           </p>
         </div>
 
-        <div className="mt-8 flex rounded-lg border border-neutral-200 bg-neutral-50 p-1">
-          <button
-            type="button"
-            onClick={() => setMode("login")}
-            className={cn(
-              "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
-              mode === "login"
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-600 hover:text-neutral-900",
-            )}
-          >
-            Giriş Yap
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("register")}
-            className={cn(
-              "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
-              mode === "register"
-                ? "bg-white text-neutral-900 shadow-sm"
-                : "text-neutral-600 hover:text-neutral-900",
-            )}
-          >
-            Kayıt Ol
-          </button>
-        </div>
+        {showForgotPassword ? (
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setShowForgotPassword(false);
+                setResetSent(false);
+                setResetEmail("");
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#666",
+                fontSize: "13px",
+                cursor: "pointer",
+                marginBottom: "16px",
+                padding: "0",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              ← Geri dön
+            </button>
 
-        {mode === "login" ? (
-          <form onSubmit={handleLogin} className="mt-6 space-y-4">
+            <h2
+              style={{
+                fontSize: "20px",
+                fontWeight: "600",
+                marginBottom: "8px",
+              }}
+            >
+              Şifre Sıfırla
+            </h2>
+            <p style={{ fontSize: "14px", color: "#666", marginBottom: "24px" }}>
+              E-posta adresinizi girin, şifre sıfırlama bağlantısı göndereceğiz.
+            </p>
+
+            <input
+              type="email"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              placeholder="E-posta adresiniz"
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                fontSize: "14px",
+                marginBottom: "12px",
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={() => void handleForgotPassword()}
+              disabled={resetLoading}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "#534AB7",
+                color: "white",
+                border: "none",
+                borderRadius: "9px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: resetLoading ? "wait" : "pointer",
+                opacity: resetLoading ? 0.85 : 1,
+              }}
+            >
+              {resetLoading ? "Gönderiliyor..." : "Sıfırlama Bağlantısı Gönder"}
+            </button>
+
+            {resetSent ? (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  background: "#f0fdf4",
+                  border: "1px solid #86efac",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  color: "#16a34a",
+                }}
+              >
+                ✓ Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <div className="mt-8 flex rounded-lg border border-neutral-200 bg-neutral-50 p-1">
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className={cn(
+                  "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
+                  mode === "login"
+                    ? "bg-white text-neutral-900 shadow-sm"
+                    : "text-neutral-600 hover:text-neutral-900",
+                )}
+              >
+                Giriş Yap
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("register")}
+                className={cn(
+                  "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
+                  mode === "register"
+                    ? "bg-white text-neutral-900 shadow-sm"
+                    : "text-neutral-600 hover:text-neutral-900",
+                )}
+              >
+                Kayıt Ol
+              </button>
+            </div>
+
+            {mode === "login" ? (
+              <form onSubmit={handleLogin} className="mt-6 space-y-4">
             {isDemo ? (
               <div
                 style={{
@@ -232,6 +354,21 @@ function LoginPageContent() {
             >
               {loading ? "Giriş yapılıyor…" : "Giriş Yap"}
             </Button>
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#534AB7",
+                fontSize: "13px",
+                cursor: "pointer",
+                padding: "0",
+                marginTop: "8px",
+              }}
+            >
+              Şifremi unuttum
+            </button>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="mt-6 space-y-4">
@@ -311,6 +448,8 @@ function LoginPageContent() {
               {registerLoading ? "Kaydediliyor…" : "Kayıt Ol"}
             </Button>
           </form>
+        )}
+          </>
         )}
 
         <p className="mt-8 text-center text-sm">
