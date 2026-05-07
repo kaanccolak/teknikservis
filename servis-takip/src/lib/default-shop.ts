@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getShop, setShopCache } from "@/lib/getShop";
+import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Supabase transaction pooler kullanıyorsanız DATABASE_URL sonuna
 // ?pgbouncer=true eklemek Prisma hatalarını önleyebilir.
@@ -14,6 +15,42 @@ export const DEFAULT_SHOP_NAME = "Varsayılan Dükkan";
  * (interactive transaction kullanılmaz).
  */
 export async function getOrCreateDefaultShop() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user?.id) {
+    let shop = await prisma.shop.findUnique({
+      where: { userId: user.id },
+    });
+    if (shop) {
+      setShopCache(shop);
+      return shop;
+    }
+
+    try {
+      shop = await prisma.shop.create({
+        data: { name: DEFAULT_SHOP_NAME, userId: user.id },
+      });
+      setShopCache(shop);
+      return shop;
+    } catch (createErr) {
+      console.error(
+        "[getOrCreateDefaultShop] Kullanıcı dükkanı oluşturulamadı, tekrar deneniyor",
+        createErr,
+      );
+      shop = await prisma.shop.findUnique({
+        where: { userId: user.id },
+      });
+      if (shop) {
+        setShopCache(shop);
+        return shop;
+      }
+      throw createErr;
+    }
+  }
+
   let shop = await getShop();
   if (shop) {
     return shop;

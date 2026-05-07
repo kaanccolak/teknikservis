@@ -5,6 +5,7 @@ import {
   Building2,
   Calendar,
   Landmark,
+  LogOut,
   Package,
   Settings,
   Truck,
@@ -24,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 const navItems: {
@@ -50,6 +52,7 @@ export function Sidebar() {
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [shopName, setShopName] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +82,15 @@ export function Sidebar() {
     if (!window.__formIsDirty) return;
     e.preventDefault();
     setPendingHref(href);
+  }
+
+  async function handleSignOut() {
+    setLoggingOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.refresh();
+    router.push("/login");
+    setLoggingOut(false);
   }
 
   return (
@@ -120,6 +132,20 @@ export function Sidebar() {
             );
           })}
         </nav>
+        <div className="border-t border-slate-200/80 p-3">
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            disabled={loggingOut}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-900 transition-colors",
+              "hover:bg-neutral-50 disabled:opacity-50",
+            )}
+          >
+            <LogOut className="size-4 shrink-0 opacity-70" aria-hidden />
+            {loggingOut ? "Çıkılıyor…" : "Çıkış Yap"}
+          </button>
+        </div>
       </aside>
 
       <AlertDialog open={pendingHref !== null} onOpenChange={(open) => !open && setPendingHref(null)}>

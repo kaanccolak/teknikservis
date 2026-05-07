@@ -1,43 +1,48 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+
+type TabMode = "login" | "register";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<TabMode>("login");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [shopName, setShopName] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerPasswordRepeat, setRegisterPasswordRepeat] = useState("");
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     setLoading(false);
 
-    if (signInError) {
-      setError(signInError.message);
+    if (error) {
+      toast.error(error.message);
       return;
     }
 
@@ -45,67 +50,242 @@ export default function LoginPage() {
     router.push("/");
   }
 
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+
+    const nameTrim = shopName.trim();
+    if (nameTrim.length < 2) {
+      toast.error("Şirket / dükkan adı en az 2 karakter olmalıdır.");
+      return;
+    }
+    if (registerPassword !== registerPasswordRepeat) {
+      toast.error("Şifreler eşleşmiyor.");
+      return;
+    }
+    if (registerPassword.length < 6) {
+      toast.error("Şifre en az 6 karakter olmalıdır.");
+      return;
+    }
+
+    setRegisterLoading(true);
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: registerEmail.trim(),
+      password: registerPassword,
+    });
+
+    if (error) {
+      setRegisterLoading(false);
+      toast.error(error.message);
+      return;
+    }
+
+    if (!data.user) {
+      setRegisterLoading(false);
+      toast.error("Kayıt tamamlanamadı.");
+      return;
+    }
+
+    if (!data.session) {
+      setRegisterLoading(false);
+      toast.message(
+        "Kayıt alındı. E-postanızdaki onay bağlantısına tıklayın; ardından giriş yaparak devam edin.",
+      );
+      return;
+    }
+
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: data.user.id,
+        shopName: nameTrim,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setRegisterLoading(false);
+      toast.error(body.error ?? "Şirket kaydı oluşturulamadı.");
+      return;
+    }
+
+    toast.success("Kayıt başarılı! Giriş yapılıyor...");
+    router.refresh();
+    router.push("/");
+    setRegisterLoading(false);
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <Card className="w-full max-w-md border-slate-200/80 bg-white shadow-md">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-slate-900">
-            Giriş yap
-          </CardTitle>
-          <CardDescription>
-            Servis takip paneline erişmek için e-posta ve şifrenizi girin.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-neutral-100 px-4 py-10">
+      <div className="w-full max-w-[400px] rounded-xl border border-neutral-200 bg-white p-8 shadow-md">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+            Servis Takip
+          </h1>
+          <p className="mt-2 text-sm text-neutral-600">
+            Teknik Servis Yönetim Sistemi
+          </p>
+        </div>
+
+        <div className="mt-8 flex rounded-lg border border-neutral-200 bg-neutral-50 p-1">
+          <button
+            type="button"
+            onClick={() => setMode("login")}
+            className={cn(
+              "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
+              mode === "login"
+                ? "bg-white text-neutral-900 shadow-sm"
+                : "text-neutral-600 hover:text-neutral-900",
+            )}
+          >
+            Giriş Yap
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("register")}
+            className={cn(
+              "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
+              mode === "register"
+                ? "bg-white text-neutral-900 shadow-sm"
+                : "text-neutral-600 hover:text-neutral-900",
+            )}
+          >
+            Kayıt Ol
+          </button>
+        </div>
+
+        {mode === "login" ? (
+          <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-posta</Label>
+              <Label htmlFor="login-email">E-posta</Label>
               <Input
-                id="email"
-                name="email"
+                id="login-email"
                 type="email"
                 autoComplete="email"
-                placeholder="ornek@firma.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
-                aria-invalid={!!error}
+                className="border-neutral-300"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Şifre</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-                aria-invalid={!!error}
-              />
+              <Label htmlFor="login-password">Şifre</Label>
+              <div className="relative">
+                <Input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="border-neutral-300 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                  aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              </div>
             </div>
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            ) : null}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Giriş yapılıyor…" : "Giriş yap"}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="h-11 w-full bg-neutral-900 text-white hover:bg-neutral-800"
+            >
+              {loading ? "Giriş yapılıyor…" : "Giriş Yap"}
             </Button>
           </form>
-          <p className="mt-6 text-center text-sm text-slate-600">
-            <Link
-              href="/"
-              className="font-medium text-slate-900 underline-offset-4 hover:underline"
+        ) : (
+          <form onSubmit={handleRegister} className="mt-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="shop-name">Şirket / Dükkan Adı</Label>
+              <Input
+                id="shop-name"
+                type="text"
+                autoComplete="organization"
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                required
+                disabled={registerLoading}
+                className="border-neutral-300"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="register-email">E-posta</Label>
+              <Input
+                id="register-email"
+                type="email"
+                autoComplete="email"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                required
+                disabled={registerLoading}
+                className="border-neutral-300"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="register-password">Şifre</Label>
+              <div className="relative">
+                <Input
+                  id="register-password"
+                  type={showRegisterPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  required
+                  disabled={registerLoading}
+                  className="border-neutral-300 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                  aria-label={
+                    showRegisterPassword ? "Şifreyi gizle" : "Şifreyi göster"
+                  }
+                >
+                  {showRegisterPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="register-password-repeat">Şifre tekrar</Label>
+              <Input
+                id="register-password-repeat"
+                type={showRegisterPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={registerPasswordRepeat}
+                onChange={(e) => setRegisterPasswordRepeat(e.target.value)}
+                required
+                disabled={registerLoading}
+                className="border-neutral-300"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={registerLoading}
+              className="h-11 w-full bg-neutral-900 text-white hover:bg-neutral-800"
             >
-              Panele dön
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+              {registerLoading ? "Kaydediliyor…" : "Kayıt Ol"}
+            </Button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
