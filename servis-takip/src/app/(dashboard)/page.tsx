@@ -284,90 +284,97 @@ function RevenueCiroCard({
   onRevenueChangeRef.current = onRevenueChange;
 
   const fetchCiro = useCallback(
-    async (
-      params: URLSearchParams,
-      isStale: () => boolean,
-    ) => {
+    async (startDateParam: string, endDateParam: string) => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/dashboard?${params}`, {
+        const params = new URLSearchParams({
+          ciroOnly: "true",
+          startDate: startDateParam,
+          endDate: endDateParam,
+        });
+        const res = await fetch(`/api/dashboard?${params.toString()}`, {
           cache: "no-store",
         });
         const j = (await res.json()) as { revenue?: number; error?: string };
-        if (isStale()) return;
         if (res.ok && typeof j.revenue === "number") {
           onRevenueChangeRef.current(j.revenue);
         }
       } finally {
-        if (!isStale()) setLoading(false);
+        setLoading(false);
       }
     },
     [],
   );
 
+  const getPeriodDates = useCallback((selected: RevenuePeriod) => {
+    const now = new Date();
+    const toYmd = (d: Date) => {
+      const y = d.getFullYear();
+      const m = `${d.getMonth() + 1}`.padStart(2, "0");
+      const day = `${d.getDate()}`.padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+    if (selected === "daily") {
+      return { start: toYmd(now), end: toYmd(now) };
+    }
+    if (selected === "weekly") {
+      const start = new Date(now);
+      const day = start.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      start.setDate(start.getDate() + diff);
+      return { start: toYmd(start), end: toYmd(now) };
+    }
+    if (selected === "monthly") {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { start: toYmd(start), end: toYmd(now) };
+    }
+    if (selected === "yearly") {
+      const start = new Date(now.getFullYear(), 0, 1);
+      return { start: toYmd(start), end: toYmd(now) };
+    }
+    return { start: "", end: "" };
+  }, []);
+
+  const handlePeriodChange = useCallback(
+    (nextPeriod: RevenuePeriod) => {
+      setPeriod(nextPeriod);
+      if (nextPeriod !== "range") {
+        const { start, end } = getPeriodDates(nextPeriod);
+        if (start && end) {
+          void fetchCiro(start, end);
+        }
+      }
+    },
+    [fetchCiro, getPeriodDates],
+  );
+
   useEffect(() => {
-    let cancelled = false;
-    const isStale = () => cancelled;
+    const { start, end } = getPeriodDates("daily");
+    if (start && end) {
+      void fetchCiro(start, end);
+    }
+  }, [fetchCiro, getPeriodDates]);
 
-    if (period === "daily") {
-      onRevenueChangeRef.current(dailyRevenueFromDashboard);
-      setLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    if (period !== "range") {
-      const p = new URLSearchParams({ ciroOnly: "true", period });
-      void fetchCiro(p, isStale);
-      return () => {
-        cancelled = true;
-      };
-    }
-    if (!startDate || !endDate) {
-      setLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
+  useEffect(() => {
+    if (period !== "range" || !startDate || !endDate) return;
     const t = window.setTimeout(() => {
-      const p = new URLSearchParams({
-        ciroOnly: "true",
-        startDate,
-        endDate,
-      });
-      void fetchCiro(p, isStale);
+      void fetchCiro(startDate, endDate);
     }, 450);
     return () => {
-      cancelled = true;
       window.clearTimeout(t);
     };
-  }, [period, startDate, endDate, dailyRevenueFromDashboard, fetchCiro]);
+  }, [period, startDate, endDate, fetchCiro]);
 
   const fetchCiroManual = useCallback(() => {
-    if (period === "daily") {
-      void fetchCiro(
-        new URLSearchParams({ ciroOnly: "true", period: "daily" }),
-        () => false,
-      );
-      return;
-    }
     if (period !== "range") {
-      void fetchCiro(
-        new URLSearchParams({ ciroOnly: "true", period }),
-        () => false,
-      );
+      const { start, end } = getPeriodDates(period);
+      if (start && end) {
+        void fetchCiro(start, end);
+      }
     } else if (startDate && endDate) {
-      void fetchCiro(
-        new URLSearchParams({
-          ciroOnly: "true",
-          startDate,
-          endDate,
-        }),
-        () => false,
-      );
+      void fetchCiro(startDate, endDate);
     }
-  }, [period, startDate, endDate, fetchCiro]);
+  }, [period, startDate, endDate, fetchCiro, getPeriodDates]);
 
   return (
     <>
@@ -507,7 +514,7 @@ function RevenueCiroCard({
             <button
               key={id}
               type="button"
-              onClick={() => setPeriod(id)}
+              onClick={() => handlePeriodChange(id)}
               style={{
                 padding: "5px 12px",
                 borderRadius: "20px",

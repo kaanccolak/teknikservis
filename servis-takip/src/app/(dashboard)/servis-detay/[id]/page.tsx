@@ -51,7 +51,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { WhatsAppWhiteIcon } from "@/components/whatsapp-brand-icon";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
 import {
-  formatPriceForWa,
   sendWhatsApp,
   WA_TEMPLATES,
 } from "@/lib/whatsapp";
@@ -60,7 +59,7 @@ import {
   getStatusUiConfig,
   STATUS_GROUPS,
 } from "@/lib/service-order-status-ui-config";
-import { STATUS_CONFIG } from "@/lib/statusConfig";
+import { getStatusBadge, STATUS_CONFIG } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
 
 type Customer = { id: string; name: string; phone: string | null };
@@ -241,7 +240,7 @@ export default function ServisDetayPage() {
   const [savingEstimated, setSavingEstimated] = useState(false);
 
   const [waShopReady, setWaShopReady] = useState(false);
-  const [waSendingPrice, setWaSendingPrice] = useState(false);
+  const [waSending, setWaSending] = useState(false);
   const [waApprovalOpen, setWaApprovalOpen] = useState(false);
   const [waSendingApproval, setWaSendingApproval] = useState(false);
 
@@ -582,47 +581,44 @@ export default function ServisDetayPage() {
 
   async function handleWAPriceNotification() {
     if (!order) return;
-    let priceValue: number | null = null;
-    if (order.totalPrice != null && order.totalPrice > 0) {
-      priceValue = order.totalPrice;
-    } else {
-      const raw = priceDraft.trim().replace(",", ".");
-      if (raw) {
-        const x = Number(raw);
-        if (Number.isFinite(x) && x > 0) priceValue = x;
-      }
-    }
-    if (priceValue == null || priceValue <= 0) {
+    if (!order.totalPrice || order.totalPrice === 0) {
       toast.error("Önce ücret girin");
       return;
     }
-    const phone = order.customer.phone;
-    if (!phone?.replace(/\D/g, "").length) {
-      toast.error("Müşteri telefonu yok");
+    if (!order.customer?.phone) {
+      toast.error("Müşteri telefon numarası bulunamadı");
       return;
     }
-    if (!waShopReady) {
-      toast.error("WhatsApp entegrasyonu aktif değil");
-      return;
-    }
-    setWaSendingPrice(true);
+    setWaSending(true);
     try {
-      await sendWhatsApp(
-        phone,
-        WA_TEMPLATES.PRICE_NOTIFICATION.name,
-        WA_TEMPLATES.PRICE_NOTIFICATION.getParams(
-          order.customer.name,
-          formatPriceForWa(priceValue),
-          order.orderNumber ?? formatServiceOrderNo(order),
-        ),
-      );
-      toast.success("WhatsApp mesajı gönderildi!");
-    } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : "WhatsApp mesajı gönderilemedi",
-      );
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: order.customer.phone,
+          templateName: "fiyat_bildirimi",
+          parameters: [
+            order.customer.name,
+            order.serialNo || "Belirtilmemiş",
+            order.deviceModel?.name ||
+              order.brand?.name ||
+              order.deviceType?.name ||
+              "Cihaz",
+            order.totalPrice.toLocaleString("tr-TR"),
+          ],
+        }),
+      });
+
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (data.success) {
+        toast.success("WhatsApp mesajı gönderildi!");
+      } else {
+        toast.error(data.error || "Mesaj gönderilemedi");
+      }
+    } catch {
+      toast.error("Bağlantı hatası");
     } finally {
-      setWaSendingPrice(false);
+      setWaSending(false);
     }
   }
 
@@ -717,6 +713,7 @@ export default function ServisDetayPage() {
 
   const titleNo = formatServiceOrderNo(order);
   const currentStatusUi = getStatusUiConfig(order.status);
+  const statusBadge = getStatusBadge(order.status);
 
   return (
     <div className="space-y-6">
@@ -966,7 +963,14 @@ export default function ServisDetayPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <Card>
+          <Card
+            style={{
+              border: "1px solid #e5e7eb",
+              borderRadius: "10px",
+              padding: "20px",
+              background: "white",
+            }}
+          >
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle>Müşteri Bilgileri</CardTitle>
               <CardDescription>Kayıtlı iletişim bilgileri</CardDescription>
@@ -986,7 +990,14 @@ export default function ServisDetayPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card
+            style={{
+              border: `1px solid ${statusBadge.border}`,
+              borderRadius: "10px",
+              padding: "20px",
+              background: statusBadge.bg,
+            }}
+          >
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle>Cihaz Bilgileri</CardTitle>
             </CardHeader>
@@ -1558,48 +1569,22 @@ export default function ServisDetayPage() {
                 </Button>
                 <button
                   type="button"
-                  disabled={
-                    !waShopReady ||
-                    waSendingPrice ||
-                    !order.customer.phone?.replace(/\D/g, "").length
-                  }
-                  title={
-                    !waShopReady
-                      ? "WhatsApp entegrasyonu kapalı"
-                      : !order.customer.phone?.replace(/\D/g, "").length
-                        ? "Müşteri telefonu yok"
-                        : undefined
-                  }
+                  disabled={waSending}
                   onClick={() => void handleWAPriceNotification()}
                   style={{
-                    background:
-                      !waShopReady ||
-                      !order.customer.phone?.replace(/\D/g, "").length
-                        ? "#9ca3af"
-                        : "#25D366",
+                    background: waSending ? "#86efac" : "#25D366",
                     color: "white",
                     padding: "8px 14px",
                     border: "none",
                     borderRadius: "6px",
-                    cursor:
-                      !waShopReady ||
-                      waSendingPrice ||
-                      !order.customer.phone?.replace(/\D/g, "").length
-                        ? "not-allowed"
-                        : "pointer",
+                    cursor: waSending ? "not-allowed" : "pointer",
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
                     fontSize: "12px",
-                    opacity: waSendingPrice ? 0.85 : 1,
                   }}
                 >
-                  {waSendingPrice ? (
-                    <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                  ) : (
-                    <WhatsAppWhiteIcon size={14} />
-                  )}
-                  WhatsApp ile Bildir
+                  {waSending ? "Gönderiliyor..." : "WhatsApp ile Bildir"}
                 </button>
               </div>
             </CardContent>

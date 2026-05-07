@@ -157,7 +157,7 @@ export async function GET(request: Request) {
   };
 
   try {
-    const [allOrders, deliveredOrders, secondHandRows] = await Promise.all([
+    const [allOrders, deliveredLogs, secondHandRows] = await Promise.all([
       prisma.serviceOrder.findMany({
         where: {
           shopId,
@@ -171,15 +171,15 @@ export async function GET(request: Request) {
           deviceType: { select: { name: true } },
         },
       }),
-      prisma.serviceOrder.findMany({
+      prisma.statusLog.findMany({
         where: {
-          shopId,
-          status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
-          updatedAt: { gte: fetchStart, lte: fetchEnd },
+          serviceOrder: { shopId },
+          newStatus: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
+          createdAt: { gte: fetchStart, lte: fetchEnd },
         },
         select: {
-          updatedAt: true,
-          totalPrice: true,
+          serviceOrderId: true,
+          createdAt: true,
         },
       }),
       prisma.secondHandDevice.findMany({
@@ -253,14 +253,40 @@ export async function GET(request: Request) {
       }),
     );
 
+    const deliveredOrderIds = [...new Set(deliveredLogs.map((l) => l.serviceOrderId))];
+    const deliveredOrdersCurrent =
+      deliveredOrderIds.length > 0
+        ? await prisma.serviceOrder.findMany({
+            where: {
+              shopId,
+              id: { in: deliveredOrderIds },
+              status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
+              totalPrice: { gt: 0 },
+            },
+            select: {
+              id: true,
+              totalPrice: true,
+            },
+          })
+        : [];
+    const deliveredOrderPriceMap = new Map(
+      deliveredOrdersCurrent.map((o) => [o.id, Number(o.totalPrice ?? 0)]),
+    );
+
     const ciroChartTotals = new Map<string, number>();
-    for (const o of deliveredOrders) {
-      if (!inRange(o.updatedAt, chartStart, chartEnd)) continue;
-      const k = ordersKey(o.updatedAt.getFullYear(), o.updatedAt.getMonth() + 1);
-      ciroChartTotals.set(
-        k,
-        (ciroChartTotals.get(k) ?? 0) + Number(o.totalPrice ?? 0),
+    for (const { year: y, month: m } of monthPoints) {
+      const monthStart = new Date(y, m - 1, 1, 0, 0, 0, 0);
+      const monthEnd = new Date(y, m, 0, 23, 59, 59, 999);
+      const ids = new Set(
+        deliveredLogs
+          .filter((l) => inRange(l.createdAt, monthStart, monthEnd))
+          .map((l) => l.serviceOrderId),
       );
+      let monthTotal = 0;
+      for (const id of ids) {
+        monthTotal += deliveredOrderPriceMap.get(id) ?? 0;
+      }
+      ciroChartTotals.set(ordersKey(y, m), monthTotal);
     }
     const monthlyCiro = monthPoints.map(({ year: y, month: m }) => ({
       year: y,
@@ -268,14 +294,18 @@ export async function GET(request: Request) {
       total: ciroChartTotals.get(ordersKey(y, m)) ?? 0,
     }));
 
-    const deliveredInPeriod = deliveredOrders.filter((o) =>
-      inRange(o.updatedAt, startDate, endDate),
+    const deliveredInPeriodIds = new Set(
+      deliveredLogs
+        .filter((l) => inRange(l.createdAt, startDate, endDate))
+        .map((l) => l.serviceOrderId),
     );
-    const totalRevenue = deliveredInPeriod.reduce(
-      (s, o) => s + Number(o.totalPrice ?? 0),
+    const totalRevenue = [...deliveredInPeriodIds].reduce(
+      (s, id) => s + (deliveredOrderPriceMap.get(id) ?? 0),
       0,
     );
-    const deliveredCountForAvg = deliveredInPeriod.length;
+    const deliveredCountForAvg = [...deliveredInPeriodIds].filter((id) =>
+      deliveredOrderPriceMap.has(id),
+    ).length;
     const averageOrderValue =
       deliveredCountForAvg > 0 ? totalRevenue / deliveredCountForAvg : 0;
 
@@ -283,9 +313,15 @@ export async function GET(request: Request) {
       const orderCount = allOrders.filter((o) =>
         inRange(o.arrivedAt, slot.start, slot.end),
       ).length;
-      const revenue = deliveredOrders
-        .filter((o) => inRange(o.updatedAt, slot.start, slot.end))
-        .reduce((s, o) => s + Number(o.totalPrice ?? 0), 0);
+      const deliveredIdsForSlot = new Set(
+        deliveredLogs
+          .filter((l) => inRange(l.createdAt, slot.start, slot.end))
+          .map((l) => l.serviceOrderId),
+      );
+      const revenue = [...deliveredIdsForSlot].reduce(
+        (s, id) => s + (deliveredOrderPriceMap.get(id) ?? 0),
+        0,
+      );
       return {
         year: slot.year,
         month: slot.month,

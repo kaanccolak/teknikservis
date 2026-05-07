@@ -122,15 +122,29 @@ async function sumDeliveredRevenue(
   start: Date,
   end: Date,
 ): Promise<number> {
-  const agg = await prisma.serviceOrder.aggregate({
+  const deliveredLogs = await prisma.statusLog.findMany({
+    where: {
+      serviceOrder: { shopId },
+      newStatus: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
+      createdAt: { gte: start, lte: end },
+    },
+    select: { serviceOrderId: true },
+  });
+
+  const deliveredOrderIds = [...new Set(deliveredLogs.map((l) => l.serviceOrderId))];
+  if (deliveredOrderIds.length === 0) return 0;
+
+  const ciroOrders = await prisma.serviceOrder.findMany({
     where: {
       shopId,
+      id: { in: deliveredOrderIds },
       status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
-      updatedAt: { gte: start, lte: end },
+      totalPrice: { gt: 0 },
     },
-    _sum: { totalPrice: true },
+    select: { totalPrice: true },
   });
-  return Number(agg._sum.totalPrice ?? 0);
+
+  return ciroOrders.reduce((sum, o) => sum + Number(o.totalPrice ?? 0), 0);
 }
 
 const cacheHeaders = {
@@ -193,7 +207,7 @@ export async function GET(request: Request) {
       externalService,
       completedToday,
       recentOrders,
-      revenueAgg,
+      revenue,
     ] = await Promise.all([
       prisma.serviceOrder.count({
         where: {
@@ -241,17 +255,8 @@ export async function GET(request: Request) {
           deviceModel: { select: { name: true } },
         },
       }),
-      prisma.serviceOrder.aggregate({
-        where: {
-          shopId,
-          status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
-          updatedAt: { gte: dayStart, lte: dayEnd },
-        },
-        _sum: { totalPrice: true },
-      }),
+      sumDeliveredRevenue(shopId, dayStart, dayEnd),
     ]);
-
-    const revenue = Number(revenueAgg._sum.totalPrice ?? 0);
 
     const payload = {
       totalActive,
