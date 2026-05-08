@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MutableRefObject,
   type RefObject,
 } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -336,6 +337,70 @@ export function SecondHandDeviceForm(props: {
   const regPurchasePrice = register("purchasePrice");
   const regNotes = register("notes");
 
+  const sellerNameRefCallback = useCallback(
+    (el: HTMLInputElement | null) => {
+      regSellerName.ref(el);
+      (sellerNameRef as MutableRefObject<HTMLInputElement | null>).current = el;
+    },
+    [regSellerName],
+  );
+
+  const sellerTcNoRefCallback = useCallback(
+    (el: HTMLInputElement | null) => {
+      regSellerTcNo.ref(el);
+      (sellerTcNoRef as MutableRefObject<HTMLInputElement | null>).current = el;
+    },
+    [regSellerTcNo],
+  );
+
+  const deviceTypeRefCallback = useCallback(
+    (el: HTMLSelectElement | null) => {
+      regDeviceTypeId.ref(el);
+      (deviceTypeRef as MutableRefObject<HTMLSelectElement | null>).current = el;
+    },
+    [regDeviceTypeId],
+  );
+
+  const brandRefCallback = useCallback(
+    (el: HTMLSelectElement | null) => {
+      regBrandId.ref(el);
+      (brandRef as MutableRefObject<HTMLSelectElement | null>).current = el;
+    },
+    [regBrandId],
+  );
+
+  const modelRefCallback = useCallback(
+    (el: HTMLSelectElement | null) => {
+      regDeviceModelId.ref(el);
+      (modelRef as MutableRefObject<HTMLSelectElement | null>).current = el;
+    },
+    [regDeviceModelId],
+  );
+
+  const serialNoRefCallback = useCallback(
+    (el: HTMLInputElement | null) => {
+      regSerialNo.ref(el);
+      (serialNoRef as MutableRefObject<HTMLInputElement | null>).current = el;
+    },
+    [regSerialNo],
+  );
+
+  const purchasePriceRefCallback = useCallback(
+    (el: HTMLInputElement | null) => {
+      regPurchasePrice.ref(el);
+      (purchasePriceRef as MutableRefObject<HTMLInputElement | null>).current = el;
+    },
+    [regPurchasePrice],
+  );
+
+  const notesRefCallback = useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      regNotes.ref(el);
+      (notesRef as MutableRefObject<HTMLTextAreaElement | null>).current = el;
+    },
+    [regNotes],
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -369,10 +434,7 @@ export function SecondHandDeviceForm(props: {
                 autoComplete="name"
                 autoFocus
                 {...regSellerName}
-                ref={(el) => {
-                  regSellerName.ref(el);
-                  sellerNameRef.current = el;
-                }}
+                ref={sellerNameRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, sellerPhoneRef)}
               />
             </div>
@@ -400,10 +462,7 @@ export function SecondHandDeviceForm(props: {
                 inputMode="numeric"
                 maxLength={11}
                 {...regSellerTcNo}
-                ref={(el) => {
-                  regSellerTcNo.ref(el);
-                  sellerTcNoRef.current = el;
-                }}
+                ref={sellerTcNoRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, deviceTypeRef)}
               />
             </div>
@@ -421,10 +480,7 @@ export function SecondHandDeviceForm(props: {
                 id="sh-dt"
                 className={nativeSelectClassName}
                 {...regDeviceTypeId}
-                ref={(el) => {
-                  regDeviceTypeId.ref(el);
-                  deviceTypeRef.current = el;
-                }}
+                ref={deviceTypeRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, brandRef)}
               >
                 <option value="">Seçiniz</option>
@@ -442,10 +498,7 @@ export function SecondHandDeviceForm(props: {
                 className={nativeSelectClassName}
                 disabled={!deviceTypeId}
                 {...regBrandId}
-                ref={(el) => {
-                  regBrandId.ref(el);
-                  brandRef.current = el;
-                }}
+                ref={brandRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, modelRef)}
               >
                 <option value="">Seçiniz</option>
@@ -463,10 +516,7 @@ export function SecondHandDeviceForm(props: {
                 className={nativeSelectClassName}
                 disabled={!brandId}
                 {...regDeviceModelId}
-                ref={(el) => {
-                  regDeviceModelId.ref(el);
-                  modelRef.current = el;
-                }}
+                ref={modelRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
               >
                 <option value="">Seçiniz</option>
@@ -483,10 +533,7 @@ export function SecondHandDeviceForm(props: {
                 id="sh-serial"
                 disabled={noSerialNo}
                 {...regSerialNo}
-                ref={(el) => {
-                  regSerialNo.ref(el);
-                  serialNoRef.current = el;
-                }}
+                ref={serialNoRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, purchasePriceRef)}
               />
             </div>
@@ -566,10 +613,7 @@ export function SecondHandDeviceForm(props: {
                   className="pl-8"
                   placeholder="0,00"
                   {...regPurchasePrice}
-                  ref={(el) => {
-                    regPurchasePrice.ref(el);
-                    purchasePriceRef.current = el;
-                  }}
+                  ref={purchasePriceRefCallback}
                   onKeyDown={(e) => handleEnterKey(e, notesRef)}
                 />
               </div>
@@ -581,10 +625,7 @@ export function SecondHandDeviceForm(props: {
                 rows={3}
                 placeholder="Opsiyonel açıklama…"
                 {...regNotes}
-                ref={(el) => {
-                  regNotes.ref(el);
-                  notesRef.current = el;
-                }}
+                ref={notesRefCallback}
                 onKeyDown={(e) => handleEnterKey(e, submitRef)}
               />
             </div>
