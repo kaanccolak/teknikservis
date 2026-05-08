@@ -22,6 +22,7 @@ const serviceOrderInclude = {
   shop: { select: { name: true } },
   customer: true,
   cari: true,
+  bayi: true,
   deviceType: true,
   brand: true,
   deviceModel: true,

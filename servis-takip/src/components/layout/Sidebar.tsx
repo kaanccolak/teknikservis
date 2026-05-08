@@ -8,6 +8,7 @@ import {
   LogOut,
   Package,
   Settings,
+  Store,
   Truck,
   type LucideIcon,
 } from "lucide-react";
@@ -41,6 +42,7 @@ const navItems: {
   { href: "/dis-servis", label: "Dış Servisler", icon: Truck },
   { href: "/stok", label: "Stok Yönetimi", icon: Package },
   { href: "/cari", label: "Cari Yönetimi", icon: Building2 },
+  { href: "/bayiler", label: "Bayiler", icon: Store },
   { href: "/planlarim", label: "Planlarım", icon: Calendar },
   { href: "/tanimlar", label: "Tanımlar", icon: Settings },
   { href: "/raporlar", label: "Raporlar", icon: BarChart },

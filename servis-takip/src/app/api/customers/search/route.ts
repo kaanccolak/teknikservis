@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const q = searchParams.get("q")?.trim() ?? "";
 
   if (q.length < 3) {
-    return NextResponse.json([]);
+    return NextResponse.json({ customers: [], bayiler: [] });
   }
 
   let shop;
@@ -26,35 +26,55 @@ export async function GET(request: Request) {
   }
 
   try {
-    const customers = await prisma.customer.findMany({
-      where: {
-        shopId: shop.id,
-        name: { contains: q, mode: "insensitive" },
-      },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        orders: {
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            orderNumber: true,
-            serialNo: true,
-            deviceTypeId: true,
-            brandId: true,
-            deviceModelId: true,
-            deviceType: { select: { name: true } },
-            brand: { select: { name: true } },
-            deviceModel: { select: { name: true } },
+    const [customers, bayiler] = await Promise.all([
+      prisma.customer.findMany({
+        where: {
+          shopId: shop.id,
+          name: { contains: q, mode: "insensitive" },
+        },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          orders: {
+            take: 5,
+            orderBy: { createdAt: "desc" },
+            select: {
+              id: true,
+              orderNumber: true,
+              serialNo: true,
+              deviceTypeId: true,
+              brandId: true,
+              deviceModelId: true,
+              deviceType: { select: { name: true } },
+              brand: { select: { name: true } },
+              deviceModel: { select: { name: true } },
+            },
           },
         },
-      },
-    });
-    return NextResponse.json(customers);
+      }),
+      prisma.bayi.findMany({
+        where: {
+          shopId: shop.id,
+          OR: [
+            { firmaAdi: { contains: q, mode: "insensitive" } },
+            { yetkiliKisi: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          firmaAdi: true,
+          yetkiliKisi: true,
+          phone: true,
+          phoneDigits: true,
+        },
+      }),
+    ]);
+    return NextResponse.json({ customers, bayiler });
   } catch (e) {
     return jsonServerError(
       "GET /api/customers/search",

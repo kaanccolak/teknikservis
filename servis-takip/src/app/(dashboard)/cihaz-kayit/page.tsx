@@ -83,11 +83,26 @@ type CustomerSearchItem = {
   phone: string | null;
   orders: CustomerSearchOrder[];
 };
+type BayiSuggestionItem = {
+  id: string;
+  firmaAdi: string;
+  yetkiliKisi: string;
+  phone: string;
+  phoneDigits: string;
+};
 type CariRow = {
   id: string;
   name: string;
   phone: string | null;
   taxOrTcNo: string | null;
+};
+type BayiRow = {
+  id: string;
+  bayiCode: string;
+  firmaAdi: string;
+  yetkiliKisi: string;
+  phone: string;
+  tcVergiNo: string;
 };
 
 const nativeSelectClassName =
@@ -171,6 +186,7 @@ function CihazKayitServiceInner({
   const [listError, setListError] = useState<string | null>(null);
   const [showDateEditor, setShowDateEditor] = useState(false);
   const [customerResults, setCustomerResults] = useState<CustomerSearchItem[]>([]);
+  const [bayiSuggestions, setBayiSuggestions] = useState<BayiSuggestionItem[]>([]);
   const [customerLoading, setCustomerLoading] = useState(false);
   const [customerPanelOpen, setCustomerPanelOpen] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<{
@@ -183,6 +199,21 @@ function CihazKayitServiceInner({
   const [cariLoading, setCariLoading] = useState(false);
   const [selectedCariId, setSelectedCariId] = useState<string | null>(null);
   const [selectedCariName, setSelectedCariName] = useState<string | null>(null);
+  const [bayiDialogOpen, setBayiDialogOpen] = useState(false);
+  const [bayiSearch, setBayiSearch] = useState("");
+  const [bayiRows, setBayiRows] = useState<BayiRow[]>([]);
+  const [bayiLoading, setBayiLoading] = useState(false);
+  const [selectedBayiId, setSelectedBayiId] = useState<string | null>(null);
+  const [selectedBayiName, setSelectedBayiName] = useState<string | null>(null);
+  const [showInlineBayiForm, setShowInlineBayiForm] = useState(false);
+  const [inlineBayiSaving, setInlineBayiSaving] = useState(false);
+  const [inlineBayiForm, setInlineBayiForm] = useState({
+    firmaAdi: "",
+    yetkiliKisi: "",
+    phone: "",
+    vergiDairesi: "",
+    tcVergiNo: "",
+  });
   const [isReturn, setIsReturn] = useState(false);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
@@ -354,6 +385,7 @@ function CihazKayitServiceInner({
     if (q.length < 3) {
       setCustomerLoading(false);
       setCustomerResults([]);
+      setBayiSuggestions([]);
       setCustomerPanelOpen(false);
       return;
     }
@@ -361,17 +393,24 @@ function CihazKayitServiceInner({
       setCustomerLoading(true);
       try {
         const res = await fetch(`/api/customers/search?q=${encodeURIComponent(q)}`);
-        const data = (await res.json()) as CustomerSearchItem[] | { error?: string };
+        const data = (await res.json()) as
+          | { customers: CustomerSearchItem[]; bayiler: BayiSuggestionItem[] }
+          | { error?: string };
         if (!res.ok) {
           setCustomerResults([]);
+          setBayiSuggestions([]);
           setCustomerPanelOpen(false);
           return;
         }
-        const rows = data as CustomerSearchItem[];
+        const rows = (data as { customers: CustomerSearchItem[] }).customers ?? [];
+        const bayiRows =
+          (data as { bayiler: BayiSuggestionItem[] }).bayiler ?? [];
         setCustomerResults(rows);
-        setCustomerPanelOpen(rows.length > 0);
+        setBayiSuggestions(bayiRows);
+        setCustomerPanelOpen(rows.length > 0 || bayiRows.length > 0);
       } catch {
         setCustomerResults([]);
+        setBayiSuggestions([]);
         setCustomerPanelOpen(false);
       } finally {
         setCustomerLoading(false);
@@ -406,6 +445,29 @@ function CihazKayitServiceInner({
     }, 250);
     return () => window.clearTimeout(t);
   }, [cariDialogOpen, cariSearch]);
+
+  useEffect(() => {
+    if (!bayiDialogOpen) return;
+    const q = bayiSearch.trim();
+    const t = window.setTimeout(async () => {
+      setBayiLoading(true);
+      try {
+        const qs = q ? `?search=${encodeURIComponent(q)}` : "";
+        const res = await fetch(`/api/bayiler${qs}`);
+        const data = (await res.json()) as BayiRow[] | { error?: string };
+        if (!res.ok) {
+          setBayiRows([]);
+          return;
+        }
+        setBayiRows(data as BayiRow[]);
+      } catch {
+        setBayiRows([]);
+      } finally {
+        setBayiLoading(false);
+      }
+    }, 250);
+    return () => window.clearTimeout(t);
+  }, [bayiDialogOpen, bayiSearch]);
 
   function normalizePhoneForInput(phone: string | null): string {
     if (!phone) return "";
@@ -444,6 +506,8 @@ function CihazKayitServiceInner({
     }
     setValue("serialNo", order.serialNo ?? "", { shouldDirty: true });
     setValue("noSerialNo", false, { shouldDirty: true });
+    setSelectedBayiId(null);
+    setSelectedBayiName(null);
     setCustomerPanelOpen(false);
     toast.success("Bilgiler aktarıldı");
   }
@@ -452,8 +516,19 @@ function CihazKayitServiceInner({
     const phoneInput = normalizePhoneForInput(customer.phone);
     setValue("customerName", customer.name, { shouldDirty: true });
     setValue("phone", phoneInput, { shouldDirty: true });
+    setSelectedBayiId(null);
+    setSelectedBayiName(null);
     setCustomerPanelOpen(false);
     toast.success("Bilgiler aktarıldı");
+  }
+
+  function applyBayiToForm(bayi: BayiSuggestionItem) {
+    setValue("customerName", bayi.yetkiliKisi, { shouldDirty: true });
+    setValue("phone", normalizePhoneForInput(bayi.phone), { shouldDirty: true });
+    setSelectedBayiId(bayi.id);
+    setSelectedBayiName(bayi.firmaAdi);
+    setCustomerPanelOpen(false);
+    toast.success(`Bayi seçildi: ${bayi.firmaAdi}`);
   }
 
   function orderSummary(order: CustomerSearchOrder) {
@@ -471,6 +546,7 @@ function CihazKayitServiceInner({
         body: JSON.stringify({
           ...payload,
           cariId: selectedCariId ?? undefined,
+          bayiId: selectedBayiId ?? undefined,
           isReturn,
         }),
       });
@@ -507,10 +583,65 @@ function CihazKayitServiceInner({
         setPendingSelection(null);
         setSelectedCariId(null);
         setSelectedCariName(null);
+        setSelectedBayiId(null);
+        setSelectedBayiName(null);
         setIsReturn(false);
       }
     } catch {
       toast.error("Bağlantı hatası. Tekrar deneyin.");
+    }
+  }
+
+  async function createInlineBayi() {
+    if (inlineBayiForm.firmaAdi.trim().length < 2) {
+      toast.error("Firma adı zorunludur");
+      return;
+    }
+    if (inlineBayiForm.yetkiliKisi.trim().length < 2) {
+      toast.error("Yetkili kişi zorunludur");
+      return;
+    }
+    const phoneDigits = inlineBayiForm.phone.replace(/\D/g, "");
+    if (phoneDigits.length !== 10 || !phoneDigits.startsWith("5")) {
+      toast.error("Telefon 10 haneli ve 5 ile başlamalıdır");
+      return;
+    }
+    if (inlineBayiForm.tcVergiNo.trim().length < 10) {
+      toast.error("TC/Vergi no zorunludur");
+      return;
+    }
+    setInlineBayiSaving(true);
+    try {
+      const res = await fetch("/api/bayiler", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inlineBayiForm),
+      });
+      const data = (await res.json()) as BayiRow | { error?: string };
+      if (!res.ok) {
+        toast.error((data as { error?: string }).error ?? "Bayi eklenemedi");
+        return;
+      }
+      const created = data as BayiRow;
+      setSelectedBayiId(created.id);
+      setSelectedBayiName(created.firmaAdi);
+      setValue("customerName", created.yetkiliKisi, { shouldDirty: true });
+      setValue("phone", normalizePhoneForInput(created.phone), { shouldDirty: true });
+      setShowInlineBayiForm(false);
+      setInlineBayiForm({
+        firmaAdi: "",
+        yetkiliKisi: "",
+        phone: "",
+        vergiDairesi: "",
+        tcVergiNo: "",
+      });
+      setBayiSearch("");
+      setBayiDialogOpen(false);
+      toast.success(`Bayi eklendi: ${created.firmaAdi}`);
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setInlineBayiSaving(false);
     }
   }
 
@@ -543,19 +674,33 @@ function CihazKayitServiceInner({
                   <Label htmlFor="customerName">
                     Ad soyad <span className="text-destructive">*</span>
                   </Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setCariDialogOpen(true);
-                      setCariSearch("");
-                      setCariRows([]);
-                    }}
-                  >
-                    <Building2 className="mr-1 size-4" />
-                    Cari Seç
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCariDialogOpen(true);
+                        setCariSearch("");
+                        setCariRows([]);
+                      }}
+                    >
+                      <Building2 className="mr-1 size-4" />
+                      Cari Seç
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setBayiDialogOpen(true);
+                        setBayiSearch("");
+                        setShowInlineBayiForm(false);
+                      }}
+                    >
+                      Bayi Seç
+                    </Button>
+                  </div>
                 </div>
                 <Controller
                   name="customerName"
@@ -571,6 +716,7 @@ function CihazKayitServiceInner({
                         field.onChange(e);
                         if (!e.target.value.trim()) {
                           setCustomerResults([]);
+                          setBayiSuggestions([]);
                           setCustomerPanelOpen(false);
                         }
                       }}
@@ -603,6 +749,21 @@ function CihazKayitServiceInner({
                       onClick={() => {
                         setSelectedCariId(null);
                         setSelectedCariName(null);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : null}
+                {selectedBayiId && selectedBayiName ? (
+                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700">
+                    <span>Bayi: {selectedBayiName}</span>
+                    <button
+                      type="button"
+                      className="text-slate-500 hover:text-slate-800"
+                      onClick={() => {
+                        setSelectedBayiId(null);
+                        setSelectedBayiName(null);
                       }}
                     >
                       ✕
@@ -1097,7 +1258,7 @@ function CihazKayitServiceInner({
           </div>
 
           <div className="w-96 shrink-0">
-            {customerPanelOpen && customerResults.length > 0 ? (
+            {customerPanelOpen ? (
               <aside className="sticky top-4 rounded-lg border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 p-4">
                   <h3 className="text-sm font-medium text-slate-900">Geçmiş Kayıtlar</h3>
@@ -1106,7 +1267,7 @@ function CihazKayitServiceInner({
                   {customerLoading ? (
                     <div className="flex items-center gap-2 px-4 py-4 text-sm text-slate-600">
                       <Loader2 className="size-4 animate-spin" aria-hidden />
-                      Müşteri aranıyor...
+                      Aranıyor...
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100">
@@ -1144,6 +1305,35 @@ function CihazKayitServiceInner({
                           </div>
                         </div>
                       ))}
+                      {bayiSuggestions.length > 0 ? (
+                        <div className="p-3">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Bayi Önerileri
+                          </p>
+                          <div className="space-y-1.5">
+                            {bayiSuggestions.map((bayi) => (
+                              <button
+                                key={bayi.id}
+                                type="button"
+                                className="flex w-full items-start justify-between rounded-md px-2 py-2 text-left transition-colors hover:bg-slate-50"
+                                onClick={() => applyBayiToForm(bayi)}
+                              >
+                                <div>
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {bayi.yetkiliKisi}
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    {bayi.firmaAdi} · {bayi.phone}
+                                  </p>
+                                </div>
+                                <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-medium text-violet-700">
+                                  Bayi
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -1245,6 +1435,100 @@ function CihazKayitServiceInner({
                         <p className="text-xs text-slate-500">{cari.phone ?? "Telefon yok"}</p>
                       </div>
                       <span className="text-xs text-slate-500">{cari.taxOrTcNo ?? "—"}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bayiDialogOpen} onOpenChange={setBayiDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bayi Seç</DialogTitle>
+            <DialogDescription>Bayi arayın veya yeni bayi ekleyin.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Firma adı, yetkili veya vergi no ara..."
+              value={bayiSearch}
+              onChange={(e) => setBayiSearch(e.target.value)}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowInlineBayiForm((v) => !v)}
+              >
+                Yeni Bayi Ekle
+              </Button>
+            </div>
+            {showInlineBayiForm ? (
+              <div className="space-y-2 rounded-md border border-slate-200 p-3">
+                <Input
+                  placeholder="Firma Adı"
+                  value={inlineBayiForm.firmaAdi}
+                  onChange={(e) => setInlineBayiForm((p) => ({ ...p, firmaAdi: e.target.value }))}
+                />
+                <Input
+                  placeholder="Yetkili Kişi"
+                  value={inlineBayiForm.yetkiliKisi}
+                  onChange={(e) => setInlineBayiForm((p) => ({ ...p, yetkiliKisi: e.target.value }))}
+                />
+                <TrPhoneInput
+                  value={inlineBayiForm.phone}
+                  onValueChange={(v) => setInlineBayiForm((p) => ({ ...p, phone: v }))}
+                />
+                <Input
+                  placeholder="Vergi Dairesi (opsiyonel)"
+                  value={inlineBayiForm.vergiDairesi}
+                  onChange={(e) => setInlineBayiForm((p) => ({ ...p, vergiDairesi: e.target.value }))}
+                />
+                <Input
+                  placeholder="TC/Vergi No"
+                  value={inlineBayiForm.tcVergiNo}
+                  onChange={(e) => setInlineBayiForm((p) => ({ ...p, tcVergiNo: e.target.value }))}
+                />
+                <div className="flex justify-end">
+                  <Button type="button" size="sm" onClick={() => void createInlineBayi()} disabled={inlineBayiSaving}>
+                    {inlineBayiSaving ? "Kaydediliyor..." : "Kaydet"}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            <div className="max-h-72 overflow-y-auto rounded-md border border-slate-200">
+              {bayiLoading ? (
+                <p className="px-3 py-3 text-sm text-slate-600">Yükleniyor...</p>
+              ) : bayiRows.length === 0 ? (
+                <p className="px-3 py-3 text-sm text-slate-600">Sonuç bulunamadı</p>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {bayiRows.map((bayi) => (
+                    <button
+                      key={bayi.id}
+                      type="button"
+                      className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50"
+                      onClick={() => {
+                        setValue("customerName", bayi.yetkiliKisi, { shouldDirty: true });
+                        setValue("phone", normalizePhoneForInput(bayi.phone), {
+                          shouldDirty: true,
+                        });
+                        setSelectedBayiId(bayi.id);
+                        setSelectedBayiName(bayi.firmaAdi);
+                        setBayiDialogOpen(false);
+                        toast.success(`Bayi seçildi: ${bayi.firmaAdi}`);
+                      }}
+                    >
+                      <div>
+                        <p className="font-medium text-slate-900">{bayi.firmaAdi}</p>
+                        <p className="text-xs text-slate-500">
+                          {bayi.yetkiliKisi} · {bayi.phone}
+                        </p>
+                      </div>
+                      <span className="text-xs text-slate-500">{bayi.bayiCode}</span>
                     </button>
                   ))}
                 </div>

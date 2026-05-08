@@ -2,7 +2,6 @@
 
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -28,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
+import { formatPhone } from "@/lib/formatPhone";
 
 interface Cari {
   id: string;
@@ -57,12 +57,13 @@ const emptyForm: CariForm = {
 };
 
 export default function CariPage() {
-  const router = useRouter();
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Cari[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCari, setSelectedCari] = useState<Cari | null>(null);
   const [editing, setEditing] = useState<Cari | null>(null);
   const [form, setForm] = useState<CariForm>(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -117,6 +118,11 @@ export default function CariPage() {
       cargoCode: row.cargoCode ?? "",
     });
     setDialogOpen(true);
+  }
+
+  function openDetail(row: Cari) {
+    setSelectedCari(row);
+    setShowDetailModal(true);
   }
 
   async function saveCari() {
@@ -202,30 +208,25 @@ export default function CariPage() {
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="w-full min-w-[1350px] text-left text-sm">
+        <table className="w-full min-w-[820px] text-left text-sm">
           <thead>
             <tr className="border-b bg-slate-50">
               <th className="px-3 py-2.5">Cari Kodu</th>
               <th className="px-3 py-2.5">İsim/Ünvan</th>
               <th className="px-3 py-2.5">Cep Telefonu</th>
-              <th className="px-3 py-2.5">E-Posta</th>
-              <th className="px-3 py-2.5">Vergi/TC No</th>
-              <th className="px-3 py-2.5">Vergi Dairesi</th>
-              <th className="px-3 py-2.5">Kargo Bilgisi</th>
-              <th className="px-3 py-2.5">Kargo Anlaşma Kodu</th>
               <th className="px-3 py-2.5">İşlemler</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-3 py-6 text-center text-slate-600" colSpan={9}>
+                <td className="px-3 py-6 text-center text-slate-600" colSpan={4}>
                   Yükleniyor...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td className="px-3 py-6 text-center text-slate-600" colSpan={9}>
+                <td className="px-3 py-6 text-center text-slate-600" colSpan={4}>
                   Cari bulunamadı
                 </td>
               </tr>
@@ -236,21 +237,17 @@ export default function CariPage() {
                     {row.cariCode || "—"}
                   </td>
                   <td className="px-3 py-2.5 font-medium text-slate-900">{row.name}</td>
-                  <td className="px-3 py-2.5">{row.phone ?? "—"}</td>
-                  <td className="px-3 py-2.5">{row.email ?? "—"}</td>
-                  <td className="px-3 py-2.5">{row.taxOrTcNo ?? "—"}</td>
-                  <td className="px-3 py-2.5">{row.taxOffice ?? "—"}</td>
-                  <td className="px-3 py-2.5">{row.cargoInfo ?? "—"}</td>
-                  <td className="px-3 py-2.5">{row.cargoCode ?? "—"}</td>
+                  <td className="px-3 py-2.5">{row.phone ? formatPhone(row.phone) : "—"}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/kargo-fisi/${row.id}`)}
+                        className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                        onClick={() => openDetail(row)}
                       >
-                        Kargo Fişi
+                        Detay
                       </Button>
                       <Button type="button" variant="outline" size="sm" onClick={() => openEdit(row)}>
                         Düzenle
@@ -319,6 +316,88 @@ export default function CariPage() {
               {saving ? "Kaydediliyor..." : editing ? "Güncelle" : "Kaydet"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Cari Detayı</DialogTitle>
+            <DialogDescription>Cari bilgileri</DialogDescription>
+          </DialogHeader>
+          {selectedCari ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ borderBottom: "1px solid #e5e7eb", paddingBottom: "12px" }}>
+                <div style={{ fontSize: "18px", fontWeight: "600" }}>{selectedCari.name}</div>
+                <div style={{ fontSize: "13px", color: "#666" }}>{selectedCari.cariCode}</div>
+              </div>
+
+              {[
+                { label: "Cari Kodu", value: selectedCari.cariCode },
+                { label: "İsim/Ünvan", value: selectedCari.name },
+                { label: "Cep Telefonu", value: selectedCari.phone ? formatPhone(selectedCari.phone) : null },
+                { label: "E-posta", value: selectedCari.email },
+                { label: "Adres", value: selectedCari.address },
+                { label: "Vergi Dairesi", value: selectedCari.taxOffice },
+                { label: "TC/Vergi No", value: selectedCari.taxOrTcNo },
+                { label: "Kargo Firması", value: selectedCari.cargoInfo },
+                { label: "Kargo Kodu", value: selectedCari.cargoCode },
+              ]
+                .filter((item) => item.value)
+                .map((item, i) => (
+                  <div
+                    key={`${item.label}-${i}`}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "8px 0",
+                      borderBottom: "1px solid #f3f4f6",
+                      fontSize: "14px",
+                      gap: "12px",
+                    }}
+                  >
+                    <span style={{ color: "#666", minWidth: "140px" }}>{item.label}</span>
+                    <span style={{ fontWeight: "500", textAlign: "right" }}>{item.value}</span>
+                  </div>
+                ))}
+
+              <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    openEdit(selectedCari);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    background: "white",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  Düzenle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.open(`/kargo-fisi/${selectedCari.id}`, "_blank")}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    background: "white",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  Kargo Fişi
+                </button>
+              </div>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
 

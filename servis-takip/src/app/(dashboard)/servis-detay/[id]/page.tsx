@@ -127,6 +127,12 @@ type ServiceOrderDetail = {
   estimatedPrice: number | null;
   customer: Customer;
   cari?: NamedEntity | null;
+  bayi?: {
+    id: string;
+    firmaAdi: string;
+    yetkiliKisi: string;
+    phone: string;
+  } | null;
   deviceType: NamedEntity | null;
   brand: NamedEntity | null;
   deviceModel: NamedEntity | null;
@@ -1096,6 +1102,28 @@ export default function ServisDetayPage() {
               </dl>
             </CardContent>
           </Card>
+
+          {order.bayi ? (
+            <Card
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: "10px",
+                padding: "20px",
+                background: "white",
+              }}
+            >
+              <CardHeader className="border-b border-slate-100 pb-4">
+                <CardTitle>Bayi Bilgileri</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="space-y-3">
+                  <DetailRow label="Firma Adı">{order.bayi.firmaAdi}</DetailRow>
+                  <DetailRow label="Yetkili Kişi">{order.bayi.yetkiliKisi}</DetailRow>
+                  <DetailRow label="Telefon">{order.bayi.phone}</DetailRow>
+                </dl>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card
             style={{

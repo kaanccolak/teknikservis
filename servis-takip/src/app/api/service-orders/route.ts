@@ -63,6 +63,7 @@ export async function GET(request: Request) {
   const deviceModelId = searchParams.get("deviceModelId")?.trim() ?? "";
   const dateFrom = searchParams.get("dateFrom")?.trim() ?? "";
   const dateTo = searchParams.get("dateTo")?.trim() ?? "";
+  const onlyBayi = searchParams.get("onlyBayi") === "true";
 
   if (
     statusParam &&
@@ -84,6 +85,9 @@ export async function GET(request: Request) {
   }
   if (deviceModelId) {
     where.deviceModelId = deviceModelId;
+  }
+  if (onlyBayi) {
+    where.bayiId = { not: null };
   }
 
   if (dateFrom || dateTo) {
@@ -135,6 +139,7 @@ export async function GET(request: Request) {
           deviceType: true,
           brand: true,
           deviceModel: true,
+          bayi: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -251,6 +256,15 @@ export async function POST(request: Request) {
               throw new Error("INVALID_CARI");
             }
           }
+          if (body.bayiId) {
+            const bayi = await tx.bayi.findFirst({
+              where: { id: body.bayiId, shopId: shop.id },
+              select: { id: true },
+            });
+            if (!bayi) {
+              throw new Error("INVALID_BAYI");
+            }
+          }
 
           const phoneStored = phoneRawToStorage(body.phone);
           const phoneDigits = phoneStored ? normalizePhone(phoneStored) : null;
@@ -291,6 +305,7 @@ export async function POST(request: Request) {
               shopId: shop.id,
               customerId: customer.id,
               cariId: body.cariId ?? null,
+              bayiId: body.bayiId ?? null,
               deviceTypeId: body.deviceTypeId,
               brandId: body.brandId,
               deviceModelId: body.deviceModelId,
@@ -341,6 +356,9 @@ export async function POST(request: Request) {
   } catch (e) {
     if (e instanceof Error && e.message === "INVALID_CARI") {
       return NextResponse.json({ error: "Geçersiz cari seçimi" }, { status: 400 });
+    }
+    if (e instanceof Error && e.message === "INVALID_BAYI") {
+      return NextResponse.json({ error: "Geçersiz bayi seçimi" }, { status: 400 });
     }
     if (e instanceof Error && e.message === "INVALID_DEVICE_CHAIN") {
       console.error("[POST /api/service-orders] INVALID_DEVICE_CHAIN", {

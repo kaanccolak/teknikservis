@@ -27,6 +27,7 @@ model Shop {
   updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
   cariler          Cari[]
+  bayiler          Bayi[]
   orders           ServiceOrder[]
   deviceTypes      DeviceType[]
   brands           Brand[]
@@ -176,6 +177,8 @@ model ServiceOrder {
   customer   Customer @relation(fields: [customerId], references: [id])
   cariId     String?
   cari       Cari?    @relation(fields: [cariId], references: [id])
+  bayiId     String?
+  bayi       Bayi?    @relation(fields: [bayiId], references: [id])
 
   deviceTypeId   String?
   brandId        String?
@@ -220,6 +223,22 @@ model ServiceOrder {
   updatedAt        DateTime          @updatedAt
   statusLogs       StatusLog[]
   sparePartUsages  SparePartUsage[]
+}
+
+model Bayi {
+  id            String         @id @default(cuid())
+  shopId         String
+  shop           Shop           @relation(fields: [shopId], references: [id])
+  bayiCode       String         @unique
+  firmaAdi       String
+  yetkiliKisi    String
+  phone          String
+  phoneDigits    String
+  vergiDairesi   String?
+  tcVergiNo      String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  serviceOrders  ServiceOrder[]
 }
 
 model Cari {

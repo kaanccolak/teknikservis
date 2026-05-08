@@ -25,6 +25,7 @@ type Named = { name: string };
 type ServiceOrderListRow = {
   id: string;
   orderNumber: string | null;
+  bayiId: string | null;
   arrivedAt: string;
   serialNo: string | null;
   noSerialNo: boolean;
@@ -75,6 +76,7 @@ function CihazSorgulaInner() {
   const statusParam = searchParams.get("status") || "all";
   const hideDeliveredParam = searchParams.get("hideDelivered");
   const hideDelivered = hideDeliveredParam !== "false";
+  const onlyBayiParam = searchParams.get("onlyBayi") === "true";
   const initialStatus =
     statusParam !== "all" && SERVICE_ORDER_STATUS_VALUES.has(statusParam)
       ? statusParam
@@ -83,6 +85,7 @@ function CihazSorgulaInner() {
   const [search, setSearch] = useState(searchParam);
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [hideCompleted, setHideCompleted] = useState(hideDelivered);
+  const [onlyBayi, setOnlyBayi] = useState(onlyBayiParam);
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
@@ -122,6 +125,10 @@ function CihazSorgulaInner() {
   useEffect(() => {
     setHideCompleted(hideDelivered);
   }, [hideDelivered]);
+
+  useEffect(() => {
+    setOnlyBayi(onlyBayiParam);
+  }, [onlyBayiParam]);
 
   const deviceTypeFilter = searchParams.get("deviceType") || "";
   const brandFilter = searchParams.get("brand") || "";
@@ -191,6 +198,7 @@ function CihazSorgulaInner() {
     setSearch("");
     setStatusFilter("all");
     setHideCompleted(true);
+    setOnlyBayi(false);
     router.replace(pathname);
   }, [pathname, router]);
 
@@ -213,6 +221,7 @@ function CihazSorgulaInner() {
           if (modelFilter) params.set("deviceModelId", modelFilter);
           if (dateFrom) params.set("dateFrom", dateFrom);
           if (dateTo) params.set("dateTo", dateTo);
+          if (onlyBayi) params.set("onlyBayi", "true");
           const res = await fetch(`/api/service-orders?${params.toString()}`, {
             signal: ac.signal,
           });
@@ -257,6 +266,7 @@ function CihazSorgulaInner() {
     modelFilter,
     dateFrom,
     dateTo,
+    onlyBayi,
   ]);
 
   function exportCsv() {
@@ -405,6 +415,27 @@ function CihazSorgulaInner() {
           flexWrap: "wrap",
         }}
       >
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "13px",
+            cursor: "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={onlyBayi}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setOnlyBayi(checked);
+              updateURL({ onlyBayi: checked ? "true" : "" });
+            }}
+          />
+          Sadece Bayi Kayıtları
+        </label>
+
         <select
           aria-label="Cihaz türü"
           value={deviceTypeFilter}
@@ -605,6 +636,16 @@ function CihazSorgulaInner() {
               <tbody>
                 {orders.map((row, i) => {
                   const statusBadge = getStatusBadge(row.status);
+                  const rowStyle = {
+                    borderLeft: row.bayiId
+                      ? "3px solid #8B5CF6"
+                      : "3px solid transparent",
+                    background: row.bayiId
+                      ? "#F5F3FF"
+                      : i % 2 === 0
+                        ? "white"
+                        : "#f8fafc80",
+                  };
                   return (
                   <tr
                     key={row.id}
@@ -620,9 +661,25 @@ function CihazSorgulaInner() {
                     className={`cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-100/80 focus-visible:bg-slate-100/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                       i % 2 === 0 ? "bg-white" : "bg-slate-50/50"
                     }`}
+                    style={rowStyle}
                   >
                     <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
                       {formatServiceOrderNo(row)}
+                      {row.bayiId && (
+                        <span
+                          style={{
+                            background: "#EDE9FE",
+                            color: "#7C3AED",
+                            fontSize: "10px",
+                            fontWeight: "600",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                            marginLeft: "6px",
+                          }}
+                        >
+                          BAYI
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-slate-800">
                       {row.customer.name}
