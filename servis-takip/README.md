@@ -12,6 +12,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Cari yönetimi (firma/müşteri kaydı, cari kodu: C202605001 formatı)
 - Bayiler modülü (firma adı, yetkili kişi, telefon, vergi bilgileri)
 - Bayi detay sayfası (cihaz geçmişi, toplam ciro, onarım istatistikleri)
+- **Bayi toplam ciro** — yalnızca tamamlanmış ve teslim durumlarındaki servis kayıtlarının ücret toplamı: `completed`, `delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return` (`GET /api/bayiler` ve `GET /api/bayiler/[id]` aynı filtre; cihaz adedi tüm kayıtlar)
 - Servis durumu güncelleme (Teknik Serviste, Onay Bekliyor, Onay Verildi, Parça Bekliyor, Onarım Tamamlandı, Teslim Edildi)
 - Otomatik kayıt numarası (YYYYMM001 formatı)
 - Cihaz türü, marka ve model tanım yönetimi

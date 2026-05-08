@@ -102,6 +102,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `ServiceOrder.bayiId` → bayi ile ilişki
 - Cihaz kayıtta bayi seçilince `yetkiliKisi` ve `phone` otomatik doldurulur; **inline yeni bayi** formunda da `grup` seçilebilir
 - Cihaz sorgulada `bayiId` dolu kayıtlar mor renkte (`#F5F3FF` bg, `#8B5CF6` border)
+- **Bayi cirosu** yalnızca **tamamlanmış / teslim** kayıtların `totalPrice` toplamıdır (`SERVICE_ORDER_HIDE_COMPLETED_STATUSES` ile uyumlu): `completed`, `delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return`. **`GET /api/bayiler`** ve **`GET /api/bayiler/[id]`** aynı durum filtresini kullanır; liste/detaydaki **cihaz sayısı** tüm bağlı kayıtları içermeye devam eder.
 
 ### Public müşteri yüzeyi
 

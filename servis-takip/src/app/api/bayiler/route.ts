@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
+import { SERVICE_ORDER_HIDE_COMPLETED_STATUSES } from "@/lib/service-order-status";
 import { jsonServerError } from "@/lib/server-error";
+
+const BAYI_CIRO_STATUSES = [...SERVICE_ORDER_HIDE_COMPLETED_STATUSES];
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +67,12 @@ export async function GET(request: Request) {
       },
       include: {
         _count: { select: { serviceOrders: true } },
-        serviceOrders: { select: { totalPrice: true } },
+        serviceOrders: {
+          where: {
+            status: { in: BAYI_CIRO_STATUSES },
+          },
+          select: { totalPrice: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
