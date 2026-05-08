@@ -88,19 +88,19 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **SparePart**: yedek parça stok yönetimi (`name`, `partCode`, `cost`, `stock`, isteğe bağlı `deviceTypeId`, `brandId`, `deviceModelId`; hepsi null = genel parça).
 - **SparePartUsage**: hangi kayıtta hangi parça kullanıldı (`sparePartId`, `serviceOrderId`, `quantity`, `costAtTime`, `shopId`).
 - **Cari**: `cariCode` (C202605001), `name`, `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `cargoInfo`, `cargoCode`.
-- **Bayi**: `bayiCode` (B202605001), `firmaAdi`, `yetkiliKisi`, `phone`, `phoneDigits`, `vergiDairesi`, `tcVergiNo`.
+- **Bayi**: `bayiCode` (B202605001), `firmaAdi`, `yetkiliKisi`, `phone`, `phoneDigits`, `vergiDairesi`, `tcVergiNo`, **`grup`** (`grup1` %10 | `grup2` %20 | `null`).
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
 - **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
 - **WhatsAppMessage**: gelen WA mesajları (`shopId`, `from`, `message`, `timestamp`, `customerName`, `serviceOrderId`, `isRead`); webhook `metadata.phone_number_id` → `Shop.waPhoneNumberId` ile tenant eşlemesi.
 
 ### Bayiler Modülü
 
-- `/bayiler` → Bayiler listesi
-- `/api/bayiler` → GET (liste + istatistikler), POST (yeni bayi)
+- `/bayiler` → Bayiler listesi (grup rozeti: Grup 1 · %10 / Grup 2 · %20)
+- `/api/bayiler` → GET (liste + istatistikler), POST (yeni bayi; `grup` opsiyonel)
 - `/api/bayiler/[id]` → GET (detay + cihaz listesi), PATCH, DELETE
 - Bayi kodu: `B + YYYYMM + 3 hane` (ör. `B202605001`)
 - `ServiceOrder.bayiId` → bayi ile ilişki
-- Cihaz kayıtta bayi seçilince `yetkiliKisi` ve `phone` otomatik doldurulur
+- Cihaz kayıtta bayi seçilince `yetkiliKisi` ve `phone` otomatik doldurulur; **inline yeni bayi** formunda da `grup` seçilebilir
 - Cihaz sorgulada `bayiId` dolu kayıtlar mor renkte (`#F5F3FF` bg, `#8B5CF6` border)
 
 ### Public müşteri yüzeyi
@@ -137,6 +137,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/cari` — **GET**, **POST**
 - `/api/cari/[id]` — **GET**, **PATCH**, **DELETE**
 - `/api/customers/search` — **GET** (`?q=` ile müşteri arama, min 3 karakter)
+- `/api/suggestions` — **GET** (`?field=&q=&deviceTypeId=`); `field`: `complaint` | `accessories` | `physicalCondition` (Prisma’da `physicalDamage` ile eşlenir); `getShop()` ile shop; min 2 karakter; geçmiş `ServiceOrder` metinlerinden frekansa göre öneri
 - `/api/exchange-rates` — **GET** (USD/EUR kurları; sunucu tarafı cache + dashboard’da ~10 dk’da bir istemci yenilemesi)
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/external-services` — **GET** (`?search=`), **POST**
@@ -204,6 +205,35 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **İkinci el alım** (`src/app/(dashboard)/cihaz-kayit/second-hand-form.tsx`), **cari** ve **bayi** formlarında aynı Enter navigasyonu (`handleEnterKey` + ref zinciri).
 - İlgili **input / native select** alanlarında `onKeyDown` ile Enter işlenir.
 - **Textarea:** **Shift+Enter** yeni satır; yalnız **Enter** sonraki alana geçer; son textarea’dan Enter **Kaydet** butonuna odaklar.
+- **Şikayet / aksesuar / fiziksel hasar** alanlarında **`SuggestionTextarea`** (`src/components/SuggestionTextarea.tsx`) — öneri listesi `createPortal` + `position: fixed` (overflow/z-index sorunları için).
+
+### Autocomplete öneriler
+
+- **`src/components/SuggestionTextarea.tsx`** — textarea + öneri listesi (portal → `document.body`).
+- **`src/hooks/useSuggestions.ts`** — 300 ms debounce, ok tuşları / Enter / Escape.
+- **`GET /api/suggestions`** — `?field=&q=&deviceTypeId=`; `field`: `complaint` | `accessories` | `physicalCondition` (DB: `physicalDamage`).
+- Geçmiş kayıtlardan öğrenir; tekrar sayısına göre sıralar; opsiyonel `deviceTypeId` ile aynı tür önceliği.
+- Min **2** karakter, **300** ms debounce.
+- Her dükkan kendi **`shopId`** verisinden öneri alır (`getShop`).
+
+### Bayi grup ve iskonto sistemi
+
+- **`Bayi.grup`**: `grup1` (%10) | `grup2` (%20) | `null`.
+- **Servis detay** ücret kaydında: kullanıcı **brüt** girer; API’ye **`Math.round(brüt × (1 - discountRate))`** (net) gönderilir.
+- **`ServiceOrder.totalPrice`** = kayıtlı **net** tutar.
+- Kalıcı gösterim: **brüt** ≈ `Math.round(net / (1 - discountRate))`, **iskonto** = brüt − net, kartta yeşil özet.
+- Yazarken ayrı önizleme kutusu yalnızca input doluyken gösterilir (çift iskonto algısı olmasın diye).
+
+### Ödeme linki
+
+- Servis detay **Ücret** kartında **Ödeme Linki Gönder** butonu (mavi).
+- Modal: tutar, müşteri, bilgi notu; **iyzico** sonrası gerçek link eklenecek.
+- **`handleSendPaymentLink`** — şu an modal kapanır, **`toast.info`** (“Ödeme linki özelliği yakında aktif olacak.”); `wa.me` yok.
+
+### Planlarım
+
+- **`/planlarim`** — tamamlanmış satırda **Geri Al** butonu.
+- **`PATCH /api/payment-plans/[id]`** — `{ isCompleted: false, completedAt: null }` ile tamamlanmayı geri alma.
 
 ## Önemli Hatırlatmalar
 
@@ -390,6 +420,11 @@ src/lib/supabase/
 - [x] WhatsApp şablonları (13 durum + `fiyat_bildirimi`; Meta onaylı isimler)
 - [x] Durum / kayıt sonrası WA bildirimi (onay modalı)
 - [x] Production deploy (teknikservis-seven.vercel.app)
+- [x] Autocomplete öneriler (cihaz kayıt şikayet / aksesuar / fiziksel hasar)
+- [x] Bayi grup ve iskonto sistemi
+- [x] Planlarım — tamamlandı geri al
+- [ ] iyzico ödeme entegrasyonu
+- [ ] Ödeme linki WhatsApp şablonu
 - [ ] Meta Business Verification (production mod)
 - [ ] Google yorum linki (`teslim_edildi` şablonuna)
 - [ ] SMS entegrasyonu

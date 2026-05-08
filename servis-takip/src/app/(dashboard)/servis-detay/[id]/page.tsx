@@ -267,6 +267,7 @@ export default function ServisDetayPage() {
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
   const [waConfirmSending, setWaConfirmSending] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const [waInboundMessages, setWaInboundMessages] = useState<WaInboundMsg[]>(
     [],
@@ -394,6 +395,15 @@ export default function ServisDetayPage() {
     const netPrice = Math.round(brutPrice * (1 - discountRate));
     return { brutPrice, iskonto, netPrice };
   }, [inputPrice, discountRate]);
+
+  /** Kayıtlı totalPrice (net) üzerinden brüt geri hesaplama — kalıcı gösterim */
+  const savedBayiDiscountBreakdown = useMemo(() => {
+    const netPrice = order?.totalPrice ?? 0;
+    if (netPrice <= 0 || discountRate <= 0) return null;
+    const brutPrice = Math.round(netPrice / (1 - discountRate));
+    const iskonto = brutPrice - netPrice;
+    return { brutPrice, iskonto, netPrice, rate: discountRate };
+  }, [order?.totalPrice, discountRate]);
 
   async function handleAddSparePart() {
     if (!order || !sparePartId || !spareQtyValid) return;
@@ -753,6 +763,24 @@ export default function ServisDetayPage() {
     }
   }
 
+  function handlePaymentLink() {
+    if (!order) return;
+    if (!order.totalPrice || order.totalPrice <= 0) {
+      toast.error("Önce ücret girin");
+      return;
+    }
+    if (!order.customer?.phone?.trim()) {
+      toast.error("Müşteri telefon numarası bulunamadı");
+      return;
+    }
+    setShowPaymentModal(true);
+  }
+
+  async function handleSendPaymentLink() {
+    setShowPaymentModal(false);
+    toast.info("Ödeme linki özelliği yakında aktif olacak.");
+  }
+
   async function handleWaSend() {
     setShowWaConfirm(false);
     const template = WA_TEMPLATES[waConfirmStatus];
@@ -1070,6 +1098,140 @@ export default function ServisDetayPage() {
               ) : (
                 "Evet, Gönder"
               )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Ödeme Linki Gönder</DialogTitle>
+            <DialogDescription>
+              Müşteriye WhatsApp üzerinden ödeme linki gönderilecek.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              marginTop: "8px",
+            }}
+          >
+            <div
+              style={{
+                padding: "12px",
+                background: "#f9fafb",
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#666",
+                  marginBottom: "4px",
+                }}
+              >
+                Ödenecek Tutar
+              </div>
+              <div
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#0f0f0f",
+                }}
+              >
+                ₺{order.totalPrice?.toLocaleString("tr-TR")}
+              </div>
+              {discountRate > 0 ? (
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#16a34a",
+                    marginTop: "2px",
+                  }}
+                >
+                  %{discountRate * 100} bayi iskontosu uygulandı
+                </div>
+              ) : null}
+            </div>
+
+            <div
+              style={{
+                padding: "12px",
+                background: "#f9fafb",
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#666",
+                  marginBottom: "4px",
+                }}
+              >
+                Gönderilecek Numara
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                {order.customer?.name}
+              </div>
+              <div style={{ fontSize: "13px", color: "#666" }}>
+                {order.customer?.phone}
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                borderRadius: "8px",
+                fontSize: "12px",
+                color: "#2563eb",
+              }}
+            >
+              ℹ️ Ödeme altyapısı yakında aktif olacak. Şu an için ödeme linki
+              placeholder olarak gönderilecektir.
+            </div>
+          </div>
+
+          <DialogFooter style={{ marginTop: "16px", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => setShowPaymentModal(false)}
+              style={{
+                padding: "8px 16px",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                background: "white",
+                cursor: "pointer",
+                fontSize: "13px",
+              }}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSendPaymentLink()}
+              style={{
+                padding: "8px 20px",
+                background: "#25D366",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "500",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              WhatsApp ile Gönder
             </button>
           </DialogFooter>
         </DialogContent>
@@ -1795,6 +1957,71 @@ export default function ServisDetayPage() {
                   {formatTry(order.totalPrice)}
                 </span>
               </CardDescription>
+              {savedBayiDiscountBreakdown ? (
+                <div
+                  style={{
+                    marginTop: "8px",
+                    padding: "10px 12px",
+                    background: "#f0fdf4",
+                    borderRadius: "8px",
+                    border: "1px solid #86efac",
+                    fontSize: "12px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "#6b7280",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    <span>Brüt Fiyat:</span>
+                    <span>
+                      ₺
+                      {savedBayiDiscountBreakdown.brutPrice.toLocaleString(
+                        "tr-TR",
+                      )}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "#dc2626",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    <span>
+                      İskonto (%{savedBayiDiscountBreakdown.rate * 100}):
+                    </span>
+                    <span>
+                      -₺
+                      {savedBayiDiscountBreakdown.iskonto.toLocaleString(
+                        "tr-TR",
+                      )}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontWeight: "600",
+                      color: "#15803d",
+                      paddingTop: "4px",
+                      borderTop: "1px solid #86efac",
+                    }}
+                  >
+                    <span>Net Fiyat:</span>
+                    <span>
+                      ₺
+                      {savedBayiDiscountBreakdown.netPrice.toLocaleString(
+                        "tr-TR",
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
@@ -1913,6 +2140,25 @@ export default function ServisDetayPage() {
                   }}
                 >
                   {waSending ? "Gönderiliyor..." : "WhatsApp ile Bildir"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePaymentLink()}
+                  style={{
+                    padding: "8px 14px",
+                    background: "#2563EB",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                  }}
+                >
+                  💳 Ödeme Linki Gönder
                 </button>
               </div>
             </CardContent>

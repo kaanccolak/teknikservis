@@ -46,6 +46,12 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Cihaz sorgulada bayi rengi ve filtresi
 - CSV export
 - **Enter tuşu ile form navigasyonu** — cihaz kayıt; **ikinci el alım** (`second-hand-form`), **cari** ve **bayi** formlarında aynı desen (textarea’da Shift+Enter yeni satır)
+- **Şikayet/arıza, aksesuar, fiziksel hasar** alanlarında **autocomplete öneriler** (geçmiş servis kayıtlarından; cihaz türüne göre öncelik)
+- **Bayi grup sistemi** (Grup 1 %10, Grup 2 %20 iskonto); bayi formu ve listesinde grup seçimi
+- **Bayi grubuna göre otomatik iskonto** — servis detayda girilen brüt tutardan net hesaplanır, veritabanına **net** kaydedilir
+- **Servis detayda iskonto bilgisi** — kayıtlı fiyat üzerinden brüt/iskonto/net özeti (kalıcı kutu); yazarken ayrı önizleme
+- **Planlarım** — tamamlanmış planlar için **Geri Al** (`isCompleted: false`)
+- **Ödeme Linki Gönder** butonu (servis detay, ücret kartı) — şimdilik bilgi modalı + toast; **iyzico entegrasyonu yakında**
 - **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
 - **Auth / Login koruması** (Supabase Auth)
 - **Multi-tenant mimari** (her dükkan kendi verisini görür)
@@ -199,6 +205,11 @@ src/
 - [x] Vercel build uyumu (`prisma generate`, API route `dynamic`, Suspense ile useSearchParams sayfaları)
 - [x] Production deploy ([teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
 - [x] Bayiler modülü
+- [x] Autocomplete öneriler (şikayet / aksesuar / fiziksel hasar)
+- [x] Bayi grup ve iskonto sistemi
+- [x] Planlarım — tamamlandı geri al
+- [ ] iyzico ödeme entegrasyonu
+- [ ] Ödeme linki WhatsApp şablonu
 - [ ] Meta Business Verification (production moda geçiş)
 - [ ] Google yorum linki (`teslim_edildi` şablonuna)
 - [ ] SMS entegrasyonu
