@@ -14,6 +14,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
 } from "react";
@@ -231,7 +232,10 @@ export default function ServisDetayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
-  const [priceDraft, setPriceDraft] = useState("");
+  const [inputPrice, setInputPrice] = useState("");
+  const lastOrderPriceKey = useRef<{ id: string; totalPrice: number | null } | null>(
+    null,
+  );
   const [savingNote, setSavingNote] = useState(false);
   const [savingPrice, setSavingPrice] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
@@ -295,7 +299,7 @@ export default function ServisDetayPage() {
       const o = data as ServiceOrderDetail;
       setOrder(o);
       setNoteDraft(o.technicianNote ?? "");
-      setPriceDraft(
+      setInputPrice(
         o.totalPrice != null && !Number.isNaN(o.totalPrice)
           ? String(o.totalPrice)
           : "",
@@ -311,6 +315,19 @@ export default function ServisDetayPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!order) return;
+    const cur = { id: order.id, totalPrice: order.totalPrice ?? null };
+    const prev = lastOrderPriceKey.current;
+    lastOrderPriceKey.current = cur;
+    if (!prev || prev.id !== cur.id) {
+      return;
+    }
+    if (prev.totalPrice !== cur.totalPrice) {
+      setInputPrice("");
+    }
+  }, [order?.id, order?.totalPrice]);
 
   useEffect(() => {
     if (!order || editingEstimated) return;
@@ -362,24 +379,21 @@ export default function ServisDetayPage() {
     0,
   );
 
-  /** Brüt (input) → kaydedilecek net; yalnızca bayi iskontosu varken gösterilir */
-  const priceSavePreview = useMemo(() => {
-    if (!order?.bayi?.grup) return null;
-    const rate = bayiDiscountRate(order.bayi.grup);
-    if (rate <= 0) return null;
-    const raw = priceDraft.trim().replace(",", ".");
-    if (raw === "") return null;
-    const brut = Number(raw);
-    if (Number.isNaN(brut) || brut < 0) return null;
-    const discountedPrice = Math.round(brut * (1 - rate));
-    return {
-      rate,
-      brut,
-      grup: order.bayi.grup,
-      discountedPrice,
-      discountAmount: brut * rate,
-    };
-  }, [order?.bayi?.grup, priceDraft]);
+  const discountRate = useMemo(
+    () => bayiDiscountRate(order?.bayi?.grup),
+    [order?.bayi?.grup],
+  );
+
+  /** Yalnızca kullanıcı input yazarken; kayıtlı net tutar tekrar iskonto edilmez */
+  const inputPricePreview = useMemo(() => {
+    const raw = inputPrice.trim().replace(",", ".");
+    if (!raw || discountRate <= 0) return null;
+    const brutPrice = Number.parseFloat(raw);
+    if (!Number.isFinite(brutPrice) || brutPrice <= 0) return null;
+    const iskonto = Math.round(brutPrice * discountRate);
+    const netPrice = Math.round(brutPrice * (1 - discountRate));
+    return { brutPrice, iskonto, netPrice };
+  }, [inputPrice, discountRate]);
 
   async function handleAddSparePart() {
     if (!order || !sparePartId || !spareQtyValid) return;
@@ -658,13 +672,13 @@ export default function ServisDetayPage() {
 
   async function handleSavePrice() {
     if (!order) return;
-    const raw = priceDraft.trim().replace(",", ".");
+    const raw = inputPrice.trim().replace(",", ".");
     if (raw === "") {
       setSavingPrice(true);
       try {
         const updated = await patchOrder({ totalPrice: null });
         setOrder(updated);
-        setPriceDraft("");
+        setInputPrice("");
         toast.success("Ücret bilgisi kaldırıldı");
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Ücret kaydedilemedi");
@@ -678,18 +692,15 @@ export default function ServisDetayPage() {
       toast.error("Geçerli bir tutar girin");
       return;
     }
-    const discountRate = bayiDiscountRate(order.bayi?.grup);
-    const discountedPrice = Math.round(n * (1 - discountRate));
+    const netPrice = Math.round(n * (1 - discountRate));
     setSavingPrice(true);
     try {
-      const updated = await patchOrder({ totalPrice: discountedPrice });
+      const updated = await patchOrder({ totalPrice: netPrice });
       setOrder(updated);
-      setPriceDraft(
-        updated.totalPrice != null ? String(updated.totalPrice) : "",
-      );
+      setInputPrice("");
       toast.success(
         discountRate > 0
-          ? `Ücret kaydedildi (brüt ₺${n.toLocaleString("tr-TR")} → net ₺${discountedPrice.toLocaleString("tr-TR")})`
+          ? `Ücret kaydedildi (brüt ₺${n.toLocaleString("tr-TR")} → net ₺${netPrice.toLocaleString("tr-TR")})`
           : "Ücret kaydedildi",
       );
     } catch (e) {
@@ -1800,15 +1811,17 @@ export default function ServisDetayPage() {
                     type="text"
                     inputMode="decimal"
                     placeholder="0,00"
-                    value={priceDraft}
-                    onChange={(e) => setPriceDraft(e.target.value)}
+                    value={inputPrice}
+                    onChange={(e) => setInputPrice(e.target.value)}
                     className="pl-8"
                   />
                 </div>
                 <p className="text-xs text-slate-500">
                   Boş bırakıp kaydederseniz ücret silinir.
                 </p>
-                {priceSavePreview ? (
+                {inputPrice &&
+                discountRate > 0 &&
+                inputPricePreview ? (
                   <div
                     style={{
                       marginTop: "8px",
@@ -1817,29 +1830,20 @@ export default function ServisDetayPage() {
                       borderRadius: "8px",
                       border: "1px solid #86efac",
                       fontSize: "13px",
+                      color: "#374151",
                     }}
                   >
                     <div
                       style={{
-                        color: "#16a34a",
-                        fontWeight: "500",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      {priceSavePreview.grup === "grup1"
-                        ? "Grup 1 — %10 İskonto"
-                        : "Grup 2 — %20 İskonto"}
-                    </div>
-                    <div
-                      style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        color: "#374151",
+                        marginBottom: "4px",
                       }}
                     >
                       <span>Brüt:</span>
                       <span>
-                        ₺{priceSavePreview.brut.toLocaleString("tr-TR")}
+                        ₺
+                        {inputPricePreview.brutPrice.toLocaleString("tr-TR")}
                       </span>
                     </div>
                     <div
@@ -1847,14 +1851,13 @@ export default function ServisDetayPage() {
                         display: "flex",
                         justifyContent: "space-between",
                         color: "#dc2626",
+                        marginBottom: "4px",
                       }}
                     >
-                      <span>İskonto ({priceSavePreview.rate * 100}%):</span>
+                      <span>İskonto (%{discountRate * 100}):</span>
                       <span>
                         -₺
-                        {priceSavePreview.discountAmount.toLocaleString(
-                          "tr-TR",
-                        )}
+                        {inputPricePreview.iskonto.toLocaleString("tr-TR")}
                       </span>
                     </div>
                     <div
@@ -1863,17 +1866,14 @@ export default function ServisDetayPage() {
                         justifyContent: "space-between",
                         fontWeight: "600",
                         color: "#15803d",
-                        marginTop: "4px",
                         paddingTop: "4px",
                         borderTop: "1px solid #86efac",
                       }}
                     >
-                      <span>Kaydedilecek Net:</span>
+                      <span>Net (kaydedilecek):</span>
                       <span>
                         ₺
-                        {priceSavePreview.discountedPrice.toLocaleString(
-                          "tr-TR",
-                        )}
+                        {inputPricePreview.netPrice.toLocaleString("tr-TR")}
                       </span>
                     </div>
                   </div>

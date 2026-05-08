@@ -219,6 +219,7 @@ function CihazKayitServiceInner({
     phone: "",
     vergiDairesi: "",
     tcVergiNo: "",
+    grup: null as string | null,
   });
   const [isReturn, setIsReturn] = useState(false);
   const skipDeviceCascade = useRef(false);
@@ -629,7 +630,10 @@ function CihazKayitServiceInner({
       const res = await fetch("/api/bayiler", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inlineBayiForm),
+        body: JSON.stringify({
+          ...inlineBayiForm,
+          grup: inlineBayiForm.grup || null,
+        }),
       });
       const data = (await res.json()) as BayiRow | { error?: string };
       if (!res.ok) {
@@ -648,6 +652,7 @@ function CihazKayitServiceInner({
         phone: "",
         vergiDairesi: "",
         tcVergiNo: "",
+        grup: null,
       });
       setBayiSearch("");
       setBayiDialogOpen(false);
@@ -1542,6 +1547,38 @@ function CihazKayitServiceInner({
                   value={inlineBayiForm.tcVergiNo}
                   onChange={(e) => setInlineBayiForm((p) => ({ ...p, tcVergiNo: e.target.value }))}
                 />
+                <div style={{ marginBottom: "10px" }}>
+                  <label
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      marginBottom: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Bayi Grubu
+                  </label>
+                  <select
+                    value={inlineBayiForm.grup ?? ""}
+                    onChange={(e) =>
+                      setInlineBayiForm((p) => ({
+                        ...p,
+                        grup: e.target.value || null,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                    }}
+                  >
+                    <option value="">Grup Yok</option>
+                    <option value="grup1">Grup 1 (%10 İskonto)</option>
+                    <option value="grup2">Grup 2 (%20 İskonto)</option>
+                  </select>
+                </div>
                 <div className="flex justify-end">
                   <Button type="button" size="sm" onClick={() => void createInlineBayi()} disabled={inlineBayiSaving}>
                     {inlineBayiSaving ? "Kaydediliyor..." : "Kaydet"}
