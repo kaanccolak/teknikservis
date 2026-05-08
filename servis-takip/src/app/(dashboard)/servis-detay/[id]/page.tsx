@@ -48,12 +48,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { WhatsAppWhiteIcon } from "@/components/whatsapp-brand-icon";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
-import {
-  sendWhatsApp,
-  WA_TEMPLATES,
-} from "@/lib/whatsapp";
+import { WA_TEMPLATES } from "@/lib/whatsapp";
 import { serviceOrderStatusLabel } from "@/lib/service-order-status";
 import {
   getStatusUiConfig,
@@ -256,8 +252,9 @@ export default function ServisDetayPage() {
 
   const [waShopReady, setWaShopReady] = useState(false);
   const [waSending, setWaSending] = useState(false);
-  const [waApprovalOpen, setWaApprovalOpen] = useState(false);
-  const [waSendingApproval, setWaSendingApproval] = useState(false);
+  const [showWaConfirm, setShowWaConfirm] = useState(false);
+  const [waConfirmStatus, setWaConfirmStatus] = useState("");
+  const [waConfirmSending, setWaConfirmSending] = useState(false);
 
   const [waInboundMessages, setWaInboundMessages] = useState<WaInboundMsg[]>(
     [],
@@ -518,18 +515,19 @@ export default function ServisDetayPage() {
       void loadExternalServices();
       return;
     }
-    const offerApprovalWa =
-      next === "approval_given" &&
-      Boolean(order.customer.phone?.trim()) &&
-      waShopReady;
-
     setSavingStatus(true);
     try {
       const updated = await patchOrder({ status: next });
       setOrder(updated);
       toast.success("Durum güncellendi");
-      if (offerApprovalWa) {
-        setWaApprovalOpen(true);
+      const tpl = WA_TEMPLATES[next];
+      if (
+        tpl &&
+        updated.customer?.phone?.trim() &&
+        waShopReady
+      ) {
+        setWaConfirmStatus(next);
+        setShowWaConfirm(true);
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
@@ -554,6 +552,15 @@ export default function ServisDetayPage() {
       setOrder(updated);
       setRepairFailedReason("");
       toast.success("Durum güncellendi");
+      const tpl = WA_TEMPLATES.repair_failed;
+      if (
+        tpl &&
+        updated.customer?.phone?.trim() &&
+        waShopReady
+      ) {
+        setWaConfirmStatus("repair_failed");
+        setShowWaConfirm(true);
+      }
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
@@ -702,30 +709,34 @@ export default function ServisDetayPage() {
     }
   }
 
-  async function handleSendApprovalWhatsApp() {
-    if (!order?.customer.phone?.trim()) return;
-    if (!waShopReady) {
-      toast.error("WhatsApp entegrasyonu aktif değil");
-      return;
-    }
-    setWaSendingApproval(true);
+  async function handleWaSend() {
+    setShowWaConfirm(false);
+    const template = WA_TEMPLATES[waConfirmStatus];
+    if (!template || !order?.customer?.phone) return;
+
+    setWaConfirmSending(true);
     try {
-      await sendWhatsApp(
-        order.customer.phone,
-        WA_TEMPLATES.APPROVAL_RECEIVED.name,
-        WA_TEMPLATES.APPROVAL_RECEIVED.getParams(
-          order.customer.name,
-          order.orderNumber ?? formatServiceOrderNo(order),
-        ),
-      );
-      toast.success("WhatsApp mesajı gönderildi!");
-      setWaApprovalOpen(false);
-    } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : "WhatsApp mesajı gönderilemedi",
-      );
+      const params = template.getParams(order);
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: order.customer.phone,
+          templateName: template.name,
+          parameters: params,
+        }),
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (data.success) {
+        toast.success("WhatsApp mesajı gönderildi!");
+      } else {
+        toast.error(data.error || "Mesaj gönderilemedi");
+      }
+    } catch {
+      toast.error("Bağlantı hatası");
     } finally {
-      setWaSendingApproval(false);
+      setWaConfirmSending(false);
+      setWaConfirmStatus("");
     }
   }
 
@@ -969,41 +980,53 @@ export default function ServisDetayPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={waApprovalOpen} onOpenChange={setWaApprovalOpen}>
-        <DialogContent className="max-w-md">
+      <Dialog
+        open={showWaConfirm}
+        onOpenChange={(open) => {
+          setShowWaConfirm(open);
+          if (!open) setWaConfirmStatus("");
+        }}
+      >
+        <DialogContent className="max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Onay Durumu Güncellendi</DialogTitle>
+            <DialogTitle>WhatsApp Bildirimi</DialogTitle>
             <DialogDescription>
-              Müşteriye WhatsApp ile onay bildirimi göndermek ister misiniz?
+              Müşteriye durum hakkında WhatsApp mesajı göndermek ister misiniz?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setWaApprovalOpen(false)}
-              disabled={waSendingApproval}
+          {order && waConfirmStatus ? (
+            <div
+              className="mt-2 rounded-lg px-3 py-2 text-[13px] text-slate-600"
+              style={{ background: "#f9fafb" }}
             >
-              Atla
-            </Button>
-            <Button
+              {order.customer?.name} —{" "}
+              {getStatusBadge(waConfirmStatus).label}
+            </div>
+          ) : null}
+          <DialogFooter className="mt-4 gap-2 sm:gap-2">
+            <button
               type="button"
-              className="bg-[#25D366] text-white hover:bg-[#20bd5a]"
-              onClick={() => void handleSendApprovalWhatsApp()}
-              disabled={waSendingApproval || !waShopReady}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] cursor-pointer disabled:opacity-50"
+              disabled={waConfirmSending}
+              onClick={() => setShowWaConfirm(false)}
             >
-              {waSendingApproval ? (
+              Hayır
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border-0 bg-[#25D366] px-5 py-2 text-[13px] font-medium text-white cursor-pointer disabled:opacity-50"
+              disabled={waConfirmSending || !waShopReady}
+              onClick={() => void handleWaSend()}
+            >
+              {waConfirmSending ? (
                 <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <Loader2 className="mr-2 inline size-4 animate-spin" />
                   Gönderiliyor…
                 </>
               ) : (
-                <>
-                  <WhatsAppWhiteIcon size={14} className="mr-2" />
-                  Gönder
-                </>
+                "Evet, Gönder"
               )}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

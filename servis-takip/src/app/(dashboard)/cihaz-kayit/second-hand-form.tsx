@@ -1,11 +1,19 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,6 +31,18 @@ type IdName = { id: string; name: string };
 
 const nativeSelectClassName =
   "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60";
+
+function handleEnterKey(
+  e: KeyboardEvent<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >,
+  nextRef: RefObject<HTMLElement | null>,
+) {
+  if (e.key !== "Enter") return;
+  if (e.currentTarget instanceof HTMLTextAreaElement && e.shiftKey) return;
+  e.preventDefault();
+  nextRef.current?.focus();
+}
 
 type SecondHandFormValues = {
   sellerName: string;
@@ -114,6 +134,17 @@ export function SecondHandDeviceForm(props: {
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
   const [metaError, setMetaError] = useState<string | null>(null);
+
+  const sellerNameRef = useRef<HTMLInputElement>(null);
+  const sellerPhoneRef = useRef<HTMLInputElement>(null);
+  const sellerTcNoRef = useRef<HTMLInputElement>(null);
+  const deviceTypeRef = useRef<HTMLSelectElement>(null);
+  const brandRef = useRef<HTMLSelectElement>(null);
+  const modelRef = useRef<HTMLSelectElement>(null);
+  const serialNoRef = useRef<HTMLInputElement>(null);
+  const purchasePriceRef = useRef<HTMLInputElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   const { register, control, handleSubmit, watch, setValue, reset, formState } =
     useForm<SecondHandFormValues>({
@@ -296,6 +327,15 @@ export function SecondHandDeviceForm(props: {
     [reset, onRegistered, deviceTypes, brands, models],
   );
 
+  const regSellerName = register("sellerName");
+  const regSellerTcNo = register("sellerTcNo");
+  const regDeviceTypeId = register("deviceTypeId");
+  const regBrandId = register("brandId");
+  const regDeviceModelId = register("deviceModelId");
+  const regSerialNo = register("serialNo");
+  const regPurchasePrice = register("purchasePrice");
+  const regNotes = register("notes");
+
   return (
     <div className="space-y-6">
       <div>
@@ -327,7 +367,13 @@ export function SecondHandDeviceForm(props: {
               <Input
                 id="sh-sellerName"
                 autoComplete="name"
-                {...register("sellerName")}
+                autoFocus
+                {...regSellerName}
+                ref={(el) => {
+                  regSellerName.ref(el);
+                  sellerNameRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, sellerPhoneRef)}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">
@@ -337,10 +383,12 @@ export function SecondHandDeviceForm(props: {
                 control={control}
                 render={({ field }) => (
                   <TrPhoneInput
+                    ref={sellerPhoneRef}
                     id="sh-phone"
                     value={field.value ?? ""}
                     onValueChange={field.onChange}
                     onBlur={field.onBlur}
+                    onKeyDown={(e) => handleEnterKey(e, sellerTcNoRef)}
                   />
                 )}
               />
@@ -351,7 +399,12 @@ export function SecondHandDeviceForm(props: {
                 id="sh-tc"
                 inputMode="numeric"
                 maxLength={11}
-                {...register("sellerTcNo")}
+                {...regSellerTcNo}
+                ref={(el) => {
+                  regSellerTcNo.ref(el);
+                  sellerTcNoRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, deviceTypeRef)}
               />
             </div>
           </CardContent>
@@ -367,7 +420,12 @@ export function SecondHandDeviceForm(props: {
               <select
                 id="sh-dt"
                 className={nativeSelectClassName}
-                {...register("deviceTypeId")}
+                {...regDeviceTypeId}
+                ref={(el) => {
+                  regDeviceTypeId.ref(el);
+                  deviceTypeRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, brandRef)}
               >
                 <option value="">Seçiniz</option>
                 {deviceTypes.map((t) => (
@@ -383,7 +441,12 @@ export function SecondHandDeviceForm(props: {
                 id="sh-brand"
                 className={nativeSelectClassName}
                 disabled={!deviceTypeId}
-                {...register("brandId")}
+                {...regBrandId}
+                ref={(el) => {
+                  regBrandId.ref(el);
+                  brandRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, modelRef)}
               >
                 <option value="">Seçiniz</option>
                 {brands.map((b) => (
@@ -399,7 +462,12 @@ export function SecondHandDeviceForm(props: {
                 id="sh-model"
                 className={nativeSelectClassName}
                 disabled={!brandId}
-                {...register("deviceModelId")}
+                {...regDeviceModelId}
+                ref={(el) => {
+                  regDeviceModelId.ref(el);
+                  modelRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
               >
                 <option value="">Seçiniz</option>
                 {models.map((m) => (
@@ -414,7 +482,12 @@ export function SecondHandDeviceForm(props: {
               <Input
                 id="sh-serial"
                 disabled={noSerialNo}
-                {...register("serialNo")}
+                {...regSerialNo}
+                ref={(el) => {
+                  regSerialNo.ref(el);
+                  serialNoRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, purchasePriceRef)}
               />
             </div>
             <label className="flex cursor-pointer items-center gap-2 sm:col-span-2">
@@ -492,7 +565,12 @@ export function SecondHandDeviceForm(props: {
                   inputMode="decimal"
                   className="pl-8"
                   placeholder="0,00"
-                  {...register("purchasePrice")}
+                  {...regPurchasePrice}
+                  ref={(el) => {
+                    regPurchasePrice.ref(el);
+                    purchasePriceRef.current = el;
+                  }}
+                  onKeyDown={(e) => handleEnterKey(e, notesRef)}
                 />
               </div>
             </div>
@@ -502,16 +580,25 @@ export function SecondHandDeviceForm(props: {
                 id="sh-notes"
                 rows={3}
                 placeholder="Opsiyonel açıklama…"
-                {...register("notes")}
+                {...regNotes}
+                ref={(el) => {
+                  regNotes.ref(el);
+                  notesRef.current = el;
+                }}
+                onKeyDown={(e) => handleEnterKey(e, submitRef)}
               />
             </div>
           </CardContent>
         </Card>
 
-        <Button
+        <button
           type="submit"
+          ref={submitRef}
           disabled={formState.isSubmitting}
-          className="w-full bg-violet-600 text-white hover:bg-violet-700 sm:w-auto"
+          className={cn(
+            buttonVariants(),
+            "w-full bg-violet-600 text-white hover:bg-violet-700 sm:w-auto",
+          )}
         >
           {formState.isSubmitting ? (
             <>
@@ -521,7 +608,7 @@ export function SecondHandDeviceForm(props: {
           ) : (
             "İkinci el kaydını oluştur"
           )}
-        </Button>
+        </button>
       </form>
     </div>
   );

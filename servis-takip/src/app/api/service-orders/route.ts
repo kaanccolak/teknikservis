@@ -218,7 +218,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    let order: { id: string; orderNumber: string | null } | undefined;
+    let order:
+      | {
+          id: string;
+          orderNumber: string | null;
+          serialNo: string | null;
+          customerName: string;
+          customerPhone: string;
+          deviceModel: string;
+          brand: string;
+        }
+      | undefined;
     let lastTxError: unknown;
 
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -299,7 +309,7 @@ export async function POST(request: Request) {
               ? body.serialNo
               : null;
 
-          return tx.serviceOrder.create({
+          const row = await tx.serviceOrder.create({
             data: {
               orderNumber,
               shopId: shop.id,
@@ -328,8 +338,18 @@ export async function POST(request: Request) {
               status: isReturn ? "returned_device" : "in_service",
               estimatedPrice: formEstimatedPriceToDb(body.estimatedPrice),
             },
-            select: { id: true, orderNumber: true },
+            select: { id: true, orderNumber: true, serialNo: true },
           });
+
+          return {
+            id: row.id,
+            orderNumber: row.orderNumber,
+            serialNo: row.serialNo,
+            customerName: customer.name,
+            customerPhone: customer.phone ?? "",
+            deviceModel: deviceModel.name,
+            brand: brand.name,
+          };
         });
         break;
       } catch (e) {
@@ -352,6 +372,14 @@ export async function POST(request: Request) {
     return NextResponse.json({
       id: order.id,
       orderNumber: order.orderNumber,
+      order: {
+        id: order.id,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        serialNo: order.serialNo,
+        deviceModel: order.deviceModel,
+        brand: order.brand,
+      },
     });
   } catch (e) {
     if (e instanceof Error && e.message === "INVALID_CARI") {

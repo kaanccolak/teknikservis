@@ -91,6 +91,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **Bayi**: `bayiCode` (B202605001), `firmaAdi`, `yetkiliKisi`, `phone`, `phoneDigits`, `vergiDairesi`, `tcVergiNo`.
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
 - **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
+- **WhatsAppMessage**: gelen WA mesajları (`shopId`, `from`, `message`, `timestamp`, `customerName`, `serviceOrderId`, `isRead`); webhook `metadata.phone_number_id` → `Shop.waPhoneNumberId` ile tenant eşlemesi.
 
 ### Bayiler Modülü
 
@@ -118,6 +119,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
 - `/raporlar` — Raporlar (**3 sekme:** Servis, Finansal, İkinci El)
+- `/whatsapp-mesajlari` — Gelen WhatsApp mesajları (okundu işaretleme, servis detay linki)
 - `/landing` — Tanıtım / SaaS landing (public, dashboard layout yok)
 - `/sorgula` — Müşteri cihaz durumu sorgulama (dashboard dışı, public)
 - `/reset-password` — Şifre sıfırlama formu (e-posta bağlantısı sonrası, public)
@@ -139,7 +141,9 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
-- `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu)
+- `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu); **GET** yanıtında `waUnreadCount` (okunmamış WA mesajı sayısı)
+- `/api/whatsapp/webhook` — **GET** (Meta `hub.challenge` doğrulama, `WHATSAPP_WEBHOOK_VERIFY_TOKEN`), **POST** (gelen mesaj → `WhatsAppMessage`)
+- `/api/whatsapp/messages` — **GET** (`?orderId=` veya sayfalama), **PATCH** (`{ id }` → okundu)
 
 **Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
 
@@ -152,12 +156,21 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 ### Yardımcı Fonksiyonlar
 
 - `src/lib/formatPhone.ts` → telefon numarasını `+90 5XX XXX XX XX` formatına çevirir
+- `src/lib/whatsapp.ts` → `WA_TEMPLATES` (durum → Meta şablon adı + `getParams`), `WA_SECOND_HAND_PURCHASE`, `sendWhatsApp`, `formatPriceForWa`
+
+### Ortam değişkenleri (güncel)
+
+- `DATABASE_URL`, `DIRECT_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (şifre sıfırlama `check-email` vb.)
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (örn. `servis-takip-webhook` — Meta webhook doğrulama)
 
 ### Production
 
 - URL: [https://teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app)
 - Vercel → GitHub `main` branch'e push ile otomatik deploy
 - Supabase redirect URL: `https://teknikservis-seven.vercel.app/**`
+- WhatsApp webhook callback (örnek): `https://teknikservis-seven.vercel.app/api/whatsapp/webhook`
 
 ### Önemli Notlar
 
@@ -188,6 +201,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 ## Form UX
 
 - **Cihaz kayıt** formunda **Enter** ile bir sonraki alana odak (TAB benzeri sıra).
+- **İkinci el alım** (`src/app/(dashboard)/cihaz-kayit/second-hand-form.tsx`), **cari** ve **bayi** formlarında aynı Enter navigasyonu (`handleEnterKey` + ref zinciri).
 - İlgili **input / native select** alanlarında `onKeyDown` ile Enter işlenir.
 - **Textarea:** **Shift+Enter** yeni satır; yalnız **Enter** sonraki alana geçer; son textarea’dan Enter **Kaydet** butonuna odaklar.
 
@@ -215,14 +229,60 @@ YYYYMM### — örnek: 202605001
 - Hata durumlarında Türkçe mesaj döndür
 - Response'larda ilişkili tabloları include et (customer, deviceType, brand, deviceModel)
 
-### WhatsApp Entegrasyonu
+### WhatsApp — şablonlar (`WA_TEMPLATES`)
 
-- `/api/whatsapp/send` → **POST** (şablon mesaj gönderir)
-- `src/lib/whatsapp.ts` → `WA_TEMPLATES` ve `sendWhatsApp` helper
-- Şablon adı: `fiyat_bildirimi` (Meta'da onay bekliyor)
-- Phone Number ID ve Access Token `Shop` tablosunda saklanır (`waPhoneNumberId`, `waAccessToken`, `waEnabled`)
-- `/sirketim` sayfasındaki WhatsApp API sekmesinden yapılandırılır
-- Test token geçicidir (24 saat); kalıcı token için System User gerekir
+Kaynak: **`src/lib/whatsapp.ts`**. Her servis durumu için Meta’da onaylı **şablon adı** (`name`) ve **`getParams(order)`** ile gövde parametreleri. `sent_to_external` için şablon yok — durum güncellenince **WA sorusu çıkmaz**.
+
+| Uygulama durumu | Meta şablon adı | Parametreler (sıra) |
+|-----------------|-----------------|----------------------|
+| `in_service` / `returned_device` | `servis_teslim_alindi` | müşteri adı, seri no, model (deviceModel → brand → `"Cihaz"`) |
+| *(ayrı buton)* | `fiyat_bildirimi` | müşteri adı, seri no, model, fiyat (servis detay) |
+| `waiting_approval` | `onay_bekleniyor` | müşteri adı, seri no, model |
+| `approval_given` | `onay_verildi` | müşteri adı, seri no, model |
+| `waiting_part` | `parca_bekleniyor` | müşteri adı, seri no, model |
+| `repair_failed` | `tamiri_olmuyor` | müşteri adı, seri no, model, tamir olmama nedeni |
+| `no_problem_found` | `sorun_gorulmedi` | müşteri adı, seri no, model |
+| `customer_return_request` | `musteri_iade_istiyor` | müşteri adı, seri no, model |
+| `completed` | `onarim_tamamlandi` | müşteri adı, seri no, model |
+| `delivered` | `teslim_edildi` | müşteri adı, seri no, model |
+| `delivered_repair_failed` | `teslim_tamir_olmuyor` | müşteri adı, seri no, model |
+| `delivered_no_problem` | `teslim_sorun_gorulmedi` | müşteri adı, seri no, model |
+| `delivered_customer_return` | `teslim_musteri_iade` | müşteri adı, seri no, model |
+
+İkinci el alım bildirimi: **`WA_SECOND_HAND_PURCHASE`** → `ikinci_el_satin_alindi` (satıcı, cihaz, fiyat).
+
+### WhatsApp Webhook
+
+- **Endpoint:** `/api/whatsapp/webhook`
+- **GET:** Meta doğrulama (`hub.verify_token` = `WHATSAPP_WEBHOOK_VERIFY_TOKEN`)
+- **POST:** Gelen mesajları **`WhatsAppMessage`** tablosuna yazar; **`metadata.phone_number_id`** ile **`Shop.waPhoneNumberId`** eşleştirilir
+- **Callback URL (örnek):** `https://teknikservis-seven.vercel.app/api/whatsapp/webhook`
+- **Verify token:** `.env` → `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
+
+### WA Mesajları (gelen)
+
+- **Sayfa:** `/whatsapp-mesajlari` — liste, okundu işaretleme, ilgili kayıt linki
+- **API:** `/api/whatsapp/messages` — **GET** (liste veya `?orderId=`), **PATCH** (`{ id }`)
+- **Sidebar:** “WA Mesajları” menüsünde okunmamış sayısı (yeşil badge); `/api/shop` → `waUnreadCount`
+- **Dashboard:** `waUnreadCount > 0` ise uyarı bandı
+- **Servis detay:** o kayda bağlı gelen mesajlar sağ sütunda
+
+### Durum değişince WA bildirimi
+
+- Durum **PATCH** başarılı olduktan sonra `WA_TEMPLATES[status]` tanımlıysa, müşteride telefon ve **`waEnabled` + token/phone number id** hazırsa **onay Dialog** açılır
+- Kullanıcı onaylarsa **`POST /api/whatsapp/send`** (`templateName`, `parameters`)
+
+### Cihaz kayıt — kayıt sonrası WA
+
+- Servis kaydı oluşunca modal: **Evet** → `servis_teslim_alindi` (`WA_TEMPLATES.in_service`); **Hayır** → doğrudan **`/servis-detay/[id]`**
+- **POST /api/service-orders** yanıtında **`order`** özeti (`id`, `customerName`, `customerPhone`, `serialNo`, `deviceModel`, `brand`) gönderilir
+
+### WhatsApp gönderim altyapısı
+
+- `/api/whatsapp/send` → **POST** (şablon mesaj; Graph API)
+- Phone Number ID ve Access Token **`Shop`** (`waPhoneNumberId`, `waAccessToken`, `waEnabled`)
+- **`/sirketim`** → WhatsApp API sekmesi
+- Test token geçicidir; kalıcı token için System User gerekir
 
 ### Ciro Hesabı
 
@@ -273,7 +333,8 @@ YYYYMM### — örnek: 202605001
 10. Planlarım
 11. Tanımlar
 12. Raporlar
-13. Şirketim
+13. WA Mesajları
+14. Şirketim
 
 ## Klasör Yapısı
 
@@ -285,6 +346,9 @@ src/app/(dashboard)/stok/
 src/app/(dashboard)/cari/
 src/app/(dashboard)/servis-detay/[id]/duzenle/
 src/app/(dashboard)/raporlar/
+src/app/(dashboard)/whatsapp-mesajlari/
+src/app/api/whatsapp/webhook/
+src/app/api/whatsapp/messages/
 src/app/fis/[id]/
 src/app/dukkan-nushasi/[id]/
 src/app/kargo-fisi/[id]/
@@ -322,7 +386,12 @@ src/lib/supabase/
 - [x] Şifre sıfırlama (akış + reset-password + check-email)
 - [x] Public müşteri sorgulama (`/sorgula`, `repairFailedReason` gösterimi)
 - [x] Vercel build uyumu (`prisma generate`, API `dynamic`, Suspense)
-- [ ] WhatsApp şablon onayı (Meta değerlendirmede)
+- [x] WhatsApp webhook + WA Mesajları sayfası
+- [x] WhatsApp şablonları (13 durum + `fiyat_bildirimi`; Meta onaylı isimler)
+- [x] Durum / kayıt sonrası WA bildirimi (onay modalı)
+- [x] Production deploy (teknikservis-seven.vercel.app)
+- [ ] Meta Business Verification (production mod)
+- [ ] Google yorum linki (`teslim_edildi` şablonuna)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumlu tasarım
 - [ ] Domain bağlama

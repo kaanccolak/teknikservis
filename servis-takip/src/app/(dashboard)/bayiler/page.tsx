@@ -1,7 +1,15 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -14,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +36,17 @@ import { Label } from "@/components/ui/label";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatPhone } from "@/lib/formatPhone";
 import { getStatusBadge } from "@/lib/statusConfig";
+import { cn } from "@/lib/utils";
+
+function handleEnterKey(
+  e: KeyboardEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  nextRef: RefObject<HTMLElement | null>,
+) {
+  if (e.key !== "Enter") return;
+  if (e.currentTarget instanceof HTMLTextAreaElement && e.shiftKey) return;
+  e.preventDefault();
+  nextRef.current?.focus();
+}
 
 interface Bayi {
   id: string;
@@ -98,6 +117,13 @@ export default function BayilerPage() {
   const [deleteRow, setDeleteRow] = useState<Bayi | null>(null);
   const [deleteLinkedCount, setDeleteLinkedCount] = useState(0);
   const [deleting, setDeleting] = useState(false);
+
+  const firmaAdiRef = useRef<HTMLInputElement>(null);
+  const yetkiliRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const vergiDairesiRef = useRef<HTMLInputElement>(null);
+  const tcVergiRef = useRef<HTMLInputElement>(null);
+  const saveRef = useRef<HTMLButtonElement>(null);
 
   const total = useMemo(() => rows.length, [rows.length]);
 
@@ -338,38 +364,64 @@ export default function BayilerPage() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label>Firma Adı</Label>
-              <Input value={form.firmaAdi} onChange={(e) => setForm((p) => ({ ...p, firmaAdi: e.target.value }))} />
+              <Input
+                ref={firmaAdiRef}
+                autoFocus
+                value={form.firmaAdi}
+                onChange={(e) => setForm((p) => ({ ...p, firmaAdi: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, yetkiliRef)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Firma Yetkili Kişi</Label>
               <Input
+                ref={yetkiliRef}
                 value={form.yetkiliKisi}
                 onChange={(e) => setForm((p) => ({ ...p, yetkiliKisi: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, phoneRef)}
               />
             </div>
             <div className="space-y-1.5">
               <Label>Telefon</Label>
-              <TrPhoneInput value={form.phone ?? ""} onValueChange={(v) => setForm((p) => ({ ...p, phone: v }))} />
+              <TrPhoneInput
+                ref={phoneRef}
+                value={form.phone ?? ""}
+                onValueChange={(v) => setForm((p) => ({ ...p, phone: v }))}
+                onKeyDown={(e) => handleEnterKey(e, vergiDairesiRef)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Vergi Dairesi</Label>
               <Input
+                ref={vergiDairesiRef}
                 value={form.vergiDairesi ?? ""}
                 onChange={(e) => setForm((p) => ({ ...p, vergiDairesi: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, tcVergiRef)}
               />
             </div>
             <div className="space-y-1.5">
               <Label>TC Kimlik / Vergi Numarası</Label>
-              <Input value={form.tcVergiNo ?? ""} onChange={(e) => setForm((p) => ({ ...p, tcVergiNo: e.target.value }))} />
+              <Input
+                ref={tcVergiRef}
+                value={form.tcVergiNo ?? ""}
+                onChange={(e) => setForm((p) => ({ ...p, tcVergiNo: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, saveRef)}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
               İptal
             </Button>
-            <Button type="button" onClick={() => void saveBayi()} disabled={saving}>
+            <button
+              type="button"
+              ref={saveRef}
+              className={cn(buttonVariants())}
+              disabled={saving}
+              onClick={() => void saveBayi()}
+            >
               {saving ? "Kaydediliyor..." : editing ? "Güncelle" : "Kaydet"}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

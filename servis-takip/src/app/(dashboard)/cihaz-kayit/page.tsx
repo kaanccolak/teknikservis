@@ -35,6 +35,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -58,6 +59,7 @@ import { cn } from "@/lib/utils";
 import {
   formatPriceForWa,
   sendWhatsApp,
+  WA_SECOND_HAND_PURCHASE,
   WA_TEMPLATES,
 } from "@/lib/whatsapp";
 import {
@@ -174,9 +176,13 @@ function CihazKayitServiceInner({
   onServiceOrderCreated,
 }: {
   onServiceOrderCreated: (info: {
+    id: string;
     orderNumber: string;
     customerName: string;
     customerPhone: string;
+    serialNo: string | null;
+    deviceModel: string;
+    brand: string;
     deviceName: string;
   }) => void;
 }) {
@@ -553,6 +559,14 @@ function CihazKayitServiceInner({
       const json = (await res.json()) as {
         id?: string;
         orderNumber?: string;
+        order?: {
+          id: string;
+          customerName: string;
+          customerPhone: string;
+          serialNo: string | null;
+          deviceModel: string;
+          brand: string;
+        };
         error?: string;
       };
 
@@ -561,7 +575,7 @@ function CihazKayitServiceInner({
         return;
       }
 
-      if (json.orderNumber) {
+      if (json.orderNumber && json.order) {
         toast.success("Kayıt oluşturuldu");
         const deviceName = deviceSummaryFromLists(
           payload,
@@ -570,9 +584,13 @@ function CihazKayitServiceInner({
           models,
         );
         onServiceOrderCreated({
+          id: json.order.id,
           orderNumber: json.orderNumber,
-          customerName: payload.customerName.trim(),
-          customerPhone: payload.phone,
+          customerName: json.order.customerName,
+          customerPhone: json.order.customerPhone,
+          serialNo: json.order.serialNo,
+          deviceModel: json.order.deviceModel,
+          brand: json.order.brand,
           deviceName,
         });
         reset(getDefaultValues());
@@ -1544,9 +1562,13 @@ function CihazKayitServiceInner({
 type WaPostCreateDialog =
   | {
       kind: "service";
+      id: string;
       orderNumber: string;
       customerName: string;
       customerPhone: string;
+      serialNo: string | null;
+      deviceModel: string;
+      brand: string;
       deviceName: string;
     }
   | ({ kind: "secondhand" } & SecondHandRegisterInfo);
@@ -1616,28 +1638,35 @@ function CihazKayitRoot() {
     setWaSending(true);
     try {
       if (createdWa.kind === "service") {
+        const serviceId = createdWa.id;
         await sendWhatsApp(
           createdWa.customerPhone,
-          WA_TEMPLATES.SERVICE_RECEIVED.name,
-          WA_TEMPLATES.SERVICE_RECEIVED.getParams(
-            createdWa.customerName,
-            createdWa.deviceName,
-            createdWa.orderNumber,
-          ),
+          WA_TEMPLATES.in_service.name,
+          WA_TEMPLATES.in_service.getParams({
+            customer: { name: createdWa.customerName },
+            serialNo: createdWa.serialNo,
+            deviceModel: createdWa.deviceModel
+              ? { name: createdWa.deviceModel }
+              : null,
+            brand: createdWa.brand ? { name: createdWa.brand } : null,
+          }),
         );
+        toast.success("WhatsApp mesajı gönderildi!");
+        setCreatedWa(null);
+        router.push(`/servis-detay/${encodeURIComponent(serviceId)}`);
       } else {
         await sendWhatsApp(
           createdWa.sellerPhone,
-          WA_TEMPLATES.SECOND_HAND_PURCHASE.name,
-          WA_TEMPLATES.SECOND_HAND_PURCHASE.getParams(
+          WA_SECOND_HAND_PURCHASE.name,
+          WA_SECOND_HAND_PURCHASE.getParams(
             createdWa.sellerName,
             createdWa.deviceName,
             formatPriceForWa(createdWa.purchasePrice),
           ),
         );
+        toast.success("WhatsApp mesajı gönderildi!");
+        setCreatedWa(null);
       }
-      toast.success("WhatsApp mesajı gönderildi!");
-      setCreatedWa(null);
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : "WhatsApp mesajı gönderilemedi",
@@ -1692,7 +1721,10 @@ function CihazKayitRoot() {
       {mode === "service" ? (
         <CihazKayitServiceInner
           onServiceOrderCreated={(info) =>
-            setCreatedWa({ kind: "service", ...info })
+            setCreatedWa({
+              kind: "service",
+              ...info,
+            })
           }
         />
       ) : (
@@ -1709,12 +1741,30 @@ function CihazKayitRoot() {
           if (!open) setCreatedWa(null);
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-[400px] sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Kayıt Oluşturuldu! ✓</DialogTitle>
+            <DialogTitle>Kayıt Oluşturuldu!</DialogTitle>
+            {createdWa?.kind === "service" ? (
+              <DialogDescription>
+                Müşteriye cihazın teslim alındığına dair WhatsApp mesajı göndermek
+                ister misiniz?
+              </DialogDescription>
+            ) : (
+              <DialogDescription>
+                Satıcıya ikinci el alım bildirimi göndermek ister misiniz?
+              </DialogDescription>
+            )}
           </DialogHeader>
           {createdWa ? (
             <div className="space-y-4">
+              {createdWa.kind === "service" ? (
+                <div
+                  className="rounded-lg px-3 py-2 text-[13px] text-slate-600"
+                  style={{ background: "#f9fafb" }}
+                >
+                  {createdWa.customerName} — Servis Teslim Alındı
+                </div>
+              ) : null}
               <div className="space-y-2 text-sm">
                 <p>
                   <span className="text-slate-500">Kayıt No:</span>{" "}
@@ -1752,7 +1802,23 @@ function CihazKayitRoot() {
                   </p>
                 ) : null}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <DialogFooter className="gap-2 sm:gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-[13px] cursor-pointer disabled:opacity-50"
+                  disabled={waSending}
+                  onClick={() => {
+                    if (createdWa.kind === "service") {
+                      const id = createdWa.id;
+                      setCreatedWa(null);
+                      router.push(`/servis-detay/${encodeURIComponent(id)}`);
+                    } else {
+                      setCreatedWa(null);
+                    }
+                  }}
+                >
+                  Hayır
+                </button>
                 <button
                   type="button"
                   disabled={!canSendCreatedWa || waSending}
@@ -1764,19 +1830,9 @@ function CihazKayitRoot() {
                         : undefined
                   }
                   onClick={() => void sendCreatedWhatsApp()}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border-0 px-5 py-2 text-[13px] font-medium text-white disabled:cursor-not-allowed"
                   style={{
                     background: !canSendCreatedWa ? "#9ca3af" : "#25D366",
-                    color: "white",
-                    padding: "10px 20px",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor:
-                      !canSendCreatedWa || waSending ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
                     opacity: waSending ? 0.85 : 1,
                   }}
                 >
@@ -1785,17 +1841,9 @@ function CihazKayitRoot() {
                   ) : (
                     <WhatsAppBrandIcon size={18} />
                   )}
-                  WhatsApp ile Bildir
+                  Evet, Gönder
                 </button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCreatedWa(null)}
-                  disabled={waSending}
-                >
-                  Atla
-                </Button>
-              </div>
+              </DialogFooter>
             </div>
           ) : null}
         </DialogContent>

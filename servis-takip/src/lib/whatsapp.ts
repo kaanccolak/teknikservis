@@ -1,32 +1,133 @@
-export const WA_TEMPLATES = {
-  SERVICE_RECEIVED: {
+/** Meta şablon gövdesi için servis kaydı alanları (detay sayfası API yanıtı ile uyumlu) */
+export type WaTemplateOrder = {
+  customer: { name: string };
+  serialNo?: string | null;
+  deviceModel?: { name: string } | null;
+  brand?: { name: string } | null;
+  deviceType?: { name: string } | null;
+  repairFailedReason?: string | null;
+};
+
+/**
+ * `name` alanları Meta Business’ta onaylı şablon adlarıyla birebir aynı olmalı.
+ * `sent_to_external` için şablon yok — bu anahtar eklenmez.
+ */
+export const WA_TEMPLATES: Record<
+  string,
+  { name: string; getParams: (o: WaTemplateOrder) => string[] }
+> = {
+  in_service: {
     name: "servis_teslim_alindi",
-    getParams: (customerName: string, deviceName: string, orderNumber: string) =>
-      [customerName, deviceName, orderNumber],
-  },
-  PRICE_NOTIFICATION: {
-    name: "fiyat_bildirimi",
-    getParams: (customerName: string, price: string, orderNumber: string) => [
-      customerName,
-      price,
-      orderNumber,
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
     ],
   },
-  APPROVAL_RECEIVED: {
-    name: "onay_alindi",
-    getParams: (customerName: string, orderNumber: string) => [
-      customerName,
-      orderNumber,
+  returned_device: {
+    name: "servis_teslim_alindi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
     ],
   },
-  SECOND_HAND_PURCHASE: {
-    name: "ikinci_el_satin_alindi",
-    getParams: (sellerName: string, deviceName: string, price: string) => [
-      sellerName,
-      deviceName,
-      price,
+  waiting_approval: {
+    name: "onay_bekleniyor",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
     ],
   },
+  approval_given: {
+    name: "onay_verildi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  waiting_part: {
+    name: "parca_bekleniyor",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  repair_failed: {
+    name: "tamiri_olmuyor",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.repairFailedReason || "Belirtilmemiş",
+    ],
+  },
+  no_problem_found: {
+    name: "sorun_gorulmedi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  customer_return_request: {
+    name: "musteri_iade_istiyor",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  completed: {
+    name: "onarim_tamamlandi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  delivered: {
+    name: "teslim_edildi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  delivered_repair_failed: {
+    name: "teslim_tamir_olmuyor",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  delivered_no_problem: {
+    name: "teslim_sorun_gorulmedi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+  delivered_customer_return: {
+    name: "teslim_musteri_iade",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
+};
+
+/** İkinci el alım bildirimi (durum anahtarı değil) */
+export const WA_SECOND_HAND_PURCHASE = {
+  name: "ikinci_el_satin_alindi",
+  getParams: (sellerName: string, deviceName: string, price: string) =>
+    [sellerName, deviceName, price],
 } as const;
 
 export async function sendWhatsApp(

@@ -32,7 +32,11 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Sayfadan ayrılma uyarısı (form doldurulmuşken)
 - **Kayıt düzenleme ve silme**
 - Ciro takibi (günlük / haftalık / aylık / yıllık / **tarih aralığı**)
-- WhatsApp Business API entegrasyonu (fiyat bildirimi, servis bildirimi)
+- **WhatsApp Business API** — şablon mesajları, ücret bildirimi (`fiyat_bildirimi`), **webhook** ile gelen mesajların kaydı
+- **WA Mesajları** (`/whatsapp-mesajlari`) — gelen mesajlar, okunmamış takibi, sidebar yeşil badge, servis detayda kayıt bazlı liste
+- **Durum değişince WhatsApp** — `WA_TEMPLATES` ile uyumlu şablon; onay modalı (`shop.waEnabled` + müşteri telefonu)
+- **Kayıt sonrası WhatsApp** — cihaz kayıt tamamlanınca `servis_teslim_alindi` için Evet/Hayır modalı; Hayır ile doğrudan servis detay
+- **13 durum şablonu** (Meta’da onaylı isimler; `sent_to_external` hariç — WA sorusu yok)
 - Servis detay sayfasında durum rengine göre cihaz bilgileri kartı boyama
 - Ciro hesabı StatusLog bazlı (durum geri alınınca ciro düşer)
 - Ciro filtresi düzeltmesi (Bugün/Bu Hafta/Bu Ay/Bu Yıl)
@@ -41,7 +45,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Arama ve filtreleme
 - Cihaz sorgulada bayi rengi ve filtresi
 - CSV export
-- **Enter tuşu ile form navigasyonu** (cihaz kayıt formunda sonraki alana geçiş)
+- **Enter tuşu ile form navigasyonu** — cihaz kayıt; **ikinci el alım** (`second-hand-form`), **cari** ve **bayi** formlarında aynı desen (textarea’da Shift+Enter yeni satır)
 - **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
 - **Auth / Login koruması** (Supabase Auth)
 - **Multi-tenant mimari** (her dükkan kendi verisini görür)
@@ -53,6 +57,10 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Cari yönetiminde detay modal
 - Türkçe hata mesajları (giriş ekranı)
 - Production deploy ([teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
+
+### WhatsApp şablon adları (Meta)
+
+`servis_teslim_alindi`, `fiyat_bildirimi`, `onay_bekleniyor`, `onay_verildi`, `parca_bekleniyor`, `tamiri_olmuyor`, `sorun_gorulmedi`, `musteri_iade_istiyor`, `onarim_tamamlandi`, `teslim_edildi`, `teslim_tamir_olmuyor`, `teslim_sorun_gorulmedi`, `teslim_musteri_iade` — eşleme ve parametreler: `src/lib/whatsapp.ts` (`WA_TEMPLATES`). İkinci el alım: `ikinci_el_satin_alindi` (`WA_SECOND_HAND_PURCHASE`).
 
 ## Tech Stack
 
@@ -94,6 +102,8 @@ NEXT_PUBLIC_SUPABASE_URL="https://..."
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 # Şifre sıfırlama öncesi e-posta kontrolü (yalnızca sunucu — /api/auth/check-email)
 SUPABASE_SERVICE_ROLE_KEY="..."
+# Meta WhatsApp webhook doğrulama (GET hub.verify_token)
+WHATSAPP_WEBHOOK_VERIFY_TOKEN="servis-takip-webhook"
 ```
 
 Supabase Dashboard → **Authentication → URL Configuration** içine **`/reset-password`** için tam URL ekleyin (örn. `https://your-domain.vercel.app/reset-password` ve `http://localhost:3000/reset-password`).
@@ -143,10 +153,11 @@ src/
 │   │   ├── cihaz-sorgula/
 │   │   ├── bekleyen-cihazlar/
 │   │   ├── raporlar/
+│   │   ├── whatsapp-mesajlari/
 │   │   ├── stok/
 │   │   ├── servis-detay/[id]/
 │   │   └── tanimlar/
-│   └── api/                  # REST API (auth/register, auth/check-email, shop, sorgula, …)
+│   └── api/                  # REST API (whatsapp/webhook, whatsapp/messages, …)
 ├── middleware.ts             # Supabase auth, korumalı rotalar
 ├── components/
 │   └── layout/               # Sidebar, TopBar
@@ -177,17 +188,21 @@ src/
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
 - [x] WhatsApp Business API altyapısı ve entegrasyonu
+- [x] WhatsApp webhook (gelen mesajlar)
+- [x] WhatsApp şablonları (13 durum şablonu + `fiyat_bildirimi` butonu)
+- [x] Durum değişince WA bildirimi (onay modalı)
 - [x] Auth / Login koruması
 - [x] Multi-tenant geçişi
 - [x] Landing page
 - [x] Şifre sıfırlama (Supabase + check-email + reset-password sayfası)
 - [x] Müşteri sorgulama sayfası (`/sorgula`)
 - [x] Vercel build uyumu (`prisma generate`, API route `dynamic`, Suspense ile useSearchParams sayfaları)
-- [x] Production deploy (Vercel)
+- [x] Production deploy ([teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
 - [x] Bayiler modülü
-- [ ] WhatsApp şablon onayı (Meta değerlendirmede)
+- [ ] Meta Business Verification (production moda geçiş)
+- [ ] Google yorum linki (`teslim_edildi` şablonuna)
 - [ ] SMS entegrasyonu
-- [ ] Mobil uyumlu tasarım
+- [ ] Mobil uyumluluk
 - [ ] Domain bağlama
 
 ---

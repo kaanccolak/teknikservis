@@ -1,7 +1,15 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -14,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +36,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatPhone } from "@/lib/formatPhone";
+import { cn } from "@/lib/utils";
+
+function handleEnterKey(
+  e: KeyboardEvent<
+    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  >,
+  nextRef: RefObject<HTMLElement | null>,
+) {
+  if (e.key !== "Enter") return;
+  if (e.currentTarget instanceof HTMLTextAreaElement && e.shiftKey) return;
+  e.preventDefault();
+  nextRef.current?.focus();
+}
 
 interface Cari {
   id: string;
@@ -70,6 +91,16 @@ export default function CariPage() {
   const [deleteRow, setDeleteRow] = useState<Cari | null>(null);
   const [deleteLinkedCount, setDeleteLinkedCount] = useState(0);
   const [deleting, setDeleting] = useState(false);
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
+  const taxOfficeRef = useRef<HTMLInputElement>(null);
+  const taxOrTcRef = useRef<HTMLInputElement>(null);
+  const cargoInfoRef = useRef<HTMLInputElement>(null);
+  const cargoCodeRef = useRef<HTMLInputElement>(null);
+  const saveRef = useRef<HTMLButtonElement>(null);
 
   const total = useMemo(() => rows.length, [rows.length]);
 
@@ -273,38 +304,79 @@ export default function CariPage() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label>İsim/Ünvan</Label>
-              <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+              <Input
+                ref={nameRef}
+                autoFocus
+                value={form.name}
+                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, phoneRef)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Cep Telefonu</Label>
-              <TrPhoneInput value={form.phone ?? ""} onValueChange={(v) => setForm((p) => ({ ...p, phone: v }))} />
+              <TrPhoneInput
+                ref={phoneRef}
+                value={form.phone ?? ""}
+                onValueChange={(v) => setForm((p) => ({ ...p, phone: v }))}
+                onKeyDown={(e) => handleEnterKey(e, emailRef)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>E-Posta</Label>
-              <Input value={form.email ?? ""} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+              <Input
+                ref={emailRef}
+                value={form.email ?? ""}
+                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, addressRef)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Adres</Label>
-              <Textarea value={form.address ?? ""} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
+              <Textarea
+                ref={addressRef}
+                value={form.address ?? ""}
+                onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, taxOfficeRef)}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>TC Kimlik No / Vergi No</Label>
-                <Input value={form.taxOrTcNo ?? ""} onChange={(e) => setForm((p) => ({ ...p, taxOrTcNo: e.target.value }))} />
+                <Label>Vergi Dairesi</Label>
+                <Input
+                  ref={taxOfficeRef}
+                  value={form.taxOffice ?? ""}
+                  onChange={(e) => setForm((p) => ({ ...p, taxOffice: e.target.value }))}
+                  onKeyDown={(e) => handleEnterKey(e, taxOrTcRef)}
+                />
               </div>
               <div className="space-y-1.5">
-                <Label>Vergi Dairesi</Label>
-                <Input value={form.taxOffice ?? ""} onChange={(e) => setForm((p) => ({ ...p, taxOffice: e.target.value }))} />
+                <Label>TC Kimlik No / Vergi No</Label>
+                <Input
+                  ref={taxOrTcRef}
+                  value={form.taxOrTcNo ?? ""}
+                  onChange={(e) => setForm((p) => ({ ...p, taxOrTcNo: e.target.value }))}
+                  onKeyDown={(e) => handleEnterKey(e, cargoInfoRef)}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Anlaşmalı Kargo Bilgisi</Label>
-                <Input value={form.cargoInfo ?? ""} onChange={(e) => setForm((p) => ({ ...p, cargoInfo: e.target.value }))} />
+                <Input
+                  ref={cargoInfoRef}
+                  value={form.cargoInfo ?? ""}
+                  onChange={(e) => setForm((p) => ({ ...p, cargoInfo: e.target.value }))}
+                  onKeyDown={(e) => handleEnterKey(e, cargoCodeRef)}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Kargo Anlaşma Kodu</Label>
-                <Input value={form.cargoCode ?? ""} onChange={(e) => setForm((p) => ({ ...p, cargoCode: e.target.value }))} />
+                <Input
+                  ref={cargoCodeRef}
+                  value={form.cargoCode ?? ""}
+                  onChange={(e) => setForm((p) => ({ ...p, cargoCode: e.target.value }))}
+                  onKeyDown={(e) => handleEnterKey(e, saveRef)}
+                />
               </div>
             </div>
           </div>
@@ -312,9 +384,15 @@ export default function CariPage() {
             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
               İptal
             </Button>
-            <Button type="button" onClick={() => void saveCari()} disabled={saving}>
+            <button
+              type="button"
+              ref={saveRef}
+              className={cn(buttonVariants())}
+              disabled={saving}
+              onClick={() => void saveCari()}
+            >
               {saving ? "Kaydediliyor..." : editing ? "Güncelle" : "Kaydet"}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
