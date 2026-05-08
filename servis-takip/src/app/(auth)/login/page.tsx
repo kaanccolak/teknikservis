@@ -58,7 +58,15 @@ function LoginPageContent() {
     setLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      if (error.message === "Invalid login credentials") {
+        toast.error("E-posta adresi veya şifre hatalı");
+      } else if (error.message === "Email not confirmed") {
+        toast.error("E-posta adresiniz doğrulanmamış");
+      } else if (error.message.includes("rate limit")) {
+        toast.error("Çok fazla deneme yaptınız. Lütfen bekleyin");
+      } else {
+        toast.error("Giriş yapılamadı. Lütfen tekrar deneyin");
+      }
       return;
     }
 
