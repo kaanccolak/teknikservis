@@ -362,13 +362,24 @@ export default function ServisDetayPage() {
     0,
   );
 
-  const bayiPriceBreakdown = useMemo(() => {
+  /** Brüt (input) → kaydedilecek net; yalnızca bayi iskontosu varken gösterilir */
+  const priceSavePreview = useMemo(() => {
     if (!order?.bayi?.grup) return null;
     const rate = bayiDiscountRate(order.bayi.grup);
-    const gross = order.totalPrice;
-    if (rate <= 0 || gross == null || gross <= 0) return null;
-    return { rate, gross, grup: order.bayi.grup };
-  }, [order?.bayi?.grup, order?.totalPrice]);
+    if (rate <= 0) return null;
+    const raw = priceDraft.trim().replace(",", ".");
+    if (raw === "") return null;
+    const brut = Number(raw);
+    if (Number.isNaN(brut) || brut < 0) return null;
+    const discountedPrice = Math.round(brut * (1 - rate));
+    return {
+      rate,
+      brut,
+      grup: order.bayi.grup,
+      discountedPrice,
+      discountAmount: brut * rate,
+    };
+  }, [order?.bayi?.grup, priceDraft]);
 
   async function handleAddSparePart() {
     if (!order || !sparePartId || !spareQtyValid) return;
@@ -667,14 +678,20 @@ export default function ServisDetayPage() {
       toast.error("Geçerli bir tutar girin");
       return;
     }
+    const discountRate = bayiDiscountRate(order.bayi?.grup);
+    const discountedPrice = Math.round(n * (1 - discountRate));
     setSavingPrice(true);
     try {
-      const updated = await patchOrder({ totalPrice: n });
+      const updated = await patchOrder({ totalPrice: discountedPrice });
       setOrder(updated);
       setPriceDraft(
         updated.totalPrice != null ? String(updated.totalPrice) : "",
       );
-      toast.success("Ücret kaydedildi");
+      toast.success(
+        discountRate > 0
+          ? `Ücret kaydedildi (brüt ₺${n.toLocaleString("tr-TR")} → net ₺${discountedPrice.toLocaleString("tr-TR")})`
+          : "Ücret kaydedildi",
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ücret kaydedilemedi");
     } finally {
@@ -1791,7 +1808,7 @@ export default function ServisDetayPage() {
                 <p className="text-xs text-slate-500">
                   Boş bırakıp kaydederseniz ücret silinir.
                 </p>
-                {bayiPriceBreakdown ? (
+                {priceSavePreview ? (
                   <div
                     style={{
                       marginTop: "8px",
@@ -1809,7 +1826,7 @@ export default function ServisDetayPage() {
                         marginBottom: "4px",
                       }}
                     >
-                      {bayiPriceBreakdown.grup === "grup1"
+                      {priceSavePreview.grup === "grup1"
                         ? "Grup 1 — %10 İskonto"
                         : "Grup 2 — %20 İskonto"}
                     </div>
@@ -1820,9 +1837,9 @@ export default function ServisDetayPage() {
                         color: "#374151",
                       }}
                     >
-                      <span>Brüt Fiyat:</span>
+                      <span>Brüt:</span>
                       <span>
-                        ₺{bayiPriceBreakdown.gross.toLocaleString("tr-TR")}
+                        ₺{priceSavePreview.brut.toLocaleString("tr-TR")}
                       </span>
                     </div>
                     <div
@@ -1832,12 +1849,12 @@ export default function ServisDetayPage() {
                         color: "#dc2626",
                       }}
                     >
-                      <span>İskonto ({bayiPriceBreakdown.rate * 100}%):</span>
+                      <span>İskonto ({priceSavePreview.rate * 100}%):</span>
                       <span>
                         -₺
-                        {(
-                          bayiPriceBreakdown.gross * bayiPriceBreakdown.rate
-                        ).toLocaleString("tr-TR")}
+                        {priceSavePreview.discountAmount.toLocaleString(
+                          "tr-TR",
+                        )}
                       </span>
                     </div>
                     <div
@@ -1851,13 +1868,12 @@ export default function ServisDetayPage() {
                         borderTop: "1px solid #86efac",
                       }}
                     >
-                      <span>Net Fiyat:</span>
+                      <span>Kaydedilecek Net:</span>
                       <span>
                         ₺
-                        {(
-                          bayiPriceBreakdown.gross *
-                          (1 - bayiPriceBreakdown.rate)
-                        ).toLocaleString("tr-TR")}
+                        {priceSavePreview.discountedPrice.toLocaleString(
+                          "tr-TR",
+                        )}
                       </span>
                     </div>
                   </div>

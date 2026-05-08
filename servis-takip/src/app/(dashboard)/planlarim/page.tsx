@@ -216,6 +216,25 @@ export default function PlanlarimPage() {
     }
   }
 
+  async function handleUncomplete(id: string) {
+    try {
+      const res = await fetch(`/api/payment-plans/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isCompleted: false, completedAt: null }),
+      });
+      const j = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(j.error ?? "Güncellenemedi");
+        return;
+      }
+      toast.success("Plan tekrar bekleyen olarak işaretlendi");
+      await loadPlans();
+    } catch {
+      toast.error("Bağlantı hatası");
+    }
+  }
+
   async function toggleComplete(plan: PaymentPlanRow) {
     const next = !plan.isCompleted;
     const prevSnapshot = plan;
@@ -450,7 +469,24 @@ export default function PlanlarimPage() {
                   ) : null}
                 </div>
 
-                <div className="flex shrink-0 gap-1">
+                <div className="flex shrink-0 items-center gap-1">
+                  {plan.isCompleted ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleUncomplete(plan.id)}
+                      style={{
+                        padding: "5px 10px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        background: "white",
+                        color: "#6b7280",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Geri Al
+                    </button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"

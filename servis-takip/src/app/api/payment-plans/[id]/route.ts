@@ -127,7 +127,13 @@ export async function PATCH(
     data.notes = optStr(body.notes);
   }
 
-  if (body.isCompleted !== undefined) {
+  if (body.isCompleted === false) {
+    data.isCompleted = false;
+    data.completedAt = null;
+  } else if (body.isCompleted === true) {
+    data.isCompleted = true;
+    data.completedAt = new Date();
+  } else if (body.isCompleted !== undefined) {
     const done = Boolean(body.isCompleted);
     data.isCompleted = done;
     data.completedAt = done ? new Date() : null;

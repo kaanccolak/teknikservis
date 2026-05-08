@@ -1,6 +1,17 @@
 "use client";
 
-import { forwardRef, type RefObject } from "react";
+import { createPortal } from "react-dom";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MutableRefObject,
+  type RefObject,
+} from "react";
 
 import {
   useSuggestions,
@@ -38,6 +49,10 @@ const SuggestionTextarea = forwardRef<
   },
   ref,
 ) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
+  const [mounted, setMounted] = useState(false);
+
   const {
     setQuery,
     suggestions,
@@ -48,17 +63,65 @@ const SuggestionTextarea = forwardRef<
     selectSuggestion,
   } = useSuggestions(field, deviceTypeId);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updateDropdownPosition = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setDropdownStyle({
+      position: "fixed",
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+      background: "white",
+      border: "1px solid #e5e7eb",
+      borderRadius: "8px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      zIndex: 9999,
+      overflow: "hidden",
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    updateDropdownPosition();
+    const onReposition = () => updateDropdownPosition();
+    window.addEventListener("scroll", onReposition, true);
+    window.addEventListener("resize", onReposition);
+    return () => {
+      window.removeEventListener("scroll", onReposition, true);
+      window.removeEventListener("resize", onReposition);
+    };
+  }, [showSuggestions, suggestions, updateDropdownPosition]);
+
+  const setTextareaRef = useCallback(
+    (el: HTMLTextAreaElement | null) => {
+      textareaRef.current = el;
+      if (typeof ref === "function") {
+        ref(el);
+      } else if (ref) {
+        (ref as MutableRefObject<HTMLTextAreaElement | null>).current = el;
+      }
+    },
+    [ref],
+  );
+
   return (
-    <div style={{ position: "relative" }}>
+    <div>
       <textarea
-        ref={ref}
+        ref={setTextareaRef}
         id={id}
         name={name}
         value={value}
         onChange={(e) => {
           onChange(e.target.value);
           setQuery(e.target.value);
+          updateDropdownPosition();
         }}
+        onFocus={updateDropdownPosition}
         onKeyDown={(e) => {
           if (showSuggestions && selectedIndex >= 0 && e.key === "Enter") {
             handleKeyDown(e, (val) => selectSuggestion(val, onChange));
@@ -99,41 +162,31 @@ const SuggestionTextarea = forwardRef<
         }}
       />
 
-      {showSuggestions && suggestions.length > 0 ? (
-        <div
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
-            background: "white",
-            border: "1px solid #e5e7eb",
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            zIndex: 50,
-            marginTop: "4px",
-            overflow: "hidden",
-          }}
-        >
-          {suggestions.map((s, i) => (
-            <div
-              key={`${s}-${i}`}
-              onMouseDown={() => selectSuggestion(s, onChange)}
-              style={{
-                padding: "10px 14px",
-                fontSize: "13px",
-                cursor: "pointer",
-                background: i === selectedIndex ? "#f5f3ff" : "white",
-                color: i === selectedIndex ? "#5b21b6" : "#374151",
-                borderBottom:
-                  i < suggestions.length - 1 ? "1px solid #f3f4f6" : "none",
-              }}
-            >
-              {s}
-            </div>
-          ))}
-        </div>
-      ) : null}
+      {mounted &&
+        showSuggestions &&
+        suggestions.length > 0 &&
+        createPortal(
+          <div style={dropdownStyle}>
+            {suggestions.map((s, i) => (
+              <div
+                key={`${s}-${i}`}
+                onMouseDown={() => selectSuggestion(s, onChange)}
+                style={{
+                  padding: "10px 14px",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  background: i === selectedIndex ? "#f5f3ff" : "white",
+                  color: i === selectedIndex ? "#5b21b6" : "#374151",
+                  borderBottom:
+                    i < suggestions.length - 1 ? "1px solid #f3f4f6" : "none",
+                }}
+              >
+                {s}
+              </div>
+            ))}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 });
