@@ -10,6 +10,13 @@ function normalizeDigits(value: string | undefined): string {
   return (value ?? "").replace(/\D/g, "");
 }
 
+function parseBayiGrup(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  const s = String(value).trim();
+  if (s === "grup1" || s === "grup2") return s;
+  return null;
+}
+
 async function allocateBayiCode(shopId: string) {
   const now = new Date();
   const year = String(now.getFullYear());
@@ -71,6 +78,7 @@ export async function GET(request: Request) {
       phoneDigits: bayi.phoneDigits,
       vergiDairesi: bayi.vergiDairesi,
       tcVergiNo: bayi.tcVergiNo,
+      grup: bayi.grup,
       createdAt: bayi.createdAt,
       updatedAt: bayi.updatedAt,
       cihazSayisi: bayi._count.serviceOrders,
@@ -119,6 +127,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "TC/Vergi no zorunludur" }, { status: 400 });
   }
 
+  const grup = parseBayiGrup(json.grup);
+
   let shop;
   try {
     shop = await getOrCreateDefaultShop();
@@ -141,6 +151,7 @@ export async function POST(request: Request) {
             ? json.vergiDairesi.trim() || null
             : null,
         tcVergiNo,
+        grup,
       },
     });
     return NextResponse.json(row);

@@ -10,6 +10,13 @@ function normalizeDigits(value: string | undefined): string {
   return (value ?? "").replace(/\D/g, "");
 }
 
+function parseBayiGrup(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  const s = String(value).trim();
+  if (s === "grup1" || s === "grup2") return s;
+  return null;
+}
+
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
@@ -102,6 +109,8 @@ export async function PATCH(
     return NextResponse.json({ error: "TC/Vergi no zorunludur" }, { status: 400 });
   }
 
+  const grup = parseBayiGrup(json.grup);
+
   let shop;
   try {
     shop = await getOrCreateDefaultShop();
@@ -121,6 +130,7 @@ export async function PATCH(
             ? json.vergiDairesi.trim() || null
             : null,
         tcVergiNo,
+        grup,
       },
     });
     if (row.count === 0) {

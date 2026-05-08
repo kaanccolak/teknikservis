@@ -13,6 +13,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type CSSProperties,
 } from "react";
@@ -134,6 +135,7 @@ type ServiceOrderDetail = {
     firmaAdi: string;
     yetkiliKisi: string;
     phone: string;
+    grup?: string | null;
   } | null;
   deviceType: NamedEntity | null;
   brand: NamedEntity | null;
@@ -174,6 +176,12 @@ function formatTry(n: number | null | undefined) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n);
+}
+
+function bayiDiscountRate(grup: string | null | undefined): number {
+  if (grup === "grup1") return 0.1;
+  if (grup === "grup2") return 0.2;
+  return 0;
 }
 
 function warrantyLabel(w: string | null) {
@@ -353,6 +361,14 @@ export default function ServisDetayPage() {
     (acc, u) => acc + u.quantity * u.costAtTime,
     0,
   );
+
+  const bayiPriceBreakdown = useMemo(() => {
+    if (!order?.bayi?.grup) return null;
+    const rate = bayiDiscountRate(order.bayi.grup);
+    const gross = order.totalPrice;
+    if (rate <= 0 || gross == null || gross <= 0) return null;
+    return { rate, gross, grup: order.bayi.grup };
+  }, [order?.bayi?.grup, order?.totalPrice]);
 
   async function handleAddSparePart() {
     if (!order || !sparePartId || !spareQtyValid) return;
@@ -1775,6 +1791,77 @@ export default function ServisDetayPage() {
                 <p className="text-xs text-slate-500">
                   Boş bırakıp kaydederseniz ücret silinir.
                 </p>
+                {bayiPriceBreakdown ? (
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      padding: "10px 12px",
+                      background: "#f0fdf4",
+                      borderRadius: "8px",
+                      border: "1px solid #86efac",
+                      fontSize: "13px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#16a34a",
+                        fontWeight: "500",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {bayiPriceBreakdown.grup === "grup1"
+                        ? "Grup 1 — %10 İskonto"
+                        : "Grup 2 — %20 İskonto"}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        color: "#374151",
+                      }}
+                    >
+                      <span>Brüt Fiyat:</span>
+                      <span>
+                        ₺{bayiPriceBreakdown.gross.toLocaleString("tr-TR")}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        color: "#dc2626",
+                      }}
+                    >
+                      <span>İskonto ({bayiPriceBreakdown.rate * 100}%):</span>
+                      <span>
+                        -₺
+                        {(
+                          bayiPriceBreakdown.gross * bayiPriceBreakdown.rate
+                        ).toLocaleString("tr-TR")}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontWeight: "600",
+                        color: "#15803d",
+                        marginTop: "4px",
+                        paddingTop: "4px",
+                        borderTop: "1px solid #86efac",
+                      }}
+                    >
+                      <span>Net Fiyat:</span>
+                      <span>
+                        ₺
+                        {(
+                          bayiPriceBreakdown.gross *
+                          (1 - bayiPriceBreakdown.rate)
+                        ).toLocaleString("tr-TR")}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button

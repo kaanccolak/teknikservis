@@ -56,6 +56,7 @@ interface Bayi {
   phone: string;
   vergiDairesi?: string | null;
   tcVergiNo: string;
+  grup?: string | null;
   cihazSayisi: number;
   toplamCiro: number;
   createdAt: string;
@@ -91,6 +92,7 @@ const emptyForm: BayiForm = {
   phone: "",
   vergiDairesi: "",
   tcVergiNo: "",
+  grup: null,
 };
 
 function formatTry(value: number) {
@@ -123,6 +125,7 @@ export default function BayilerPage() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const vergiDairesiRef = useRef<HTMLInputElement>(null);
   const tcVergiRef = useRef<HTMLInputElement>(null);
+  const grupRef = useRef<HTMLSelectElement>(null);
   const saveRef = useRef<HTMLButtonElement>(null);
 
   const total = useMemo(() => rows.length, [rows.length]);
@@ -167,6 +170,7 @@ export default function BayilerPage() {
       phone: row.phone ?? "",
       vergiDairesi: row.vergiDairesi ?? "",
       tcVergiNo: row.tcVergiNo ?? "",
+      grup: row.grup ?? null,
     });
     setDialogOpen(true);
   }
@@ -288,13 +292,14 @@ export default function BayilerPage() {
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="w-full min-w-[1000px] text-left text-sm">
+        <table className="w-full min-w-[1100px] text-left text-sm">
           <thead>
             <tr className="border-b bg-slate-50">
               <th className="px-3 py-2.5">Bayi Kodu</th>
               <th className="px-3 py-2.5">Firma Adı</th>
               <th className="px-3 py-2.5">Yetkili Kişi</th>
               <th className="px-3 py-2.5">Telefon</th>
+              <th className="px-3 py-2.5">Grup</th>
               <th className="px-3 py-2.5">Cihaz Sayısı</th>
               <th className="px-3 py-2.5">Toplam Ciro</th>
               <th className="px-3 py-2.5">İşlemler</th>
@@ -303,13 +308,13 @@ export default function BayilerPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-3 py-6 text-center text-slate-600" colSpan={7}>
+                <td className="px-3 py-6 text-center text-slate-600" colSpan={8}>
                   Yükleniyor...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td className="px-3 py-6 text-center text-slate-600" colSpan={7}>
+                <td className="px-3 py-6 text-center text-slate-600" colSpan={8}>
                   Bayi bulunamadı
                 </td>
               </tr>
@@ -320,6 +325,37 @@ export default function BayilerPage() {
                   <td className="px-3 py-2.5 font-medium text-slate-900">{row.firmaAdi}</td>
                   <td className="px-3 py-2.5">{row.yetkiliKisi}</td>
                   <td className="px-3 py-2.5">{row.phone ? formatPhone(row.phone) : "—"}</td>
+                  <td className="px-3 py-2.5">
+                    {row.grup === "grup1" ? (
+                      <span
+                        style={{
+                          background: "#EFF6FF",
+                          color: "#2563EB",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          fontSize: "11px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Grup 1 · %10
+                      </span>
+                    ) : row.grup === "grup2" ? (
+                      <span
+                        style={{
+                          background: "#F0FDF4",
+                          color: "#16A34A",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          fontSize: "11px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Grup 2 · %20
+                      </span>
+                    ) : (
+                      <span style={{ color: "#9ca3af", fontSize: "12px" }}>—</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2.5">{row.cihazSayisi} cihaz</td>
                   <td className="px-3 py-2.5">{formatTry(row.toplamCiro ?? 0)}</td>
                   <td className="px-3 py-2.5">
@@ -405,8 +441,39 @@ export default function BayilerPage() {
                 ref={tcVergiRef}
                 value={form.tcVergiNo ?? ""}
                 onChange={(e) => setForm((p) => ({ ...p, tcVergiNo: e.target.value }))}
-                onKeyDown={(e) => handleEnterKey(e, saveRef)}
+                onKeyDown={(e) => handleEnterKey(e, grupRef)}
               />
+            </div>
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                style={{
+                  fontSize: "13px",
+                  color: "#666",
+                  marginBottom: "4px",
+                  display: "block",
+                }}
+              >
+                Bayi Grubu
+              </label>
+              <select
+                ref={grupRef}
+                value={form.grup ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, grup: e.target.value || null })
+                }
+                onKeyDown={(e) => handleEnterKey(e, saveRef)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                }}
+              >
+                <option value="">Grup Yok</option>
+                <option value="grup1">Grup 1 (%10 İskonto)</option>
+                <option value="grup2">Grup 2 (%20 İskonto)</option>
+              </select>
             </div>
           </div>
           <DialogFooter>

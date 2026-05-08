@@ -47,9 +47,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import SuggestionTextarea from "@/components/SuggestionTextarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import {
   parseDatetimeLocal,
@@ -247,10 +247,6 @@ function CihazKayitServiceInner({
     resolver: zodResolver(createServiceOrderSchema),
     defaultValues: getDefaultValues(),
   });
-
-  const complaintField = register("complaint");
-  const accessoriesField = register("accessories");
-  const physicalDamageField = register("physicalDamage");
 
   const deviceTypeId = watch("deviceTypeId");
   const brandId = watch("brandId");
@@ -1185,43 +1181,79 @@ function CihazKayitServiceInner({
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="complaint">Şikayet / arıza bilgisi</Label>
-              <Textarea
-                id="complaint"
-                rows={5}
-                {...complaintField}
-                ref={(el) => {
-                  complaintField.ref(el);
-                  complaintRef.current = el;
-                }}
-                onKeyDown={(e) => handleEnterKey(e, accessoriesRef)}
+              <Controller
+                name="complaint"
+                control={control}
+                render={({ field }) => (
+                  <SuggestionTextarea
+                    field="complaint"
+                    id="complaint"
+                    name={field.name}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    ref={(el) => {
+                      field.ref(el);
+                      complaintRef.current = el;
+                    }}
+                    deviceTypeId={deviceTypeId || undefined}
+                    rows={3}
+                    placeholder="Müşterinin bildirdiği arıza veya şikayet..."
+                    nextRef={accessoriesRef}
+                  />
+                )}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="accessories">Cihazla gelen aksesuarlar</Label>
-              <Textarea
-                id="accessories"
-                rows={3}
-                {...accessoriesField}
-                ref={(el) => {
-                  accessoriesField.ref(el);
-                  accessoriesRef.current = el;
-                }}
-                onKeyDown={(e) => handleEnterKey(e, physicalDamageRef)}
+              <Controller
+                name="accessories"
+                control={control}
+                render={({ field }) => (
+                  <SuggestionTextarea
+                    field="accessories"
+                    id="accessories"
+                    name={field.name}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    ref={(el) => {
+                      field.ref(el);
+                      accessoriesRef.current = el;
+                    }}
+                    deviceTypeId={deviceTypeId || undefined}
+                    rows={2}
+                    placeholder="Cihazla birlikte gelen aksesuarlar..."
+                    nextRef={physicalDamageRef}
+                  />
+                )}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="physicalDamage">
                 Fiziksel hasar / dış görünüm
               </Label>
-              <Textarea
-                id="physicalDamage"
-                rows={3}
-                {...physicalDamageField}
-                ref={(el) => {
-                  physicalDamageField.ref(el);
-                  physicalDamageRef.current = el;
-                }}
-                onKeyDown={(e) => handleEnterKey(e, submitRef)}
+              <Controller
+                name="physicalDamage"
+                control={control}
+                render={({ field }) => (
+                  <SuggestionTextarea
+                    field="physicalCondition"
+                    id="physicalDamage"
+                    name={field.name}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    ref={(el) => {
+                      field.ref(el);
+                      physicalDamageRef.current = el;
+                    }}
+                    deviceTypeId={deviceTypeId || undefined}
+                    rows={2}
+                    placeholder="Fiziksel hasar veya dış görünüm notları..."
+                    nextRef={submitRef}
+                  />
+                )}
               />
             </div>
           </CardContent>
