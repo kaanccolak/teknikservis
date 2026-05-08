@@ -38,6 +38,25 @@ model Shop {
   externalServices ExternalService[]
   paymentPlans     PaymentPlan[]
   secondHandDevices SecondHandDevice[]
+  whatsAppMessages WhatsAppMessage[]
+}
+
+model WhatsAppMessage {
+  id             String        @id @default(cuid())
+  shopId         String?
+  shop           Shop?         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  from           String
+  message        String
+  timestamp      DateTime
+  customerName   String?
+  serviceOrderId String?
+  serviceOrder   ServiceOrder? @relation(fields: [serviceOrderId], references: [id], onDelete: SetNull)
+  isRead         Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  @@index([shopId])
+  @@index([shopId, isRead])
+  @@index([serviceOrderId])
 }
 
 model PaymentPlan {
@@ -223,6 +242,7 @@ model ServiceOrder {
   updatedAt        DateTime          @updatedAt
   statusLogs       StatusLog[]
   sparePartUsages  SparePartUsage[]
+  whatsAppMessages WhatsAppMessage[]
 }
 
 model Bayi {

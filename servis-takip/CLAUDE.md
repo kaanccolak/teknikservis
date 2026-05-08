@@ -88,8 +88,19 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **SparePart**: yedek parça stok yönetimi (`name`, `partCode`, `cost`, `stock`, isteğe bağlı `deviceTypeId`, `brandId`, `deviceModelId`; hepsi null = genel parça).
 - **SparePartUsage**: hangi kayıtta hangi parça kullanıldı (`sparePartId`, `serviceOrderId`, `quantity`, `costAtTime`, `shopId`).
 - **Cari**: `cariCode` (C202605001), `name`, `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `cargoInfo`, `cargoCode`.
+- **Bayi**: `bayiCode` (B202605001), `firmaAdi`, `yetkiliKisi`, `phone`, `phoneDigits`, `vergiDairesi`, `tcVergiNo`.
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
 - **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
+
+### Bayiler Modülü
+
+- `/bayiler` → Bayiler listesi
+- `/api/bayiler` → GET (liste + istatistikler), POST (yeni bayi)
+- `/api/bayiler/[id]` → GET (detay + cihaz listesi), PATCH, DELETE
+- Bayi kodu: `B + YYYYMM + 3 hane` (ör. `B202605001`)
+- `ServiceOrder.bayiId` → bayi ile ilişki
+- Cihaz kayıtta bayi seçilince `yetkiliKisi` ve `phone` otomatik doldurulur
+- Cihaz sorgulada `bayiId` dolu kayıtlar mor renkte (`#F5F3FF` bg, `#8B5CF6` border)
 
 ### Public müşteri yüzeyi
 
@@ -99,6 +110,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 - `/stok` — Yedek parça stok yönetimi
 - `/cari` — Cari yönetimi
+- `/bayiler` — Bayi yönetimi ve detay modalı
 - `/dis-servis` — Dış servis firmaları CRUD (arama, Dialog ile ekle/düzenle, bağlı kayıt varken silme engeli)
 - `/sirketim` — Şirket bilgileri (ünvan, telefon, e-posta, web, adres, vergi; fişlerde kullanılır)
 - `/kargo-fisi/[id]` — Kargo gönderi fişi (dashboard dışı)
@@ -114,6 +126,8 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 - `/api/auth/register` — **POST** (`{ userId, shopName }`) — kayıt sonrası oturumlu kullanıcı için **Shop** oluşturur (`userId` doğrulaması)
 - `/api/auth/check-email` — **POST** (`{ email }`) — `{ exists: boolean }`; şifre sıfırlama öncesi e-posta kayıtlı mı (service role).
+- `/api/bayiler` — **GET** (liste + cihaz/ciro istatistikleri), **POST**
+- `/api/bayiler/[id]` — **GET** (detay + cihaz listesi), **PATCH**, **DELETE**
 - `/api/spare-parts` — **GET** (filtreler: `?search`, `?deviceTypeId`, `?brandId`, `?deviceModelId`, `?stockStatus`, `?forServiceOrderId`), **POST**
 - `/api/spare-parts/[id]` — **PATCH**, **DELETE**
 - `/api/spare-parts/[id]/stock` — **PATCH** (`{ quantity, type: "add" | "subtract" }`)
@@ -134,6 +148,16 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **`npm run build`** → **`prisma generate && next build`** — CI’da Prisma Client üretimi garanti.
 - **`src/app/api/**/route.ts`** — Tüm route dosyalarında **`export const dynamic = "force-dynamic"`** (statik önbelleğe alınmayan API davranışı). Çok satırlı import bloklarının **ortasına** bu satır yazılmamalı (parse hatası).
 - **`useSearchParams`** kullanan istemci sayfaları **`Suspense`** ile sarılmalı (`login`, **`dis-servis`**, `cihaz-sorgula`, `bekleyen-cihazlar` vb.).
+
+### Yardımcı Fonksiyonlar
+
+- `src/lib/formatPhone.ts` → telefon numarasını `+90 5XX XXX XX XX` formatına çevirir
+
+### Production
+
+- URL: [https://teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app)
+- Vercel → GitHub `main` branch'e push ile otomatik deploy
+- Supabase redirect URL: `https://teknikservis-seven.vercel.app/**`
 
 ### Önemli Notlar
 
@@ -234,6 +258,22 @@ YYYYMM### — örnek: 202605001
   - delivered_repair_failed: koyu kırmızı
   - delivered_no_problem: koyu gri
   - delivered_customer_return: koyu turuncu
+
+## Menü Sırası (güncel)
+
+1. Gösterge Paneli
+2. Cihaz Kayıt
+3. Cihaz Sorgula
+4. İkinci El Cihazlar
+5. Bekleyen Cihazlar
+6. Dış Servisler
+7. Stok Yönetimi
+8. Cari Yönetimi
+9. Bayiler
+10. Planlarım
+11. Tanımlar
+12. Raporlar
+13. Şirketim
 
 ## Klasör Yapısı
 

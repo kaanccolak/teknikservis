@@ -22,11 +22,15 @@ export async function GET() {
   try {
     const shop = await getOrCreateDefaultShop();
     const { waAccessToken: _omit, ...safe } = shop;
+    const waUnreadCount = await prisma.whatsAppMessage.count({
+      where: { shopId: shop.id, isRead: false },
+    });
     return NextResponse.json({
       ...safe,
       waTokenConfigured: Boolean(
         _omit && String(_omit).trim().length > 0,
       ),
+      waUnreadCount,
     });
   } catch (e) {
     return jsonServerError("GET /api/shop", e, "Şirket bilgileri alınamadı");

@@ -10,6 +10,8 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Cihaz kayıt ve takip
 - Müşteri yönetimi
 - Cari yönetimi (firma/müşteri kaydı, cari kodu: C202605001 formatı)
+- Bayiler modülü (firma adı, yetkili kişi, telefon, vergi bilgileri)
+- Bayi detay sayfası (cihaz geçmişi, toplam ciro, onarım istatistikleri)
 - Servis durumu güncelleme (Teknik Serviste, Onay Bekliyor, Onay Verildi, Parça Bekliyor, Onarım Tamamlandı, Teslim Edildi)
 - Otomatik kayıt numarası (YYYYMM001 formatı)
 - Cihaz türü, marka ve model tanım yönetimi
@@ -22,7 +24,9 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Döviz kurları** (USD/EUR, TCMB/ExchangeRate-API) — dashboard’da gösterim; **istemci ~10 dakikada bir günceller** (gereksiz istek azaltma)
 - Ciro maskeleme (göster/gizle butonu)
 - Cihaz kayıt formunda geçmiş müşteri arama ve otomatik doldurma
+- Cihaz kayıtta bayi seçimi ve otomatik müşteri bilgisi doldurma
 - Telefon numarası normalize arama (537, 0537, 5377664248 gibi)
+- Telefon numarası formatlama (+90 5XX XXX XX XX)
 - Arama filtresi URL'de saklanır, geri dönünce kaybolmaz
 - Yazdırma boyut ayarları (Tanımlar sayfasında)
 - Sayfadan ayrılma uyarısı (form doldurulmuşken)
@@ -35,6 +39,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Bekleme süresi takibi (renk kodlu)
 - Durum geçmişi
 - Arama ve filtreleme
+- Cihaz sorgulada bayi rengi ve filtresi
 - CSV export
 - **Enter tuşu ile form navigasyonu** (cihaz kayıt formunda sonraki alana geçiş)
 - **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
@@ -45,6 +50,9 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Kayıt olunca otomatik Shop oluşturma** (`/api/auth/register`)
 - **Şirket bazlı veri izolasyonu** (`shopId`)
 - **Şifre sıfırlama** — giriş sayfasından “Şifremi unuttum”; kayıtlı e-posta kontrolü + sıfırlama bağlantısı; **`/reset-password`** ile yeni şifre
+- Cari yönetiminde detay modal
+- Türkçe hata mesajları (giriş ekranı)
+- Production deploy ([teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
 
 ## Tech Stack
 
@@ -175,8 +183,11 @@ src/
 - [x] Şifre sıfırlama (Supabase + check-email + reset-password sayfası)
 - [x] Müşteri sorgulama sayfası (`/sorgula`)
 - [x] Vercel build uyumu (`prisma generate`, API route `dynamic`, Suspense ile useSearchParams sayfaları)
+- [x] Production deploy (Vercel)
+- [x] Bayiler modülü
 - [ ] WhatsApp şablon onayı (Meta değerlendirmede)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumlu tasarım
+- [ ] Domain bağlama
 
 ---

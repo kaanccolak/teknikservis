@@ -4,6 +4,7 @@ import {
   Check,
   ClipboardList,
   Clock,
+  MessageSquare,
   Package,
   Send,
   Wrench,
@@ -51,6 +52,8 @@ type DashboardPayload = {
   revenue: number;
   externalService: number;
   recentOrders: RecentOrder[];
+  /** Sunucu sürümü eskiyse undefined olabilir */
+  waUnreadCount?: number;
 };
 
 type RevenuePeriod = "daily" | "weekly" | "monthly" | "yearly" | "range";
@@ -1061,6 +1064,25 @@ export default function DashboardPage() {
           <span style={{ fontSize: "13px", color: "#666" }}>{todayLabel}</span>
         </div>
       </div>
+
+      {(data.waUnreadCount ?? 0) > 0 ? (
+        <Link
+          href="/whatsapp-mesajlari"
+          className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm transition-colors hover:bg-emerald-100/80"
+        >
+          <MessageSquare
+            className="size-5 shrink-0 text-emerald-700"
+            aria-hidden
+            strokeWidth={2}
+          />
+          <span>
+            <span className="font-semibold">
+              {data.waUnreadCount ?? 0} okunmamış WhatsApp mesajı
+            </span>
+            <span className="text-emerald-800/90"> — Görüntülemek için tıklayın.</span>
+          </span>
+        </Link>
+      ) : null}
 
       <div className="dash-grid-r1">
         {statCardsRow1.map((def) => (

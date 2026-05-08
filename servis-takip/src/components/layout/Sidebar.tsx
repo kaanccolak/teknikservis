@@ -6,6 +6,7 @@ import {
   Calendar,
   Landmark,
   LogOut,
+  MessageSquare,
   Package,
   Settings,
   Store,
@@ -46,6 +47,7 @@ const navItems: {
   { href: "/planlarim", label: "Planlarım", icon: Calendar },
   { href: "/tanimlar", label: "Tanımlar", icon: Settings },
   { href: "/raporlar", label: "Raporlar", icon: BarChart },
+  { href: "/whatsapp-mesajlari", label: "WA Mesajları", icon: MessageSquare },
   { href: "/sirketim", label: "Şirketim", icon: Landmark },
 ];
 
@@ -54,6 +56,7 @@ export function Sidebar() {
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [shopName, setShopName] = useState<string | null>(null);
+  const [waUnread, setWaUnread] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -65,16 +68,38 @@ export function Sidebar() {
     }
     void fetch("/api/shop")
       .then((r) => r.json())
-      .then(applyShop)
+      .then(
+        (data: {
+          name?: string;
+          waUnreadCount?: number;
+        }) => {
+          applyShop(data);
+          if (typeof data.waUnreadCount === "number") {
+            setWaUnread(data.waUnreadCount);
+          }
+        },
+      )
       .catch(() => {});
     const onShopUpdated = (e: Event) => {
       const d = (e as CustomEvent<{ name?: string }>).detail;
       if (d?.name) setShopName(d.name);
     };
     window.addEventListener("shop-updated", onShopUpdated);
+    const onWaUpdated = () => {
+      void fetch("/api/shop")
+        .then((r) => r.json())
+        .then((data: { waUnreadCount?: number }) => {
+          if (typeof data.waUnreadCount === "number") {
+            setWaUnread(data.waUnreadCount);
+          }
+        })
+        .catch(() => {});
+    };
+    window.addEventListener("wa-messages-updated", onWaUpdated);
     return () => {
       cancelled = true;
       window.removeEventListener("shop-updated", onShopUpdated);
+      window.removeEventListener("wa-messages-updated", onWaUpdated);
     };
   }, []);
 
@@ -114,6 +139,9 @@ export function Sidebar() {
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
 
+            const showWaBadge =
+              item.href === "/whatsapp-mesajlari" && waUnread > 0;
+
             return (
               <Link
                 key={item.href}
@@ -129,7 +157,15 @@ export function Sidebar() {
                 {Icon ? (
                   <Icon className="size-4 shrink-0 opacity-70" aria-hidden />
                 ) : null}
-                {item.label}
+                <span className="min-w-0 flex-1">{item.label}</span>
+                {showWaBadge ? (
+                  <span
+                    className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-[11px] font-semibold text-white tabular-nums"
+                    aria-label={`Okunmamış ${waUnread} WhatsApp mesajı`}
+                  >
+                    {waUnread > 99 ? "99+" : waUnread}
+                  </span>
+                ) : null}
               </Link>
             );
           })}

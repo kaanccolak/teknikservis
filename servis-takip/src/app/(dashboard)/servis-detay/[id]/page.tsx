@@ -101,6 +101,12 @@ type ExternalServiceRow = {
   notes: string | null;
 };
 
+type WaInboundMsg = {
+  id: string;
+  message: string;
+  timestamp: string;
+};
+
 type ServiceOrderDetail = {
   id: string;
   orderNumber: string | null;
@@ -252,6 +258,11 @@ export default function ServisDetayPage() {
   const [waSending, setWaSending] = useState(false);
   const [waApprovalOpen, setWaApprovalOpen] = useState(false);
   const [waSendingApproval, setWaSendingApproval] = useState(false);
+
+  const [waInboundMessages, setWaInboundMessages] = useState<WaInboundMsg[]>(
+    [],
+  );
+  const [waInboundLoading, setWaInboundLoading] = useState(false);
 
   const nativeSelectClassName =
     "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
@@ -445,6 +456,36 @@ export default function ServisDetayPage() {
       cancelled = true;
     };
   }, []);
+
+  const loadWaInbound = useCallback(async (orderId: string) => {
+    setWaInboundLoading(true);
+    try {
+      const res = await fetch(
+        `/api/whatsapp/messages?orderId=${encodeURIComponent(orderId)}`,
+        { cache: "no-store" },
+      );
+      const j = (await res.json()) as
+        | { messages?: WaInboundMsg[] }
+        | { error?: string };
+      if (res.ok && j && "messages" in j && Array.isArray(j.messages)) {
+        setWaInboundMessages(j.messages);
+      } else {
+        setWaInboundMessages([]);
+      }
+    } catch {
+      setWaInboundMessages([]);
+    } finally {
+      setWaInboundLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!order?.id) {
+      setWaInboundMessages([]);
+      return;
+    }
+    void loadWaInbound(order.id);
+  }, [order?.id, loadWaInbound]);
 
   const loadExternalServices = useCallback(async () => {
     setLoadingExternalServices(true);
@@ -1787,6 +1828,63 @@ export default function ServisDetayPage() {
                     </li>
                   ))}
                 </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card
+            style={{
+              border: "1px solid #e5e7eb",
+              borderRadius: "10px",
+              background: "white",
+            }}
+          >
+            <CardHeader className="border-b border-slate-100 pb-3">
+              <CardTitle className="text-base">WhatsApp Mesajları</CardTitle>
+              <CardDescription>
+                Bu kayıtla eşleşen gelen mesajlar
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {waInboundLoading ? (
+                <p className="flex items-center gap-2 text-sm text-slate-600">
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  Yükleniyor…
+                </p>
+              ) : waInboundMessages.length === 0 ? (
+                <p className="text-sm text-slate-600">Henüz mesaj yok</p>
+              ) : (
+                <div className="max-h-[420px] overflow-y-auto pr-1">
+                  {waInboundMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      style={{
+                        padding: "8px 12px",
+                        background: "#f0fdf4",
+                        borderRadius: "8px",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <div
+                        style={{ fontSize: "12px", color: "#666" }}
+                      >
+                        {new Date(msg.timestamp).toLocaleString("tr-TR")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          marginTop: "2px",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {msg.message}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>

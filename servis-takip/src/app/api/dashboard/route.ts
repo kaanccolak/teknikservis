@@ -210,6 +210,7 @@ export async function GET(request: Request) {
       completedToday,
       recentOrders,
       revenue,
+      waUnreadCount,
     ] = await Promise.all([
       prisma.serviceOrder.count({
         where: {
@@ -258,6 +259,9 @@ export async function GET(request: Request) {
         },
       }),
       sumDeliveredRevenue(shopId, dayStart, dayEnd),
+      prisma.whatsAppMessage.count({
+        where: { shopId, isRead: false },
+      }),
     ]);
 
     const payload = {
@@ -270,6 +274,7 @@ export async function GET(request: Request) {
       revenue,
       externalService,
       recentOrders,
+      waUnreadCount,
     };
 
     return NextResponse.json(payload, { headers: cacheHeaders });
