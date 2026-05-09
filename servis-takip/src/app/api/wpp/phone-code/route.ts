@@ -3,7 +3,12 @@ import { NextResponse } from "next/server";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
-import { startSessionWithPhoneCode, WPP_CONFIGURED } from "@/lib/wppconnect";
+import {
+  getPairingCodeFromQr,
+  getPairingCodeFromStatus,
+  startSessionWithPhoneCode,
+  WPP_CONFIGURED,
+} from "@/lib/wppconnect";
 
 export const dynamic = "force-dynamic";
 
@@ -86,18 +91,60 @@ export async function POST(req: Request) {
     } catch {
       // güncelleme başarısız olsa da bağlantı süreci devam edebilir
     }
-    if (!linkCode) {
+
+    // Kod start-session yanıtında gelmezse qrcode-session'dan oku.
+    // WPPConnect link-code modunda bu endpoint base64 QR yerine
+    // 8 haneli pairing kodunu döndürüyor.
+    // (Railway loglarında "Waiting for Login By Code (Code: XXXXXXXX)" satırı
+    // bu kodun üretildiğini gösterir.)
+    let code: string | null = linkCode;
+    if (!code) {
+      // 2 sn bekle, qrcode-session'dan kodu al
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      try {
+        code = await getPairingCodeFromQr(session);
+      } catch {
+        code = null;
+      }
+
+      // Bazı sürümler kodu status-session yanıtında veriyor — yedek deneme
+      if (!code) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+          code = await getPairingCodeFromStatus(session);
+        } catch {
+          code = null;
+        }
+      }
+
+      // Hâlâ yoksa qrcode-session'ı bir kez daha denetle
+      if (!code) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+          code = await getPairingCodeFromQr(session);
+        } catch {
+          code = null;
+        }
+      }
+    }
+
+    if (!code) {
       return NextResponse.json(
         {
           success: false,
           code: null,
           error:
-            "WPPConnect sunucusu bağlantı kodu döndürmedi (sürüm pairing kodunu desteklemiyor olabilir)",
+            "WPPConnect sunucusu bağlantı kodu döndürmedi (sunucu loglarını kontrol edin)",
         },
         { status: 502 },
       );
     }
-    return NextResponse.json({ success: true, code: linkCode });
+
+    return NextResponse.json({
+      success: true,
+      code,
+      message: "Kodu WhatsApp'a girin",
+    });
   } catch (e) {
     return jsonServerError(
       "POST /api/wpp/phone-code",

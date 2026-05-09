@@ -200,6 +200,125 @@ export async function getSessionStatus(session: string): Promise<string> {
   }
 }
 
+/** qrcode-session yanıtında pairing kodu varsa döndürür.
+ *  Link-code modunda bu endpoint base64 QR yerine 8 haneli kodu döndürür
+ *  (bazı sürümler `qrcode`, bazıları `code` / `pairingCode` alanını kullanır).
+ *  Başlatıldıktan kısa süre sonra çağrılmalıdır.
+ */
+export async function getPairingCodeFromQr(
+  session: string,
+): Promise<string | null> {
+  if (!isConfigured()) return null;
+  try {
+    const token = await getToken(session);
+    if (!token) return null;
+
+    const res = await fetch(
+      `${WPPCONNECT_URL}/api/${encodeURIComponent(session)}/qrcode-session`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
+    if (!res.ok) return null;
+
+    const ct = res.headers.get("content-type") ?? "";
+    if (!ct.startsWith("application/json")) {
+      // image/png döndüyse bu QR-mode; pairing kodu değil
+      return null;
+    }
+
+    const data = (await res.json()) as {
+      qrcode?: string;
+      code?: string;
+      pairingCode?: string;
+      linkCode?: string;
+      phoneCode?: string;
+      base64Qr?: string;
+      response?: {
+        qrcode?: string;
+        code?: string;
+        pairingCode?: string;
+        linkCode?: string;
+        phoneCode?: string;
+      };
+    };
+
+    const candidates = [
+      data.code,
+      data.pairingCode,
+      data.linkCode,
+      data.phoneCode,
+      data.response?.code,
+      data.response?.pairingCode,
+      data.response?.linkCode,
+      data.response?.phoneCode,
+      data.qrcode,
+      data.response?.qrcode,
+    ];
+
+    for (const c of candidates) {
+      if (typeof c !== "string") continue;
+      const trimmed = c.trim();
+      if (!trimmed) continue;
+      // Base64 QR ya da data URL (uzun) — kod değil; atla
+      if (trimmed.startsWith("data:")) continue;
+      if (trimmed.length > 16) continue;
+      return trimmed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** status-session yanıtında pairing kodu varsa döndürür (start-session geç dönerse fallback) */
+export async function getPairingCodeFromStatus(
+  session: string,
+): Promise<string | null> {
+  if (!isConfigured()) return null;
+  try {
+    const token = await getToken(session);
+    if (!token) return null;
+
+    const res = await fetch(
+      `${WPPCONNECT_URL}/api/${encodeURIComponent(session)}/status-session`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as {
+      code?: string;
+      linkCode?: string;
+      pairingCode?: string;
+      phoneCode?: string;
+      qrcode?: string;
+      response?: {
+        code?: string;
+        linkCode?: string;
+        pairingCode?: string;
+        phoneCode?: string;
+      };
+    };
+    return (
+      data.code ||
+      data.linkCode ||
+      data.pairingCode ||
+      data.phoneCode ||
+      data.response?.code ||
+      data.response?.linkCode ||
+      data.response?.pairingCode ||
+      data.response?.phoneCode ||
+      null
+    );
+  } catch {
+    return null;
+  }
+}
+
 /** Bağlı oturumun WhatsApp profil bilgisi — GET /api/{session}/check-connection-session
  *  Bazı sürümlerde `host-device` da kullanılabilir; ikisini de deneriz.
  */
