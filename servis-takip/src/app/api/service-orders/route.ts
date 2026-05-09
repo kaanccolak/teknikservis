@@ -378,10 +378,14 @@ export async function POST(request: Request) {
       order.customerIsNew &&
       order.customerPhone.trim().length > 0
     ) {
-      void addContactToGoogle(shop.id, {
-        name: order.customerName,
-        phone: order.customerPhone,
-      }).catch((err) => console.error("[Google Contacts]", err));
+      void addContactToGoogle(
+        shop.id,
+        {
+          name: order.customerName,
+          phone: order.customerPhone,
+        },
+        order.orderNumber,
+      ).catch((err) => console.error("[Google Contacts]", err));
     }
 
     return NextResponse.json({

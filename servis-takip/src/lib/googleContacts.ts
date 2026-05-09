@@ -18,6 +18,7 @@ function formatE164Tr(phone: string): string | null {
 export async function addContactToGoogle(
   shopId: string,
   customer: { name: string; phone: string },
+  orderNumber?: string | null,
 ): Promise<boolean> {
   try {
     const shop = await prisma.shop.findUnique({
@@ -45,10 +46,13 @@ export async function addContactToGoogle(
     const formattedPhone = formatE164Tr(customer.phone);
     if (!formattedPhone) return false;
 
-    const trimmed = customer.name.trim();
-    const nameParts = trimmed.split(/\s+/).filter(Boolean);
+    const orderNo = orderNumber?.trim();
+    const fullName = orderNo
+      ? `${customer.name.trim()} #${orderNo}`
+      : customer.name.trim();
+    const nameParts = fullName.trim().split(" ").filter((p) => p.length > 0);
     const firstName =
-      nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : trimmed;
+      nameParts.slice(0, -1).join(" ") || fullName;
     const lastName =
       nameParts.length > 1 ? (nameParts[nameParts.length - 1] ?? "") : "";
 
