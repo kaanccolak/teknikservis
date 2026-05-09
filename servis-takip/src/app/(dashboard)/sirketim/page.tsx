@@ -1518,11 +1518,12 @@ function SirketimPageInner() {
                                   setWppPhoneCode(
                                     e.target.value
                                       .toUpperCase()
-                                      .slice(0, 12),
+                                      .replace(/\s|-/g, "")
+                                      .slice(0, 8),
                                   )
                                 }
-                                placeholder="ABCDEFGH"
-                                maxLength={12}
+                                placeholder="XXXXXXXX"
+                                maxLength={8}
                                 autoComplete="one-time-code"
                                 style={{
                                   ...inputStyle,
@@ -1533,6 +1534,20 @@ function SirketimPageInner() {
                                   textTransform: "uppercase",
                                 }}
                               />
+                              <p
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#6b7280",
+                                  marginTop: "8px",
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                <strong>WhatsApp</strong>’ı açın →{" "}
+                                <strong>Ayarlar</strong> →{" "}
+                                <strong>Bağlı Cihazlar</strong> →{" "}
+                                <strong>Telefonla bağlan</strong> → Kodu buraya
+                                girin
+                              </p>
                             </div>
                             <div
                               style={{
