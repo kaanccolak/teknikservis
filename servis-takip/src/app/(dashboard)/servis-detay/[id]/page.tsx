@@ -340,6 +340,7 @@ export default function ServisDetayPage() {
     if (prev.totalPrice !== cur.totalPrice) {
       setInputPrice("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- yalnızca kayıt/tutar anahtarı; tam `order` döngüye yol açar
   }, [order?.id, order?.totalPrice]);
 
   useEffect(() => {

@@ -24,9 +24,12 @@ export async function GET() {
     const {
       waAccessToken: _omit,
       googleAccessToken: _gAccess,
-      googleRefreshToken: _gRefresh,
+      googleRefreshToken,
+      googleTokenExpiry: _googleTokenExpiryOmit,
       ...safe
     } = shop;
+    void googleRefreshToken;
+    void _googleTokenExpiryOmit;
     const waUnreadCount = await prisma.whatsAppMessage.count({
       where: { shopId: shop.id, isRead: false },
     });
@@ -159,9 +162,12 @@ export async function PATCH(request: Request) {
     const {
       waAccessToken: _t,
       googleAccessToken: _ga,
-      googleRefreshToken: _gr,
+      googleRefreshToken,
+      googleTokenExpiry: _googleTokenExpiryOmit,
       ...safe
     } = row;
+    void googleRefreshToken;
+    void _googleTokenExpiryOmit;
     invalidateShopCache();
     return NextResponse.json({
       ...safe,
