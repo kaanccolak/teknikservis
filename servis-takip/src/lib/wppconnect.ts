@@ -8,7 +8,7 @@
  */
 
 const WPPCONNECT_URL = (process.env.WPPCONNECT_URL ?? "").replace(/\/+$/, "");
-const SECRET_KEY = process.env.WPPCONNECT_SECRET || "servis-takip-secret";
+const SECRET_KEY = process.env.WPPCONNECT_SECRET || "THISISMYSECURETOKEN";
 
 function isConfigured(): boolean {
   return Boolean(WPPCONNECT_URL);
