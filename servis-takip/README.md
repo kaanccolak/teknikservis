@@ -52,7 +52,10 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Bayi grubuna göre otomatik iskonto** — servis detayda girilen brüt tutardan net hesaplanır, veritabanına **net** kaydedilir
 - **Servis detayda iskonto bilgisi** — kayıtlı fiyat üzerinden brüt/iskonto/net özeti (kalıcı kutu); yazarken ayrı önizleme
 - **Planlarım** — tamamlanmış planlar için **Geri Al** (`isCompleted: false`)
-- **Ödeme Linki Gönder** butonu (servis detay, ücret kartı) — şimdilik bilgi modalı + toast; **iyzico entegrasyonu yakında**
+- **Google Contacts entegrasyonu** — yeni müşteri oluşturulunca Gmail kişilerine otomatik eklenir (`Şirketim` → Google Contacts; kişi adı: `{müşteri adı} #{kayıt numarası}`)
+- **Teslim modalı** — kendisine / başkasına teslim, teslim alan kişi ve not (`deliveryType`, `deliveryPersonName`, `deliveryNote`)
+- **Tüm teslim durumları** için teslim bilgisi kaydı (`delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return`)
+- **Ödeme Linki Gönder** butonu (servis detay, ücret kartı) — şu an toast / bilgi; **iyzico entegrasyonu yakında**
 - **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
 - **Auth / Login koruması** (Supabase Auth)
 - **Multi-tenant mimari** (her dükkan kendi verisini görür)
@@ -111,6 +114,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 SUPABASE_SERVICE_ROLE_KEY="..."
 # Meta WhatsApp webhook doğrulama (GET hub.verify_token)
 WHATSAPP_WEBHOOK_VERIFY_TOKEN="servis-takip-webhook"
+# Google Contacts (OAuth) — People API; örnek: .env.example
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
+NEXT_PUBLIC_GOOGLE_CLIENT_ID="..."
+NEXT_PUBLIC_APP_URL="https://teknikservis-seven.vercel.app"
 ```
 
 Supabase Dashboard → **Authentication → URL Configuration** içine **`/reset-password`** için tam URL ekleyin (örn. `https://your-domain.vercel.app/reset-password` ve `http://localhost:3000/reset-password`).
@@ -209,12 +217,16 @@ src/
 - [x] Autocomplete öneriler (şikayet / aksesuar / fiziksel hasar)
 - [x] Bayi grup ve iskonto sistemi
 - [x] Planlarım — tamamlandı geri al
+- [x] Google Contacts entegrasyonu
+- [x] Teslim modalı
 - [ ] iyzico ödeme entegrasyonu
-- [ ] Ödeme linki WhatsApp şablonu
-- [ ] Meta Business Verification (production moda geçiş)
+- [ ] Google OAuth production doğrulaması (domain alınınca)
+- [ ] Meta Business Verification
+- [ ] WhatsApp şablon onayı
 - [ ] Google yorum linki (`teslim_edildi` şablonuna)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumluluk
+- [ ] Ödeme linki WhatsApp şablonu
 - [ ] Domain bağlama
 
 ---

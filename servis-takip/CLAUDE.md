@@ -48,11 +48,32 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 - **`ServiceOrder.repairFailedReason`** (`String?`) — durum **`repair_failed`** iken servis detayda modal ile girilen tamir olmama nedeni; müşteri **`/sorgula`** sonucunda da gösterilir (durum + dolu neden).
 - Her iş kaydında **`shopId`** — tenant izolasyonu.
-- **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, WhatsApp alanları, `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir.
+- **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, WhatsApp alanları, **Google Contacts OAuth** (`googleAccessToken`, `googleRefreshToken`, `googleTokenExpiry`), `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir; GET yanıtında token’lar dönmez, yalnızca `googleContactsConnected` (boolean).
 - Shop yoksa **`getOrCreateDefaultShop`** ile oluşturulur (oturumluysa kullanıcıya bağlı; değilse legacy varsayılan).
 - Prisma client: `src/lib/prisma.ts` üzerinden import et, direkt `new PrismaClient()` kullanma
 - DATABASE_URL: Transaction pooler (port 6543) + ?pgbouncer=true&connection_limit=1
 - DIRECT_URL: Session pooler (port 5432)
+
+### Google Contacts entegrasyonu
+
+- **Google Cloud Console** → Servis Takip projesi (**elegant-leaf-495811-k9**); **People API** etkin.
+- **OAuth 2.0** (Web istemci): `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (sunucu); tarayıcıda `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. **Authorized redirect URI**: `{NEXT_PUBLIC_APP_URL veya origin}/api/auth/google/callback` (localhost + üretim URL’leri).
+- Her dükkan kendi Gmail hesabını **`/sirketim`** → **Google Contacts** sekmesinden bağlar (`prompt=consent`, `access_type=offline`, scope: `https://www.googleapis.com/auth/contacts`).
+- **Yeni müşteri** (`POST /api/service-orders` içinde yeni `Customer` kaydı) oluşunca **`addContactToGoogle(shopId, { name, phone }, orderNumber)`** arka planda çağrılır (`.catch` ile log).
+- **Kişi adı formatı (Google Contacts):** `{müşteri adı} #{kayıt numarası}` (örn. `Ahmet Mehmet #202605024`); `orderNumber` yoksa yalnızca müşteri adı.
+- Token’lar **`Shop`** tablosunda: `googleAccessToken`, `googleRefreshToken`, `googleTokenExpiry`. Yenileme: `src/lib/googleContacts.ts` içinde **`refreshGoogleToken`**.
+- **Callback:** `GET /api/auth/google/callback` — kod → token, `getShop()` ile shop, Prisma `update`. Başarı/hata: `/sirketim?googleSuccess=true` | `googleError=true`.
+- **Kaynak:** `src/lib/googleContacts.ts` (`addContactToGoogle`, `refreshGoogleToken`).
+- **Test / doğrulama:** OAuth ekranında uygulama test modunda olabilir; Google’ın **100 test kullanıcı** limiti geçerli olabilir. Üretimde domain doğrulaması / OAuth ekranı yayınlama gerekebilir.
+- **`NEXT_PUBLIC_GOOGLE_CLIENT_ID`** zorunlu (bağlan URL’si). Üretim tabanı: `NEXT_PUBLIC_APP_URL` (örn. `https://teknikservis-seven.vercel.app`) — token değişimi ve istemci `redirect_uri` ile uyumlu olmalı.
+
+### Teslim modalı (servis detay)
+
+- **`delivered`**, **`delivered_repair_failed`**, **`delivered_no_problem`**, **`delivered_customer_return`** seçilince teslim bilgisi modalı açılır (`pendingDeliveryStatus`).
+- **`deliveryType`:** `'self' | 'other'` — başkasına teslimde **`deliveryPersonName`** zorunlu; **`deliveryNote`** opsiyonel.
+- **`ServiceOrder`** alanları: `deliveryType`, `deliveryPersonName`, `deliveryNote` (Prisma + `PATCH /api/service-orders/[id]`).
+- Servis detayda **Durum geçmişi** altında teslim özeti kutusu (teslim durumları + `deliveryType` doluysa).
+- Onay sonrası ilgili durum için **WhatsApp** şablonu varsa onay modalı (`WA_TEMPLATES[pendingDeliveryStatus]`).
 
 ### Servis Durumları
 
@@ -114,7 +135,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/cari` — Cari yönetimi
 - `/bayiler` — Bayi yönetimi ve detay modalı
 - `/dis-servis` — Dış servis firmaları CRUD (arama, Dialog ile ekle/düzenle, bağlı kayıt varken silme engeli)
-- `/sirketim` — Şirket bilgileri (ünvan, telefon, e-posta, web, adres, vergi; fişlerde kullanılır)
+- `/sirketim` — Şirket bilgileri (ünvan, telefon, e-posta, web, adres, vergi; fişlerde kullanılır); sekmeler: **Şirket Bilgileri**, **WhatsApp API**, **Google Contacts**
 - `/kargo-fisi/[id]` — Kargo gönderi fişi (dashboard dışı)
 - `/fis/[id]` — Müşteri Nüshası / Servis giriş fişi (dashboard dışı)
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
@@ -129,6 +150,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 - `/api/auth/register` — **POST** (`{ userId, shopName }`) — kayıt sonrası oturumlu kullanıcı için **Shop** oluşturur (`userId` doğrulaması)
 - `/api/auth/check-email` — **POST** (`{ email }`) — `{ exists: boolean }`; şifre sıfırlama öncesi e-posta kayıtlı mı (service role).
+- `/api/auth/google/callback` — **GET** — Google OAuth kodunu token’a çevirir; `getShop()`; `Shop` Google alanlarını günceller; `/sirketim`’e yönlendirir
 - `/api/bayiler` — **GET** (liste + cihaz/ciro istatistikleri), **POST**
 - `/api/bayiler/[id]` — **GET** (detay + cihaz listesi), **PATCH**, **DELETE**
 - `/api/spare-parts` — **GET** (filtreler: `?search`, `?deviceTypeId`, `?brandId`, `?deviceModelId`, `?stockStatus`, `?forServiceOrderId`), **POST**
@@ -143,7 +165,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
-- `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu); **GET** yanıtında `waUnreadCount` (okunmamış WA mesajı sayısı)
+- `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu); **GET** yanıtında `waUnreadCount`, `googleContactsConnected`. **PATCH** ile Google token’ları istemciden **ayarlanamaz**; `googleAccessToken: null` gönderilerek bağlantı kesilir (refresh + expiry de temizlenir)
 - `/api/whatsapp/webhook` — **GET** (Meta `hub.challenge` doğrulama, `WHATSAPP_WEBHOOK_VERIFY_TOKEN`), **POST** (gelen mesaj → `WhatsAppMessage`)
 - `/api/whatsapp/messages` — **GET** (`?orderId=` veya sayfalama), **PATCH** (`{ id }` → okundu)
 
@@ -166,6 +188,9 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (şifre sıfırlama `check-email` vb.)
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (örn. `servis-takip-webhook` — Meta webhook doğrulama)
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (OAuth token değişimi; istemci kimliği yalnızca public ise `NEXT_PUBLIC_GOOGLE_CLIENT_ID` ile aynı olabilir)
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (OAuth yetkilendirme URL’si)
+- `NEXT_PUBLIC_APP_URL` — örn. `https://teknikservis-seven.vercel.app` (callback `redirect_uri` ile uyumlu kök URL; geliştirmede `http://localhost:3000` tercih edilebilir)
 
 ### Production
 
@@ -228,8 +253,8 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 ### Ödeme linki
 
 - Servis detay **Ücret** kartında **Ödeme Linki Gönder** butonu (mavi).
-- Modal: tutar, müşteri, bilgi notu; **iyzico** sonrası gerçek link eklenecek.
-- **`handleSendPaymentLink`** — şu an modal kapanır, **`toast.info`** (“Ödeme linki özelliği yakında aktif olacak.”); `wa.me` yok.
+- Modal: tutar, müşteri bilgisi, bilgi notu; **iyzico** entegrasyonu yapılınca gerçek ödeme linki üretilecek.
+- **`handleSendPaymentLink`** — şu an modal kapanır ve **`toast.info`** ile bilgilendirme (“Ödeme linki özelliği yakında aktif olacak.” benzeri); gerçek ödeme akışı yok.
 
 ### Planlarım
 
@@ -388,6 +413,7 @@ src/app/sorgula/                         # Müşteri sorgula (public)
 src/app/reset-password/                  # Şifre sıfırlama (public)
 src/app/api/
 src/app/api/auth/register/                    # Kayıt sonrası Shop oluşturma
+src/app/api/auth/google/callback/             # Google Contacts OAuth callback
 src/scripts/migrate-shop.ts                   # Tek seferlik shop veri taşıma (referans)
 src/components/layout/
 src/lib/prisma.ts
@@ -424,10 +450,14 @@ src/lib/supabase/
 - [x] Autocomplete öneriler (cihaz kayıt şikayet / aksesuar / fiziksel hasar)
 - [x] Bayi grup ve iskonto sistemi
 - [x] Planlarım — tamamlandı geri al
+- [x] Google Contacts entegrasyonu
+- [x] Teslim modalı (teslim durumları + `deliveryType` / not)
 - [ ] iyzico ödeme entegrasyonu
-- [ ] Ödeme linki WhatsApp şablonu
+- [ ] Google OAuth production doğrulaması (domain alınınca)
 - [ ] Meta Business Verification (production mod)
+- [ ] WhatsApp şablon onayı
 - [ ] Google yorum linki (`teslim_edildi` şablonuna)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumlu tasarım
+- [ ] Ödeme linki WhatsApp şablonu
 - [ ] Domain bağlama
