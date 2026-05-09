@@ -52,6 +52,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
 import { WA_TEMPLATES } from "@/lib/whatsapp";
+import { WPP_TEMPLATES } from "@/lib/wppTemplates";
 import {
   isDeliveredServiceOrderStatus,
   serviceOrderStatusLabel,
@@ -275,6 +276,7 @@ export default function ServisDetayPage() {
 
   const [waShopReady, setWaShopReady] = useState(false);
   const [shopWaEnabled, setShopWaEnabled] = useState(false);
+  const [wppConnected, setWppConnected] = useState(false);
   const [waSending, setWaSending] = useState(false);
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
@@ -499,6 +501,7 @@ export default function ServisDetayPage() {
           waEnabled?: boolean;
           waPhoneNumberId?: string | null;
           waTokenConfigured?: boolean;
+          wppConnected?: boolean;
         }) => {
           if (cancelled) return;
           setShopWaEnabled(Boolean(j.waEnabled));
@@ -509,12 +512,14 @@ export default function ServisDetayPage() {
                 j.waTokenConfigured,
             ),
           );
+          setWppConnected(Boolean(j.wppConnected));
         },
       )
       .catch(() => {
         if (!cancelled) {
           setWaShopReady(false);
           setShopWaEnabled(false);
+          setWppConnected(false);
         }
       });
     return () => {
@@ -597,10 +602,14 @@ export default function ServisDetayPage() {
       setOrder(updated);
       toast.success("Durum güncellendi");
       const tpl = WA_TEMPLATES[next];
+      const hasWppTpl = Object.prototype.hasOwnProperty.call(
+        WPP_TEMPLATES,
+        next,
+      );
       if (
-        tpl &&
+        (tpl || hasWppTpl) &&
         updated.customer?.phone?.trim() &&
-        waShopReady
+        (waShopReady || wppConnected)
       ) {
         setWaConfirmStatus(next);
         setShowWaConfirm(true);
@@ -637,7 +646,15 @@ export default function ServisDetayPage() {
       setOrder(updated);
       toast.success("Cihaz teslim edildi!");
       const tpl = WA_TEMPLATES[status];
-      if (tpl && updated.customer?.phone && shopWaEnabled) {
+      const hasWppTpl = Object.prototype.hasOwnProperty.call(
+        WPP_TEMPLATES,
+        status,
+      );
+      if (
+        (tpl || hasWppTpl) &&
+        updated.customer?.phone &&
+        (shopWaEnabled || wppConnected)
+      ) {
         setWaConfirmStatus(status);
         setShowWaConfirm(true);
       }
@@ -666,10 +683,14 @@ export default function ServisDetayPage() {
       setRepairFailedReason("");
       toast.success("Durum güncellendi");
       const tpl = WA_TEMPLATES.repair_failed;
+      const hasWppTpl = Object.prototype.hasOwnProperty.call(
+        WPP_TEMPLATES,
+        "repair_failed",
+      );
       if (
-        tpl &&
+        (tpl || hasWppTpl) &&
         updated.customer?.phone?.trim() &&
-        waShopReady
+        (waShopReady || wppConnected)
       ) {
         setWaConfirmStatus("repair_failed");
         setShowWaConfirm(true);
@@ -794,23 +815,43 @@ export default function ServisDetayPage() {
     }
     setWaSending(true);
     try {
-      const res = await fetch("/api/whatsapp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: order.customer.phone,
-          templateName: "fiyat_bildirimi",
-          parameters: [
-            order.customer.name,
-            order.serialNo || "Belirtilmemiş",
-            order.deviceModel?.name ||
-              order.brand?.name ||
-              order.deviceType?.name ||
-              "Cihaz",
-            order.totalPrice.toLocaleString("tr-TR"),
-          ],
-        }),
-      });
+      let res: Response;
+      if (wppConnected) {
+        const message = WPP_TEMPLATES.fiyat_bildirimi({
+          customer: { name: order.customer.name },
+          serialNo: order.serialNo,
+          deviceModel: order.deviceModel,
+          brand: order.brand,
+          deviceType: order.deviceType,
+          totalPrice: order.totalPrice,
+        });
+        res = await fetch("/api/wpp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: order.customer.phone,
+            message,
+          }),
+        });
+      } else {
+        res = await fetch("/api/whatsapp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: order.customer.phone,
+            templateName: "fiyat_bildirimi",
+            parameters: [
+              order.customer.name,
+              order.serialNo || "Belirtilmemiş",
+              order.deviceModel?.name ||
+                order.brand?.name ||
+                order.deviceType?.name ||
+                "Cihaz",
+              order.totalPrice.toLocaleString("tr-TR"),
+            ],
+          }),
+        });
+      }
 
       const data = (await res.json()) as { success?: boolean; error?: string };
       if (data.success) {
@@ -845,21 +886,54 @@ export default function ServisDetayPage() {
 
   async function handleWaSend() {
     setShowWaConfirm(false);
-    const template = WA_TEMPLATES[waConfirmStatus];
-    if (!template || !order?.customer?.phone) return;
+    if (!order?.customer?.phone || !waConfirmStatus) return;
+
+    const useWpp = wppConnected;
+    const hasWppBuilder = Object.prototype.hasOwnProperty.call(
+      WPP_TEMPLATES,
+      waConfirmStatus,
+    );
+    const wppBuilder = hasWppBuilder ? WPP_TEMPLATES[waConfirmStatus] : null;
+    const metaTemplate = WA_TEMPLATES[waConfirmStatus];
+
+    if (useWpp && !wppBuilder) return;
+    if (!useWpp && !metaTemplate) return;
 
     setWaConfirmSending(true);
     try {
-      const params = template.getParams(order);
-      const res = await fetch("/api/whatsapp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: order.customer.phone,
-          templateName: template.name,
-          parameters: params,
-        }),
-      });
+      let res: Response;
+      if (useWpp && wppBuilder) {
+        const message = wppBuilder({
+          customer: { name: order.customer.name },
+          serialNo: order.serialNo,
+          deviceModel: order.deviceModel,
+          brand: order.brand,
+          deviceType: order.deviceType,
+          repairFailedReason: order.repairFailedReason,
+          totalPrice: order.totalPrice,
+        });
+        res = await fetch("/api/wpp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: order.customer.phone,
+            message,
+          }),
+        });
+      } else if (metaTemplate) {
+        const params = metaTemplate.getParams(order);
+        res = await fetch("/api/whatsapp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: order.customer.phone,
+            templateName: metaTemplate.name,
+            parameters: params,
+          }),
+        });
+      } else {
+        return;
+      }
       const data = (await res.json()) as { success?: boolean; error?: string };
       if (data.success) {
         toast.success("WhatsApp mesajı gönderildi!");
@@ -1373,7 +1447,7 @@ export default function ServisDetayPage() {
             <button
               type="button"
               className="rounded-lg border-0 bg-[#25D366] px-5 py-2 text-[13px] font-medium text-white cursor-pointer disabled:opacity-50"
-              disabled={waConfirmSending || !waShopReady}
+              disabled={waConfirmSending || (!waShopReady && !wppConnected)}
               onClick={() => void handleWaSend()}
             >
               {waConfirmSending ? (
