@@ -113,11 +113,9 @@ function SirketimPageInner() {
 
   const [wppMode, setWppMode] = useState<"qr" | "phone">("qr");
   const [wppPhoneInput, setWppPhoneInput] = useState("");
-  const [wppPhoneCode, setWppPhoneCode] = useState("");
   const [wppLinkCode, setWppLinkCode] = useState<string | null>(null);
   const [wppCodeStage, setWppCodeStage] = useState<"phone" | "code">("phone");
   const [wppSendingCode, setWppSendingCode] = useState(false);
-  const [wppConfirmingCode, setWppConfirmingCode] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -261,7 +259,6 @@ function SirketimPageInner() {
       }
       toast.success("WhatsApp bağlantısı kesildi");
       setWppPhoneInput("");
-      setWppPhoneCode("");
       setWppLinkCode(null);
       setWppCodeStage("phone");
       await loadWpp();
@@ -292,20 +289,16 @@ function SirketimPageInner() {
       });
       const data = (await res.json()) as {
         success?: boolean;
-        linkCode?: string | null;
+        code?: string | null;
         error?: string;
       };
-      if (!res.ok || !data.success) {
-        toast.error(data.error ?? "Kod gönderilemedi");
+      if (!res.ok || !data.success || !data.code) {
+        toast.error(data.error ?? "Kod alınamadı");
         return;
       }
-      setWppLinkCode(data.linkCode ?? null);
+      setWppLinkCode(data.code);
       setWppCodeStage("code");
-      if (data.linkCode) {
-        toast.success("Pairing kodu oluşturuldu");
-      } else {
-        toast.success("Oturum başlatıldı, kodu telefonunuza girin");
-      }
+      toast.success("Bağlantı kodu hazır");
       void loadWpp();
     } catch {
       toast.error("Bağlantı hatası");
@@ -314,40 +307,17 @@ function SirketimPageInner() {
     }
   }
 
-  async function handleConfirmPhoneCode() {
-    const cleaned = wppPhoneCode.trim().replace(/\s|-/g, "");
-    if (cleaned.length < 4) {
-      toast.error("Lütfen geçerli bir kod girin");
-      return;
-    }
-    setWppConfirmingCode(true);
-    try {
-      const res = await fetch("/api/wpp/confirm-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: cleaned,
-          session: shop?.id,
-        }),
-      });
-      const data = (await res.json()) as { success?: boolean; error?: string };
-      if (!res.ok || !data.success) {
-        toast.error(data.error ?? "Kod doğrulanamadı");
-        return;
-      }
-      toast.success("Kod doğrulandı, bağlantı bekleniyor…");
-      void loadWpp();
-    } catch {
-      toast.error("Bağlantı hatası");
-    } finally {
-      setWppConfirmingCode(false);
-    }
-  }
-
   function resetPhoneCodeFlow() {
-    setWppPhoneCode("");
     setWppLinkCode(null);
     setWppCodeStage("phone");
+  }
+
+  function formatPairingCode(raw: string): string {
+    const cleaned = raw.replace(/\s|-/g, "").toUpperCase();
+    if (cleaned.length === 8) {
+      return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+    }
+    return cleaned;
   }
 
   function handleGoogleConnect() {
@@ -1167,7 +1137,7 @@ function SirketimPageInner() {
                           borderRadius: "999px",
                         }}
                       >
-                        ✓ Bağlı
+                        ✓ Bağlandı!
                       </span>
                       {wppInfo?.phone || shop?.wppPhone ? (
                         <span style={{ fontSize: "14px", color: "#111" }}>
@@ -1238,9 +1208,13 @@ function SirketimPageInner() {
                             wppMode === "qr"
                               ? "0 1px 2px rgba(0,0,0,0.05)"
                               : "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
                         }}
                       >
-                        QR Kod
+                        <span aria-hidden>📱</span> QR Kod
                       </button>
                       <button
                         type="button"
@@ -1260,9 +1234,13 @@ function SirketimPageInner() {
                             wppMode === "phone"
                               ? "0 1px 2px rgba(0,0,0,0.05)"
                               : "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
                         }}
                       >
-                        Telefon Kodu
+                        <span aria-hidden>🔢</span> Telefon Kodu
                       </button>
                     </div>
 
@@ -1301,10 +1279,10 @@ function SirketimPageInner() {
                               lineHeight: 1.6,
                             }}
                           >
-                            Telefonunuzda <strong>WhatsApp</strong>’ı açın →{" "}
+                            <strong>WhatsApp</strong> →{" "}
                             <strong>Ayarlar</strong> →{" "}
                             <strong>Bağlı Cihazlar</strong> →{" "}
-                            <strong>Cihaz Bağla</strong> ile QR kodu tarayın.
+                            <strong>QR Kod Tara</strong>
                           </div>
                           <div
                             style={{
@@ -1360,7 +1338,7 @@ function SirketimPageInner() {
                                 wppInfo && !wppInfo.configured ? 0.6 : 1,
                             }}
                           >
-                            {wppConnecting ? "Başlatılıyor…" : "Bağlan"}
+                            {wppConnecting ? "Oluşturuluyor…" : "QR Kod Oluştur"}
                           </button>
                         </div>
                       )
@@ -1458,96 +1436,43 @@ function SirketimPageInner() {
                                   wppInfo && !wppInfo.configured ? 0.6 : 1,
                               }}
                             >
-                              {wppSendingCode ? "Gönderiliyor…" : "Kod Gönder"}
+                              {wppSendingCode ? "Alınıyor…" : "Kod Al"}
                             </button>
                           </>
                         ) : (
                           <>
                             <div
                               style={{
-                                background: "#f0f9ff",
-                                border: "1px solid #bae6fd",
-                                borderRadius: "8px",
-                                padding: "12px 14px",
-                                fontSize: "13px",
-                                color: "#075985",
-                                lineHeight: 1.6,
+                                fontSize: "32px",
+                                fontWeight: "700",
+                                letterSpacing: "8px",
+                                color: "#111",
+                                textAlign: "center",
+                                padding: "16px",
+                                background: "#f9fafb",
+                                borderRadius: "10px",
+                                border: "1px solid #e5e7eb",
+                                fontFamily:
+                                  "ui-monospace, SFMono-Regular, Menlo, monospace",
                               }}
                             >
-                              {wppLinkCode ? (
-                                <>
-                                  Aşağıdaki kodu telefonunuzdaki{" "}
-                                  <strong>WhatsApp</strong> →{" "}
-                                  <strong>Ayarlar</strong> →{" "}
-                                  <strong>Bağlı Cihazlar</strong> →{" "}
-                                  <strong>Cihaz Bağla</strong> →{" "}
-                                  <strong>
-                                    Telefon numarasıyla bağla
-                                  </strong>{" "}
-                                  ekranına girin:
-                                  <div
-                                    style={{
-                                      marginTop: "10px",
-                                      fontSize: "22px",
-                                      fontWeight: 700,
-                                      letterSpacing: "4px",
-                                      fontFamily:
-                                        "ui-monospace, SFMono-Regular, Menlo, monospace",
-                                      color: "#0c4a6e",
-                                    }}
-                                  >
-                                    {wppLinkCode}
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  Pairing kodu oluşturuldu. WPPConnect
-                                  sunucusunun bu sürümü kodu doğrudan
-                                  döndürmüyor; aşağıya, telefonunuzdaki
-                                  WhatsApp uygulamasının verdiği kodu girip
-                                  <strong> Bağlan</strong>’a basın.
-                                </>
-                              )}
+                              {wppLinkCode
+                                ? formatPairingCode(wppLinkCode)
+                                : "—"}
                             </div>
-                            <div>
-                              <label style={labelStyle}>Bağlantı Kodu</label>
-                              <input
-                                type="text"
-                                value={wppPhoneCode}
-                                onChange={(e) =>
-                                  setWppPhoneCode(
-                                    e.target.value
-                                      .toUpperCase()
-                                      .replace(/\s|-/g, "")
-                                      .slice(0, 8),
-                                  )
-                                }
-                                placeholder="XXXXXXXX"
-                                maxLength={8}
-                                autoComplete="one-time-code"
-                                style={{
-                                  ...inputStyle,
-                                  letterSpacing: "3px",
-                                  fontFamily:
-                                    "ui-monospace, SFMono-Regular, Menlo, monospace",
-                                  fontSize: "16px",
-                                  textTransform: "uppercase",
-                                }}
-                              />
-                              <p
-                                style={{
-                                  fontSize: "12px",
-                                  color: "#6b7280",
-                                  marginTop: "8px",
-                                  lineHeight: 1.6,
-                                }}
-                              >
-                                <strong>WhatsApp</strong>’ı açın →{" "}
-                                <strong>Ayarlar</strong> →{" "}
-                                <strong>Bağlı Cihazlar</strong> →{" "}
-                                <strong>Telefonla bağlan</strong> → Kodu buraya
-                                girin
-                              </p>
+                            <div
+                              style={{
+                                fontSize: "13px",
+                                color: "#374151",
+                                lineHeight: 1.7,
+                                textAlign: "center",
+                              }}
+                            >
+                              <strong>WhatsApp</strong> →{" "}
+                              <strong>Ayarlar</strong> →{" "}
+                              <strong>Bağlı Cihazlar</strong> →{" "}
+                              <strong>Telefonla Bağlan</strong> → Bu kodu
+                              WhatsApp’a girin
                             </div>
                             <div
                               style={{
@@ -1559,7 +1484,6 @@ function SirketimPageInner() {
                               <button
                                 type="button"
                                 onClick={() => resetPhoneCodeFlow()}
-                                disabled={wppConfirmingCode}
                                 style={{
                                   padding: "10px 20px",
                                   background: "white",
@@ -1567,35 +1491,10 @@ function SirketimPageInner() {
                                   border: "1px solid #e5e7eb",
                                   borderRadius: "8px",
                                   fontSize: "14px",
-                                  cursor: wppConfirmingCode
-                                    ? "wait"
-                                    : "pointer",
+                                  cursor: "pointer",
                                 }}
                               >
                                 Geri
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void handleConfirmPhoneCode()}
-                                disabled={wppConfirmingCode}
-                                style={{
-                                  padding: "10px 20px",
-                                  background: wppConfirmingCode
-                                    ? "#86efac"
-                                    : "#25D366",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "8px",
-                                  fontSize: "14px",
-                                  fontWeight: 500,
-                                  cursor: wppConfirmingCode
-                                    ? "wait"
-                                    : "pointer",
-                                }}
-                              >
-                                {wppConfirmingCode
-                                  ? "Bağlanıyor…"
-                                  : "Bağlan"}
                               </button>
                             </div>
                             {wppInfo ? (

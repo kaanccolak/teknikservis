@@ -12,8 +12,9 @@ export const dynamic = "force-dynamic";
  * body: { phone: string, session?: string }
  *
  * - WPPConnect üzerinde `linkCode: true` ile oturum başlatır.
- * - Sunucu pairing kodunu döndürürse JSON içinde `linkCode` olarak iletilir
- *   (kullanıcı bunu telefonundaki WhatsApp uygulamasına girer).
+ * - Sunucudan gelen pairing kodunu (`code`) JSON içinde döndürür.
+ *   Kullanıcı bu kodu telefonundaki WhatsApp uygulamasına girer
+ *   (Ayarlar → Bağlı Cihazlar → Telefonla Bağlan).
  */
 export async function POST(req: Request) {
   let body: { phone?: string; session?: string };
@@ -85,12 +86,23 @@ export async function POST(req: Request) {
     } catch {
       // güncelleme başarısız olsa da bağlantı süreci devam edebilir
     }
-    return NextResponse.json({ success: true, linkCode });
+    if (!linkCode) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: null,
+          error:
+            "WPPConnect sunucusu bağlantı kodu döndürmedi (sürüm pairing kodunu desteklemiyor olabilir)",
+        },
+        { status: 502 },
+      );
+    }
+    return NextResponse.json({ success: true, code: linkCode });
   } catch (e) {
     return jsonServerError(
       "POST /api/wpp/phone-code",
       e,
-      "Kod gönderilemedi",
+      "Kod alınamadı",
     );
   }
 }

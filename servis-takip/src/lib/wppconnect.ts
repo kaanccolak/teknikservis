@@ -106,16 +106,25 @@ export async function startSessionWithPhoneCode(
       const data = (await res.clone().json()) as {
         linkCode?: string;
         phoneCode?: string;
+        pairingCode?: string;
         code?: string;
         urlcode?: string;
-        response?: { linkCode?: string; phoneCode?: string };
+        response?: {
+          linkCode?: string;
+          phoneCode?: string;
+          pairingCode?: string;
+          code?: string;
+        };
       };
       linkCode =
         data.linkCode ||
         data.phoneCode ||
+        data.pairingCode ||
         data.code ||
         data.response?.linkCode ||
         data.response?.phoneCode ||
+        data.response?.pairingCode ||
+        data.response?.code ||
         null;
     } catch {
       linkCode = null;
@@ -124,37 +133,6 @@ export async function startSessionWithPhoneCode(
     return { ok: res.ok, linkCode };
   } catch {
     return { ok: false, linkCode: null };
-  }
-}
-
-/** Telefon kodu doğrulama — POST /api/{session}/link-code */
-export async function confirmLinkCode(
-  session: string,
-  code: string,
-): Promise<boolean> {
-  if (!isConfigured()) return false;
-  try {
-    const token = await getToken(session);
-    if (!token) return false;
-
-    const cleanCode = (code ?? "").trim().replace(/\s|-/g, "");
-    if (!cleanCode) return false;
-
-    const res = await fetch(
-      `${WPPCONNECT_URL}/api/${encodeURIComponent(session)}/link-code`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ linkCode: cleanCode }),
-        cache: "no-store",
-      },
-    );
-    return res.ok;
-  } catch {
-    return false;
   }
 }
 
