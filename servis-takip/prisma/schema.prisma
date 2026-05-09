@@ -23,6 +23,9 @@ model Shop {
   waPhoneNumberId  String?
   waAccessToken    String?
   waEnabled        Boolean           @default(false)
+  googleAccessToken  String?
+  googleRefreshToken String?
+  googleTokenExpiry  DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
@@ -237,6 +240,11 @@ model ServiceOrder {
   externalService   ExternalService? @relation(fields: [externalServiceId], references: [id])
   externalNote      String?
   repairFailedReason String?
+
+  /// Teslim: self | other
+  deliveryType       String?
+  deliveryPersonName String?
+  deliveryNote       String?
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

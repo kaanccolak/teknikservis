@@ -52,7 +52,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
 import { WA_TEMPLATES } from "@/lib/whatsapp";
-import { serviceOrderStatusLabel } from "@/lib/service-order-status";
+import {
+  isDeliveredServiceOrderStatus,
+  serviceOrderStatusLabel,
+} from "@/lib/service-order-status";
 import {
   getStatusUiConfig,
   STATUS_GROUPS,
@@ -143,6 +146,9 @@ type ServiceOrderDetail = {
   deviceModel: NamedEntity | null;
   statusLogs: StatusLogRow[];
   sparePartUsages?: SparePartUsageRow[];
+  deliveryType?: string | null;
+  deliveryPersonName?: string | null;
+  deliveryNote?: string | null;
 };
 
 function formatArrivedAt(iso: string) {
@@ -242,6 +248,11 @@ export default function ServisDetayPage() {
   const [externalSendOpen, setExternalSendOpen] = useState(false);
   const [showRepairFailedModal, setShowRepairFailedModal] = useState(false);
   const [repairFailedReason, setRepairFailedReason] = useState("");
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [deliveryType, setDeliveryType] = useState<"self" | "other">("self");
+  const [deliveryPersonName, setDeliveryPersonName] = useState("");
+  const [deliveryNote, setDeliveryNote] = useState("");
+  const [pendingDeliveryStatus, setPendingDeliveryStatus] = useState("");
   const [externalServicesList, setExternalServicesList] = useState<
     ExternalServiceRow[]
   >([]);
@@ -263,6 +274,7 @@ export default function ServisDetayPage() {
   const [savingEstimated, setSavingEstimated] = useState(false);
 
   const [waShopReady, setWaShopReady] = useState(false);
+  const [shopWaEnabled, setShopWaEnabled] = useState(false);
   const [waSending, setWaSending] = useState(false);
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
@@ -488,6 +500,7 @@ export default function ServisDetayPage() {
           waTokenConfigured?: boolean;
         }) => {
           if (cancelled) return;
+          setShopWaEnabled(Boolean(j.waEnabled));
           setWaShopReady(
             Boolean(
               j.waEnabled &&
@@ -498,7 +511,10 @@ export default function ServisDetayPage() {
         },
       )
       .catch(() => {
-        if (!cancelled) setWaShopReady(false);
+        if (!cancelled) {
+          setWaShopReady(false);
+          setShopWaEnabled(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -566,6 +582,14 @@ export default function ServisDetayPage() {
       void loadExternalServices();
       return;
     }
+    if (isDeliveredServiceOrderStatus(next)) {
+      setDeliveryType("self");
+      setDeliveryPersonName("");
+      setDeliveryNote("");
+      setPendingDeliveryStatus(next);
+      setShowDeliveryModal(true);
+      return;
+    }
     setSavingStatus(true);
     try {
       const updated = await patchOrder({ status: next });
@@ -580,6 +604,43 @@ export default function ServisDetayPage() {
         setWaConfirmStatus(next);
         setShowWaConfirm(true);
       }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
+    } finally {
+      setSavingStatus(false);
+    }
+  }
+
+  async function handleDeliveryConfirm() {
+    if (!order) return;
+    if (!pendingDeliveryStatus) {
+      toast.error("Geçersiz teslim durumu");
+      return;
+    }
+    if (deliveryType === "other" && !deliveryPersonName.trim()) {
+      toast.error("Teslim alan kişinin adını girin");
+      return;
+    }
+    const status = pendingDeliveryStatus;
+    setSavingStatus(true);
+    try {
+      const updated = await patchOrder({
+        status,
+        deliveryType,
+        deliveryPersonName:
+          deliveryType === "other" ? deliveryPersonName.trim() : null,
+        deliveryNote: deliveryNote.trim() || null,
+      });
+      setShowDeliveryModal(false);
+      setPendingDeliveryStatus("");
+      setOrder(updated);
+      toast.success("Cihaz teslim edildi!");
+      const tpl = WA_TEMPLATES[status];
+      if (tpl && updated.customer?.phone && shopWaEnabled) {
+        setWaConfirmStatus(status);
+        setShowWaConfirm(true);
+      }
+      await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
     } finally {
@@ -877,6 +938,7 @@ export default function ServisDetayPage() {
   const titleNo = formatServiceOrderNo(order);
   const currentStatusUi = getStatusUiConfig(order.status);
   const statusBadge = getStatusBadge(order.status);
+  const deliveryModalStatusBadge = getStatusBadge(pendingDeliveryStatus);
 
   return (
     <div className="space-y-6">
@@ -1047,6 +1109,229 @@ export default function ServisDetayPage() {
               }}
             >
               Kaydet
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showDeliveryModal}
+        onOpenChange={(open) => {
+          setShowDeliveryModal(open);
+          if (!open) setPendingDeliveryStatus("");
+        }}
+      >
+        <DialogContent style={{ maxWidth: "440px" }}>
+          <DialogHeader>
+            <DialogTitle>Teslim Bilgisi</DialogTitle>
+            <DialogDescription>
+              <span
+                style={{
+                  background: deliveryModalStatusBadge.bg,
+                  color: deliveryModalStatusBadge.color,
+                  border: `1px solid ${deliveryModalStatusBadge.border}`,
+                  padding: "2px 10px",
+                  borderRadius: "12px",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                }}
+              >
+                {deliveryModalStatusBadge.label}
+              </span>{" "}
+              durumu için teslim bilgisi girin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              marginTop: "8px",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setDeliveryType("self")}
+                style={{
+                  padding: "14px",
+                  border: `2px solid ${deliveryType === "self" ? "#534AB7" : "#e5e7eb"}`,
+                  borderRadius: "10px",
+                  background: deliveryType === "self" ? "#F5F3FF" : "white",
+                  cursor: "pointer",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: "24px", marginBottom: "6px" }}>👤</div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: deliveryType === "self" ? "#534AB7" : "#374151",
+                  }}
+                >
+                  Kendisine Teslim
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#9ca3af",
+                    marginTop: "2px",
+                  }}
+                >
+                  Kayıt sahibi teslim aldı
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDeliveryType("other")}
+                style={{
+                  padding: "14px",
+                  border: `2px solid ${deliveryType === "other" ? "#534AB7" : "#e5e7eb"}`,
+                  borderRadius: "10px",
+                  background: deliveryType === "other" ? "#F5F3FF" : "white",
+                  cursor: "pointer",
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontSize: "24px", marginBottom: "6px" }}>👥</div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: deliveryType === "other" ? "#534AB7" : "#374151",
+                  }}
+                >
+                  Başkasına Teslim
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#9ca3af",
+                    marginTop: "2px",
+                  }}
+                >
+                  Farklı kişi teslim aldı
+                </div>
+              </button>
+            </div>
+
+            {deliveryType === "other" ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      fontSize: "13px",
+                      color: "#666",
+                      marginBottom: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Teslim Alan Kişi{" "}
+                    <span style={{ color: "#dc2626" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={deliveryPersonName}
+                    onChange={(e) => setDeliveryPersonName(e.target.value)}
+                    placeholder="Ad Soyad"
+                    autoFocus
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      fontSize: "13px",
+                      color: "#666",
+                      marginBottom: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Not
+                  </label>
+                  <textarea
+                    value={deliveryNote}
+                    onChange={(e) => setDeliveryNote(e.target.value)}
+                    placeholder="Örn: Müşterinin eşi teslim aldı, vekâleten teslim..."
+                    rows={3}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      resize: "vertical",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <DialogFooter style={{ marginTop: "16px", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => setShowDeliveryModal(false)}
+              disabled={savingStatus}
+              style={{
+                padding: "8px 16px",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                background: "white",
+                cursor: savingStatus ? "not-allowed" : "pointer",
+                fontSize: "13px",
+              }}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDeliveryConfirm()}
+              disabled={
+                savingStatus ||
+                (deliveryType === "other" && !deliveryPersonName.trim())
+              }
+              style={{
+                padding: "8px 20px",
+                background:
+                  deliveryType === "other" && !deliveryPersonName.trim()
+                    ? "#d1d5db"
+                    : "#111",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor:
+                  savingStatus ||
+                  (deliveryType === "other" && !deliveryPersonName.trim())
+                    ? "not-allowed"
+                    : "pointer",
+                fontSize: "13px",
+                fontWeight: "500",
+              }}
+            >
+              {savingStatus ? "Kaydediliyor…" : "Teslim Et"}
             </button>
           </DialogFooter>
         </DialogContent>
@@ -2201,6 +2486,44 @@ export default function ServisDetayPage() {
                   ))}
                 </ul>
               )}
+              {isDeliveredServiceOrderStatus(order.status) && order.deliveryType ? (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    padding: "12px",
+                    background: "#f0fdf4",
+                    borderRadius: "8px",
+                    border: "1px solid #86efac",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      color: "#16a34a",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    Teslim Bilgisi
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#374151" }}>
+                    {order.deliveryType === "self"
+                      ? "👤 Müşterinin kendisine teslim edildi"
+                      : `👥 ${order.deliveryPersonName ?? ""} tarafından teslim alındı`}
+                  </div>
+                  {order.deliveryNote ? (
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                        marginTop: "4px",
+                      }}
+                    >
+                      Not: {order.deliveryNote}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>

@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  Suspense,
   useCallback,
   useEffect,
   useState,
   type CSSProperties,
 } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 type ShopFull = {
@@ -20,6 +22,7 @@ type ShopFull = {
   waPhoneNumberId: string | null;
   waEnabled: boolean;
   waTokenConfigured?: boolean;
+  googleContactsConnected?: boolean;
 };
 
 function formatPhone(value: string) {
@@ -67,12 +70,15 @@ function PageSkeleton() {
   );
 }
 
-export default function SirketimPage() {
+function SirketimPageInner() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingWa, setSavingWa] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"sirket" | "whatsapp">("sirket");
+  const [activeTab, setActiveTab] = useState<
+    "sirket" | "whatsapp" | "google"
+  >("sirket");
   const [editing, setEditing] = useState(false);
 
   const [shop, setShop] = useState<ShopFull | null>(null);
@@ -120,6 +126,17 @@ export default function SirketimPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (searchParams.get("googleSuccess")) {
+      toast.success("Google Contacts bağlandı!");
+      window.history.replaceState({}, "", "/sirketim");
+    }
+    if (searchParams.get("googleError")) {
+      toast.error("Google bağlantısı başarısız");
+      window.history.replaceState({}, "", "/sirketim");
+    }
+  }, [searchParams]);
+
   function openEdit() {
     if (!shop) return;
     setName(shop.name ?? "");
@@ -136,9 +153,59 @@ export default function SirketimPage() {
     setEditing(false);
   }
 
-  function selectTab(tab: "sirket" | "whatsapp") {
+  function selectTab(tab: "sirket" | "whatsapp" | "google") {
     setActiveTab(tab);
-    if (tab === "whatsapp") setEditing(false);
+    if (tab === "whatsapp" || tab === "google") setEditing(false);
+  }
+
+  function handleGoogleConnect() {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      toast.error("Google istemci kimliği yapılandırılmamış");
+      return;
+    }
+    const appBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+    const redirectUri = appBase
+      ? `${appBase}/api/auth/google/callback`
+      : `${window.location.origin}/api/auth/google/callback`;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "https://www.googleapis.com/auth/contacts",
+      access_type: "offline",
+      prompt: "consent",
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+  }
+
+  async function handleGoogleDisconnect() {
+    if (!shop) return;
+    try {
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: shop.name.trim(),
+          phone: shop.phone,
+          email: shop.email,
+          website: shop.website,
+          address: shop.address,
+          taxOrTcNo: shop.taxOrTcNo,
+          taxOffice: shop.taxOffice,
+          googleAccessToken: null,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "İşlem başarısız");
+        return;
+      }
+      toast.success("Google bağlantısı kesildi");
+      await load();
+    } catch {
+      toast.error("Bağlantı hatası");
+    }
   }
 
   async function handleSave() {
@@ -321,6 +388,26 @@ export default function SirketimPage() {
                 <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.29-1.505A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.366l-.36-.214-3.733.893.924-3.638-.235-.374A9.818 9.818 0 1 1 12 21.818z" />
               </svg>
               WhatsApp API
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("google")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "google" ? "600" : "400",
+                color: activeTab === "google" ? "#EA4335" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "google"
+                    ? "2px solid #EA4335"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+              }}
+            >
+              Google Contacts
             </button>
           </div>
 
@@ -613,7 +700,7 @@ export default function SirketimPage() {
                 </>
               )}
             </div>
-          ) : (
+          ) : activeTab === "whatsapp" ? (
             <div style={{ maxWidth: "600px", margin: "0 auto" }}>
               <div style={{ marginBottom: "24px" }}>
                 <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
@@ -768,9 +855,124 @@ export default function SirketimPage() {
                 </button>
               </div>
             </div>
+          ) : (
+            <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "20px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
+                  Google Contacts
+                </h1>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
+                  Dükkanınızın Gmail hesabıyla bağlanın; cihaz kaydında{" "}
+                  <strong>yeni oluşturulan</strong> müşteriler rehbere eklenir.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "12px",
+                  padding: "20px",
+                  marginTop: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "10px",
+                        background: "#EA4335",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: "18px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      G
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "14px", fontWeight: "600" }}>
+                        Google Contacts
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#666" }}>
+                        {shop.googleContactsConnected
+                          ? "✓ Bağlı — Yeni müşteriler otomatik ekleniyor"
+                          : "Bağlı değil"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {shop.googleContactsConnected ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleGoogleDisconnect()}
+                      style={{
+                        padding: "8px 16px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        background: "white",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        color: "#dc2626",
+                      }}
+                    >
+                      Bağlantıyı Kes
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleGoogleConnect()}
+                      style={{
+                        padding: "8px 16px",
+                        background: "#EA4335",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Google ile Bağlan
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </>
       ) : null}
     </div>
+  );
+}
+
+export default function SirketimPage() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <SirketimPageInner />
+    </Suspense>
   );
 }

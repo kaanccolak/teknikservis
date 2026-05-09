@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import { parseDatetimeLocal } from "@/lib/datetime-local";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
+import { addContactToGoogle } from "@/lib/googleContacts";
 import { prisma } from "@/lib/prisma";
 import { allocateServiceOrderNumber } from "@/lib/service-order-number";
 import {
@@ -227,6 +228,7 @@ export async function POST(request: Request) {
           customerPhone: string;
           deviceModel: string;
           brand: string;
+          customerIsNew: boolean;
         }
       | undefined;
     let lastTxError: unknown;
@@ -280,6 +282,7 @@ export async function POST(request: Request) {
           const phoneDigits = phoneStored ? normalizePhone(phoneStored) : null;
 
           let customer = null;
+          let customerIsNew = false;
           if (phoneStored) {
             const key = trPhoneMatchKey(phoneStored);
             if (key.length > 0) {
@@ -293,6 +296,7 @@ export async function POST(request: Request) {
           }
 
           if (!customer) {
+            customerIsNew = true;
             customer = await tx.customer.create({
               data: {
                 shopId: shop.id,
@@ -349,6 +353,7 @@ export async function POST(request: Request) {
             customerPhone: customer.phone ?? "",
             deviceModel: deviceModel.name,
             brand: brand.name,
+            customerIsNew,
           };
         });
         break;
@@ -367,6 +372,16 @@ export async function POST(request: Request) {
 
     if (!order?.orderNumber) {
       throw lastTxError ?? new Error("ORDER_CREATE_FAILED");
+    }
+
+    if (
+      order.customerIsNew &&
+      order.customerPhone.trim().length > 0
+    ) {
+      void addContactToGoogle(shop.id, {
+        name: order.customerName,
+        phone: order.customerPhone,
+      }).catch((err) => console.error("[Google Contacts]", err));
     }
 
     return NextResponse.json({

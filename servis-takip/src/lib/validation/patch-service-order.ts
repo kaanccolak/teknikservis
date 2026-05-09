@@ -47,6 +47,9 @@ export const patchServiceOrderSchema = z
     externalServiceId: z.string().nullable().optional(),
     externalNote: z.string().max(20_000).nullable().optional(),
     repairFailedReason: z.string().max(20_000).nullable().optional(),
+    deliveryType: z.enum(["self", "other"]).optional(),
+    deliveryPersonName: z.string().max(500).nullable().optional(),
+    deliveryNote: z.string().max(5_000).nullable().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
@@ -111,6 +114,21 @@ export const patchServiceOrderSchema = z
           code: z.ZodIssueCode.custom,
           message: "Dış servis seçin",
           path: ["externalServiceId"],
+        });
+      }
+    }
+
+    if (data.deliveryType === "other") {
+      const name = data.deliveryPersonName;
+      const empty =
+        name === undefined ||
+        name === null ||
+        String(name).trim() === "";
+      if (empty) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Teslim alan kişinin adını girin",
+          path: ["deliveryPersonName"],
         });
       }
     }

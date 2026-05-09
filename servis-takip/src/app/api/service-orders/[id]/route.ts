@@ -190,6 +190,23 @@ function buildServiceOrderUpdate(
         : String(body.repairFailedReason).trim();
   }
 
+  if (body.deliveryType !== undefined) {
+    prismaData.deliveryType = body.deliveryType;
+  }
+  if (body.deliveryPersonName !== undefined) {
+    prismaData.deliveryPersonName =
+      body.deliveryPersonName === null ||
+      String(body.deliveryPersonName).trim() === ""
+        ? null
+        : String(body.deliveryPersonName).trim();
+  }
+  if (body.deliveryNote !== undefined) {
+    prismaData.deliveryNote =
+      body.deliveryNote === null || String(body.deliveryNote).trim() === ""
+        ? null
+        : String(body.deliveryNote).trim();
+  }
+
   if (body.status !== undefined && body.status !== "sent_to_external") {
     prismaData.externalService = { disconnect: true };
     prismaData.externalNote = null;
@@ -246,6 +263,7 @@ export async function PATCH(
       flat.fieldErrors.arrivedAt?.[0] ??
       flat.fieldErrors.estimatedPrice?.[0] ??
       flat.fieldErrors.externalServiceId?.[0] ??
+      flat.fieldErrors.deliveryPersonName?.[0] ??
       flat.formErrors[0];
     return NextResponse.json(
       {

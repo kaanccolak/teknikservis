@@ -21,7 +21,12 @@ function normalizeDigits(value: string | undefined | null): string | null {
 export async function GET() {
   try {
     const shop = await getOrCreateDefaultShop();
-    const { waAccessToken: _omit, ...safe } = shop;
+    const {
+      waAccessToken: _omit,
+      googleAccessToken: _gAccess,
+      googleRefreshToken: _gRefresh,
+      ...safe
+    } = shop;
     const waUnreadCount = await prisma.whatsAppMessage.count({
       where: { shopId: shop.id, isRead: false },
     });
@@ -29,6 +34,9 @@ export async function GET() {
       ...safe,
       waTokenConfigured: Boolean(
         _omit && String(_omit).trim().length > 0,
+      ),
+      googleContactsConnected: Boolean(
+        _gAccess && String(_gAccess).trim().length > 0,
       ),
       waUnreadCount,
     });
@@ -49,10 +57,24 @@ export async function PATCH(request: Request) {
   }
 
   const body = json as Record<string, unknown>;
-  const name = String(body.name ?? "").trim();
-  if (name.length < 2) {
+
+  if (
+    "googleAccessToken" in body &&
+    body.googleAccessToken !== null &&
+    body.googleAccessToken !== undefined
+  ) {
     return NextResponse.json(
-      { error: "Şirket adı en az 2 karakter olmalıdır" },
+      { error: "Google oturumu yalnızca Google ile bağlan akışıyla kurulur" },
+      { status: 400 },
+    );
+  }
+  if (
+    "googleRefreshToken" in body &&
+    body.googleRefreshToken !== null &&
+    body.googleRefreshToken !== undefined
+  ) {
+    return NextResponse.json(
+      { error: "Geçersiz Google alanı" },
       { status: 400 },
     );
   }
@@ -65,6 +87,17 @@ export async function PATCH(request: Request) {
       "PATCH /api/shop (shop)",
       e,
       "Dükkan bilgisi alınamadı",
+    );
+  }
+
+  const name =
+    body.name !== undefined
+      ? String(body.name ?? "").trim()
+      : shop.name.trim();
+  if (name.length < 2) {
+    return NextResponse.json(
+      { error: "Şirket adı en az 2 karakter olmalıdır" },
+      { status: 400 },
     );
   }
 
@@ -114,13 +147,28 @@ export async function PATCH(request: Request) {
                   : null,
             }
           : {}),
+        ...("googleAccessToken" in body && body.googleAccessToken === null
+          ? {
+              googleAccessToken: null,
+              googleRefreshToken: null,
+              googleTokenExpiry: null,
+            }
+          : {}),
       },
     });
-    const { waAccessToken: _t, ...safe } = row;
+    const {
+      waAccessToken: _t,
+      googleAccessToken: _ga,
+      googleRefreshToken: _gr,
+      ...safe
+    } = row;
     invalidateShopCache();
     return NextResponse.json({
       ...safe,
       waTokenConfigured: Boolean(_t && String(_t).trim().length > 0),
+      googleContactsConnected: Boolean(
+        _ga && String(_ga).trim().length > 0,
+      ),
     });
   } catch (e) {
     return jsonServerError("PATCH /api/shop", e, "Güncelleme başarısız");
