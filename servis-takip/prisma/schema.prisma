@@ -23,9 +23,6 @@ model Shop {
   waPhoneNumberId  String?
   waAccessToken    String?
   waEnabled        Boolean           @default(false)
-  wppSession       String?
-  wppConnected     Boolean           @default(false)
-  wppPhone         String?
   googleAccessToken  String?
   googleRefreshToken String?
   googleTokenExpiry  DateTime?
