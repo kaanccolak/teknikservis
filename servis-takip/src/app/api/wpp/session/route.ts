@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 import {
   closeSession,
-  getConnectedPhone,
   getQRCode,
   getSessionStatus,
   startSession,
@@ -16,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/wpp/session
- * - WPPConnect oturum durumunu döndürür.
+ * - Baileys oturum durumunu döndürür.
  * - Bağlıysa Shop tablosunu (`wppConnected`, `wppPhone`, `wppSession`) günceller.
  * - Bağlı değilken QR kodu varsa döndürür.
  */
@@ -43,25 +42,17 @@ export async function GET() {
   }
 
   const session = shop.id;
-  let status = "CLOSED";
-  try {
-    status = await getSessionStatus(session);
-  } catch {
-    status = "CLOSED";
-  }
-
-  const isConnected = status === "CONNECTED" || status === "isLogged";
+  const info = await getSessionStatus(session);
+  const isConnected = info.connected;
+  const phone: string | null = info.phone ?? shop.wppPhone ?? null;
   let qr: string | null = null;
-  let phone: string | null = shop.wppPhone ?? null;
 
   if (isConnected) {
-    try {
-      const found = await getConnectedPhone(session);
-      if (found) phone = found;
-    } catch {
-      // sessizce yut
-    }
-    if (!shop.wppConnected || shop.wppSession !== session || phone !== shop.wppPhone) {
+    if (
+      !shop.wppConnected ||
+      shop.wppSession !== session ||
+      phone !== shop.wppPhone
+    ) {
       try {
         await prisma.shop.update({
           where: { id: shop.id },
@@ -76,12 +67,10 @@ export async function GET() {
       }
     }
   } else {
-    if (status === "QRCODE" || status === "CLOSED" || status === "INITIALIZING") {
-      try {
-        qr = await getQRCode(session);
-      } catch {
-        qr = null;
-      }
+    try {
+      qr = await getQRCode(session);
+    } catch {
+      qr = null;
     }
     if (shop.wppConnected) {
       try {
@@ -97,7 +86,7 @@ export async function GET() {
 
   return NextResponse.json({
     configured: true,
-    status,
+    status: info.status,
     qr,
     connected: isConnected,
     phone,
@@ -119,7 +108,7 @@ export async function POST() {
 
   if (!WPP_CONFIGURED()) {
     return NextResponse.json(
-      { error: "WPPConnect sunucusu yapılandırılmamış (WPPCONNECT_URL eksik)" },
+      { error: "Baileys sunucusu yapılandırılmamış (WPPCONNECT_URL eksik)" },
       { status: 400 },
     );
   }
@@ -128,7 +117,7 @@ export async function POST() {
     const ok = await startSession(shop.id);
     if (!ok) {
       return NextResponse.json(
-        { error: "Oturum başlatılamadı (WPPConnect sunucusuna ulaşılamıyor olabilir)" },
+        { error: "Oturum başlatılamadı (Baileys sunucusuna ulaşılamıyor olabilir)" },
         { status: 502 },
       );
     }

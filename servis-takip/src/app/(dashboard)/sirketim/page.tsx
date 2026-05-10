@@ -111,11 +111,6 @@ function SirketimPageInner() {
   const [wppConnecting, setWppConnecting] = useState(false);
   const [wppDisconnecting, setWppDisconnecting] = useState(false);
 
-  const [wppMode, setWppMode] = useState<"qr" | "phone">("qr");
-  const [wppPhoneInput, setWppPhoneInput] = useState("");
-  const [wppLinkCode, setWppLinkCode] = useState<string | null>(null);
-  const [wppCodeStage, setWppCodeStage] = useState<"phone" | "code">("phone");
-  const [wppSendingCode, setWppSendingCode] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -258,9 +253,6 @@ function SirketimPageInner() {
         return;
       }
       toast.success("WhatsApp bağlantısı kesildi");
-      setWppPhoneInput("");
-      setWppLinkCode(null);
-      setWppCodeStage("phone");
       await loadWpp();
       await load();
     } catch {
@@ -270,55 +262,6 @@ function SirketimPageInner() {
     }
   }
 
-  async function handleSendPhoneCode() {
-    const digits = wppPhoneInput.replace(/\D/g, "");
-    if (digits.length !== 10) {
-      toast.error("Geçerli bir telefon numarası girin (10 hane)");
-      return;
-    }
-    const formatted = `90${digits}`;
-    setWppSendingCode(true);
-    try {
-      const res = await fetch("/api/wpp/phone-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: formatted,
-          session: shop?.id,
-        }),
-      });
-      const data = (await res.json()) as {
-        success?: boolean;
-        code?: string | null;
-        error?: string;
-      };
-      if (!res.ok || !data.success || !data.code) {
-        toast.error(data.error ?? "Kod alınamadı");
-        return;
-      }
-      setWppLinkCode(data.code);
-      setWppCodeStage("code");
-      toast.success("Bağlantı kodu hazır");
-      void loadWpp();
-    } catch {
-      toast.error("Bağlantı hatası");
-    } finally {
-      setWppSendingCode(false);
-    }
-  }
-
-  function resetPhoneCodeFlow() {
-    setWppLinkCode(null);
-    setWppCodeStage("phone");
-  }
-
-  function formatPairingCode(raw: string): string {
-    const cleaned = raw.replace(/\s|-/g, "").toUpperCase();
-    if (cleaned.length === 8) {
-      return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
-    }
-    return cleaned;
-  }
 
   function handleGoogleConnect() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -1181,335 +1124,99 @@ function SirketimPageInner() {
                   </div>
                 ) : (
                   <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginBottom: "20px",
-                        background: "#f3f4f6",
-                        padding: "4px",
-                        borderRadius: "10px",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setWppMode("qr")}
+                    {wppInfo?.qr ? (
+                      <div
                         style={{
-                          flex: 1,
-                          padding: "8px 12px",
-                          fontSize: "13px",
-                          fontWeight: wppMode === "qr" ? 600 : 400,
-                          color: wppMode === "qr" ? "#111" : "#6b7280",
-                          background: wppMode === "qr" ? "white" : "transparent",
-                          border: "none",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          boxShadow:
-                            wppMode === "qr"
-                              ? "0 1px 2px rgba(0,0,0,0.05)"
-                              : "none",
-                          display: "inline-flex",
+                          display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
-                          justifyContent: "center",
-                          gap: "6px",
+                          gap: "12px",
                         }}
                       >
-                        <span aria-hidden>📱</span> QR Kod
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setWppMode("phone")}
-                        style={{
-                          flex: 1,
-                          padding: "8px 12px",
-                          fontSize: "13px",
-                          fontWeight: wppMode === "phone" ? 600 : 400,
-                          color: wppMode === "phone" ? "#111" : "#6b7280",
-                          background:
-                            wppMode === "phone" ? "white" : "transparent",
-                          border: "none",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          boxShadow:
-                            wppMode === "phone"
-                              ? "0 1px 2px rgba(0,0,0,0.05)"
-                              : "none",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "6px",
-                        }}
-                      >
-                        <span aria-hidden>🔢</span> Telefon Kodu
-                      </button>
-                    </div>
-
-                    {wppMode === "qr" ? (
-                      wppInfo?.qr ? (
                         <div
                           style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: "12px",
+                            background: "white",
+                            padding: "12px",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "12px",
                           }}
                         >
-                          <div
-                            style={{
-                              background: "white",
-                              padding: "12px",
-                              border: "1px solid #e5e7eb",
-                              borderRadius: "12px",
-                            }}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={wppInfo.qr}
-                              alt="WhatsApp QR Kodu"
-                              width={256}
-                              height={256}
-                              style={{ display: "block" }}
-                            />
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "13px",
-                              color: "#374151",
-                              textAlign: "center",
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            <strong>WhatsApp</strong> →{" "}
-                            <strong>Ayarlar</strong> →{" "}
-                            <strong>Bağlı Cihazlar</strong> →{" "}
-                            <strong>QR Kod Tara</strong>
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "#6b7280",
-                            }}
-                          >
-                            Durum: {wppInfo.status} · Bağlantı kontrol ediliyor…
-                          </div>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={wppInfo.qr}
+                            alt="WhatsApp QR Kodu"
+                            width={256}
+                            height={256}
+                            style={{ display: "block" }}
+                          />
                         </div>
-                      ) : (
                         <div
                           style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-start",
-                            gap: "12px",
+                            fontSize: "13px",
+                            color: "#374151",
+                            textAlign: "center",
+                            lineHeight: 1.6,
                           }}
                         >
-                          <div
-                            style={{
-                              fontSize: "13px",
-                              color: "#6b7280",
-                            }}
-                          >
-                            {wppInfo
-                              ? `Durum: ${wppInfo.status}`
-                              : "Henüz bir oturum başlatılmadı."}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => void handleWppConnect()}
-                            disabled={
-                              wppConnecting ||
-                              (wppInfo ? !wppInfo.configured : false)
-                            }
-                            style={{
-                              padding: "10px 20px",
-                              background: wppConnecting
-                                ? "#86efac"
-                                : "#25D366",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "8px",
-                              fontSize: "14px",
-                              fontWeight: 500,
-                              cursor:
-                                wppConnecting ||
-                                (wppInfo ? !wppInfo.configured : false)
-                                  ? "not-allowed"
-                                  : "pointer",
-                              opacity:
-                                wppInfo && !wppInfo.configured ? 0.6 : 1,
-                            }}
-                          >
-                            {wppConnecting ? "Oluşturuluyor…" : "QR Kod Oluştur"}
-                          </button>
+                          <strong>WhatsApp</strong> →{" "}
+                          <strong>Ayarlar</strong> →{" "}
+                          <strong>Bağlı Cihazlar</strong> →{" "}
+                          <strong>QR Kod Tara</strong>
                         </div>
-                      )
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#6b7280",
+                          }}
+                        >
+                          Durum: {wppInfo.status} · Bağlantı kontrol ediliyor…
+                        </div>
+                      </div>
                     ) : (
                       <div
                         style={{
                           display: "flex",
                           flexDirection: "column",
-                          gap: "16px",
+                          alignItems: "flex-start",
+                          gap: "12px",
                         }}
                       >
-                        {wppCodeStage === "phone" ? (
-                          <>
-                            <div>
-                              <label style={labelStyle}>
-                                Telefon Numarası
-                              </label>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  overflow: "hidden",
-                                  borderRadius: "8px",
-                                  border: "1px solid #e5e7eb",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    flexShrink: 0,
-                                    borderRight: "1px solid #e5e7eb",
-                                    background: "#f9fafb",
-                                    padding: "10px 12px",
-                                    fontSize: "13px",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  +90
-                                </span>
-                                <input
-                                  type="text"
-                                  value={wppPhoneInput}
-                                  onChange={(e) => {
-                                    const d = e.target.value.replace(
-                                      /\D/g,
-                                      "",
-                                    );
-                                    if (d.length > 10) return;
-                                    setWppPhoneInput(formatPhone(e.target.value));
-                                  }}
-                                  placeholder="5XX XXX XX XX"
-                                  maxLength={13}
-                                  inputMode="numeric"
-                                  autoComplete="tel-national"
-                                  style={{
-                                    ...inputStyle,
-                                    border: "none",
-                                    borderRadius: 0,
-                                    flex: 1,
-                                  }}
-                                />
-                              </div>
-                              <p
-                                style={{
-                                  fontSize: "12px",
-                                  color: "#6b7280",
-                                  marginTop: "6px",
-                                }}
-                              >
-                                WhatsApp’a kayıtlı telefon numaranızı girin.
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => void handleSendPhoneCode()}
-                              disabled={
-                                wppSendingCode ||
-                                (wppInfo ? !wppInfo.configured : false)
-                              }
-                              style={{
-                                padding: "10px 20px",
-                                background: wppSendingCode
-                                  ? "#86efac"
-                                  : "#25D366",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "8px",
-                                fontSize: "14px",
-                                fontWeight: 500,
-                                cursor:
-                                  wppSendingCode ||
-                                  (wppInfo ? !wppInfo.configured : false)
-                                    ? "not-allowed"
-                                    : "pointer",
-                                width: "fit-content",
-                                opacity:
-                                  wppInfo && !wppInfo.configured ? 0.6 : 1,
-                              }}
-                            >
-                              {wppSendingCode ? "Alınıyor…" : "Kod Al"}
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <div
-                              style={{
-                                fontSize: "32px",
-                                fontWeight: "700",
-                                letterSpacing: "8px",
-                                color: "#111",
-                                textAlign: "center",
-                                padding: "16px",
-                                background: "#f9fafb",
-                                borderRadius: "10px",
-                                border: "1px solid #e5e7eb",
-                                fontFamily:
-                                  "ui-monospace, SFMono-Regular, Menlo, monospace",
-                              }}
-                            >
-                              {wppLinkCode
-                                ? formatPairingCode(wppLinkCode)
-                                : "—"}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "13px",
-                                color: "#374151",
-                                lineHeight: 1.7,
-                                textAlign: "center",
-                              }}
-                            >
-                              <strong>WhatsApp</strong> →{" "}
-                              <strong>Ayarlar</strong> →{" "}
-                              <strong>Bağlı Cihazlar</strong> →{" "}
-                              <strong>Telefonla Bağlan</strong> → Bu kodu
-                              WhatsApp’a girin
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "10px",
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => resetPhoneCodeFlow()}
-                                style={{
-                                  padding: "10px 20px",
-                                  background: "white",
-                                  color: "#374151",
-                                  border: "1px solid #e5e7eb",
-                                  borderRadius: "8px",
-                                  fontSize: "14px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Geri
-                              </button>
-                            </div>
-                            {wppInfo ? (
-                              <div
-                                style={{
-                                  fontSize: "12px",
-                                  color: "#6b7280",
-                                }}
-                              >
-                                Durum: {wppInfo.status} · Bağlantı kontrol
-                                ediliyor…
-                              </div>
-                            ) : null}
-                          </>
-                        )}
+                        <div
+                          style={{
+                            fontSize: "13px",
+                            color: "#6b7280",
+                          }}
+                        >
+                          {wppInfo
+                            ? `Durum: ${wppInfo.status}`
+                            : "Henüz bir oturum başlatılmadı."}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void handleWppConnect()}
+                          disabled={
+                            wppConnecting ||
+                            (wppInfo ? !wppInfo.configured : false)
+                          }
+                          style={{
+                            padding: "10px 20px",
+                            background: wppConnecting ? "#86efac" : "#25D366",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                            cursor:
+                              wppConnecting ||
+                              (wppInfo ? !wppInfo.configured : false)
+                                ? "not-allowed"
+                                : "pointer",
+                            opacity:
+                              wppInfo && !wppInfo.configured ? 0.6 : 1,
+                          }}
+                        >
+                          {wppConnecting ? "Oluşturuluyor…" : "QR Kod Oluştur"}
+                        </button>
                       </div>
                     )}
                   </div>
