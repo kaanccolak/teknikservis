@@ -58,8 +58,10 @@ export async function POST(req: Request) {
     );
   }
 
+  const sessionId = shop.wppSession ?? shop.id.slice(0, 8);
+
   try {
-    const ok = await sendWppMessage(shop.wppSession ?? shop.id, phone, message);
+    const ok = await sendWppMessage(sessionId, phone, message);
     if (!ok) {
       return NextResponse.json(
         { error: "Mesaj gönderilemedi" },

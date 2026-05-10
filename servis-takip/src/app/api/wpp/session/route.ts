@@ -18,6 +18,8 @@ export const dynamic = "force-dynamic";
  * - Baileys oturum durumunu döndürür.
  * - Bağlıysa Shop tablosunu (`wppConnected`, `wppPhone`, `wppSession`) günceller.
  * - Bağlı değilken QR kodu varsa döndürür.
+ *
+ * Baileys session adı: `shop.id`'in ilk 8 karakteri.
  */
 export async function GET() {
   let shop;
@@ -41,10 +43,11 @@ export async function GET() {
     });
   }
 
-  const session = shop.id;
   const sessionId = shop.id.slice(0, 8);
-  console.log("Checking session:", sessionId);
-  const info = await getSessionStatus(session);
+  console.log("[GET /api/wpp/session] shop.id:", shop.id);
+  console.log("[GET /api/wpp/session] sessionId:", sessionId);
+
+  const info = await getSessionStatus(sessionId);
   const isConnected = info.connected;
   const phone: string | null = info.phone ?? shop.wppPhone ?? null;
   let qr: string | null = null;
@@ -52,7 +55,7 @@ export async function GET() {
   if (isConnected) {
     if (
       !shop.wppConnected ||
-      shop.wppSession !== session ||
+      shop.wppSession !== sessionId ||
       phone !== shop.wppPhone
     ) {
       try {
@@ -60,7 +63,7 @@ export async function GET() {
           where: { id: shop.id },
           data: {
             wppConnected: true,
-            wppSession: session,
+            wppSession: sessionId,
             wppPhone: phone,
           },
         });
@@ -70,7 +73,7 @@ export async function GET() {
     }
   } else {
     try {
-      qr = await getQRCode(session);
+      qr = await getQRCode(sessionId);
     } catch {
       qr = null;
     }
@@ -116,20 +119,24 @@ export async function POST() {
   }
 
   const sessionId = shop.id.slice(0, 8);
-  console.log("WPP Session ID:", sessionId);
-  console.log("WPP URL:", process.env.WPPCONNECT_URL);
+  console.log("[POST /api/wpp/session] shop.id:", shop.id);
+  console.log("[POST /api/wpp/session] sessionId:", sessionId);
+  console.log("[POST /api/wpp/session] WPP URL:", process.env.WPPCONNECT_URL);
 
   try {
-    const ok = await startSession(shop.id);
+    const ok = await startSession(sessionId);
     if (!ok) {
       return NextResponse.json(
-        { error: "Oturum başlatılamadı (Baileys sunucusuna ulaşılamıyor olabilir)" },
+        {
+          error:
+            "Oturum başlatılamadı (Baileys sunucusuna ulaşılamıyor olabilir)",
+        },
         { status: 502 },
       );
     }
     await prisma.shop.update({
       where: { id: shop.id },
-      data: { wppSession: shop.id },
+      data: { wppSession: sessionId },
     });
     return NextResponse.json({ success: true });
   } catch (e) {
@@ -154,9 +161,11 @@ export async function DELETE() {
     );
   }
 
+  const sessionId = shop.wppSession ?? shop.id.slice(0, 8);
+
   if (WPP_CONFIGURED()) {
     try {
-      await closeSession(shop.wppSession ?? shop.id);
+      await closeSession(sessionId);
     } catch {
       // sunucu erişilebilir değilse yine de DB temizlensin
     }
