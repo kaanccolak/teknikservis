@@ -33,11 +33,12 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Sayfadan ayrılma uyarısı (form doldurulmuşken)
 - **Kayıt düzenleme ve silme**
 - Ciro takibi (günlük / haftalık / aylık / yıllık / **tarih aralığı**)
-- **WhatsApp Business API** — şablon mesajları, ücret bildirimi (`fiyat_bildirimi`), **webhook** ile gelen mesajların kaydı
-- **WA Mesajları** (`/whatsapp-mesajlari`) — gelen mesajlar, okunmamış takibi, sidebar yeşil badge, servis detayda kayıt bazlı liste
-- **Durum değişince WhatsApp** — `WA_TEMPLATES` ile uyumlu şablon; onay modalı (`shop.waEnabled` + müşteri telefonu)
+- **WhatsApp (Baileys)** — Meta WhatsApp Business API kaldırıldı; giden mesajlar **Baileys** VPS üzerinden düz metin olarak gider. Hetzner VPS (**46.62.253.209**, Ubuntu 24.04, CX23), **PM2** (`baileys-api`), oturumlar **`/opt/baileys/sessions/{shopId}/`**. Ortam: **`BAILEYS_API_URL`**, **`BAILEYS_API_KEY`**. Kütüphane: `src/lib/baileys-client.ts`; API: `/api/baileys/connect`, `/api/baileys/status`, `/api/baileys/send`, `/api/baileys/disconnect`. **`POST /api/whatsapp/send`** şablon anahtarı + parametre alır, **`buildMessage`** ile metne çevirir ve Baileys ile gönderir.
+- **Şirketim** — WhatsApp sekmesi (**“WhatsApp API” → “WhatsApp”**); dükkan kendi numarasını **pairing kodu** ile bağlar. VPS SSH: `ssh root@46.62.253.209`; servis: `pm2 logs baileys-api`, `pm2 restart baileys-api`.
+- **WA Mesajları** (`/whatsapp-mesajlari`) sayfası ve sidebar menü öğesi **kaldırıldı**.
+- **Durum değişince WhatsApp** — `WA_TEMPLATES` ile mantıksal anahtar + parametreler; onay sonrası `POST /api/whatsapp/send` (Baileys + müşteri telefonu / oturum hazır olduğunda)
 - **Kayıt sonrası WhatsApp** — cihaz kayıt tamamlanınca `servis_teslim_alindi` için Evet/Hayır modalı; Hayır ile doğrudan servis detay
-- **13 durum şablonu** (Meta’da onaylı isimler; `sent_to_external` hariç — WA sorusu yok)
+- **13 durum + ücret bildirimi** (`fiyat_bildirimi`; `sent_to_external` hariç — WA sorusu yok); metinler Meta onayı değil **`buildMessage`** ile üretilir
 - Servis detay sayfasında durum rengine göre cihaz bilgileri kartı boyama
 - Ciro hesabı StatusLog bazlı (durum geri alınınca ciro düşer)
 - Ciro filtresi düzeltmesi (Bugün/Bu Hafta/Bu Ay/Bu Yıl)
@@ -68,9 +69,9 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Türkçe hata mesajları (giriş ekranı)
 - Production deploy ([teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
 
-### WhatsApp şablon adları (Meta)
+### WhatsApp mantıksal şablon anahtarları
 
-`servis_teslim_alindi`, `fiyat_bildirimi`, `onay_bekleniyor`, `onay_verildi`, `parca_bekleniyor`, `tamiri_olmuyor`, `sorun_gorulmedi`, `musteri_iade_istiyor`, `onarim_tamamlandi`, `teslim_edildi`, `teslim_tamir_olmuyor`, `teslim_sorun_gorulmedi`, `teslim_musteri_iade` — eşleme ve parametreler: `src/lib/whatsapp.ts` (`WA_TEMPLATES`). İkinci el alım: `ikinci_el_satin_alindi` (`WA_SECOND_HAND_PURCHASE`).
+`servis_teslim_alindi`, `fiyat_bildirimi`, `onay_bekleniyor`, `onay_verildi`, `parca_bekleniyor`, `tamiri_olmuyor`, `sorun_gorulmedi`, `musteri_iade_istiyor`, `onarim_tamamlandi`, `teslim_edildi`, `teslim_tamir_olmuyor`, `teslim_sorun_gorulmedi`, `teslim_musteri_iade` — parametre sırası: `src/lib/whatsapp.ts` (`WA_TEMPLATES`, `getParams`). Gönderilen düz metin: `src/app/api/whatsapp/send/route.ts` içindeki **`buildMessage`**. İkinci el: `ikinci_el_satin_alindi` (`WA_SECOND_HAND_PURCHASE`).
 
 ## Tech Stack
 
@@ -112,8 +113,9 @@ NEXT_PUBLIC_SUPABASE_URL="https://..."
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 # Şifre sıfırlama öncesi e-posta kontrolü (yalnızca sunucu — /api/auth/check-email)
 SUPABASE_SERVICE_ROLE_KEY="..."
-# Meta WhatsApp webhook doğrulama (GET hub.verify_token)
-WHATSAPP_WEBHOOK_VERIFY_TOKEN="servis-takip-webhook"
+# Baileys REST (VPS)
+BAILEYS_API_URL="https://..."
+BAILEYS_API_KEY="..."
 # Google Contacts (OAuth) — People API; örnek: .env.example
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
@@ -168,11 +170,10 @@ src/
 │   │   ├── cihaz-sorgula/
 │   │   ├── bekleyen-cihazlar/
 │   │   ├── raporlar/
-│   │   ├── whatsapp-mesajlari/
 │   │   ├── stok/
 │   │   ├── servis-detay/[id]/
 │   │   └── tanimlar/
-│   └── api/                  # REST API (whatsapp/webhook, whatsapp/messages, …)
+│   └── api/                  # REST API (baileys/*, whatsapp/send, …)
 ├── middleware.ts             # Supabase auth, korumalı rotalar
 ├── components/
 │   └── layout/               # Sidebar, TopBar
@@ -202,9 +203,9 @@ src/
 - [x] Telefon normalize arama
 - [x] Yazdırma ayarları
 - [x] Kayıt düzenleme / silme
-- [x] WhatsApp Business API altyapısı ve entegrasyonu
-- [x] WhatsApp webhook (gelen mesajlar)
-- [x] WhatsApp şablonları (13 durum şablonu + `fiyat_bildirimi` butonu)
+- [x] WhatsApp (Baileys VPS + `buildMessage` + `POST /api/whatsapp/send`)
+- [x] Baileys API route’ları (`/api/baileys/*`)
+- [x] Mantıksal şablon anahtarları (13 durum + `fiyat_bildirimi` butonu)
 - [x] Durum değişince WA bildirimi (onay modalı)
 - [x] Auth / Login koruması
 - [x] Multi-tenant geçişi
@@ -221,12 +222,10 @@ src/
 - [x] Teslim modalı
 - [ ] iyzico ödeme entegrasyonu
 - [ ] Google OAuth production doğrulaması (domain alınınca)
-- [ ] Meta Business Verification
-- [ ] WhatsApp şablon onayı
-- [ ] Google yorum linki (`teslim_edildi` şablonuna)
+- [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
 - [ ] SMS entegrasyonu
 - [ ] Mobil uyumluluk
-- [ ] Ödeme linki WhatsApp şablonu
+- [ ] Ödeme linki WhatsApp metni
 - [ ] Domain bağlama
 
 ---
