@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { jsonServerError } from "@/lib/server-error";
+import { sendBaileysMessage, getSessionStatus } from "@/lib/baileys-client";
+import { WA_TEMPLATES } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,7 @@ export async function POST(req: Request) {
     templateName?: string;
     parameters?: string[];
   };
+
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -33,6 +36,7 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+
   if (!templateName) {
     return NextResponse.json(
       { error: "Şablon adı gerekli" },
@@ -51,17 +55,14 @@ export async function POST(req: Request) {
     );
   }
 
-  if (
-    !shop?.waEnabled ||
-    !shop.waPhoneNumberId?.trim() ||
-    !shop.waAccessToken?.trim()
-  ) {
+  if (!shop) {
     return NextResponse.json(
-      { error: "WhatsApp entegrasyonu aktif değil" },
+      { error: "Dükkan bilgisi alınamadı" },
       { status: 400 },
     );
   }
 
+  // Telefonu normalize et
   const cleanPhone = phone.replace(/\D/g, "");
   const internationalPhone = cleanPhone.startsWith("90")
     ? cleanPhone
@@ -74,55 +75,68 @@ export async function POST(req: Request) {
     );
   }
 
+  // Baileys bağlı mı kontrol et
   try {
-    const response = await fetch(
-      `https://graph.facebook.com/v18.0/${shop.waPhoneNumberId}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${shop.waAccessToken}`,
-          "Content-Type": "application/json",
+    const status = await getSessionStatus(shop.id);
+    if (!status.connected) {
+      return NextResponse.json(
+        {
+          error:
+            "WhatsApp bağlı değil. Şirketim > WhatsApp sekmesinden bağlanın.",
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: internationalPhone,
-          type: "template",
-          template: {
-            name: templateName,
-            language: { code: "tr" },
-            components:
-              parameters.length > 0
-                ? [
-                    {
-                      type: "body",
-                      parameters: parameters.map((p) => ({
-                        type: "text",
-                        text: p,
-                      })),
-                    },
-                  ]
-                : [],
-          },
-        }),
-      },
-    );
-
-    const data = (await response.json()) as {
-      error?: { message?: string };
-    };
-
-    if (!response.ok) {
-      console.error("WhatsApp API hatası:", data);
-      const msg =
-        typeof data.error?.message === "string"
-          ? data.error.message
-          : "Mesaj gönderilemedi";
-      return NextResponse.json({ error: msg }, { status: 400 });
+        { status: 400 },
+      );
     }
+  } catch {
+    return NextResponse.json(
+      { error: "WhatsApp bağlantısı kontrol edilemedi" },
+      { status: 500 },
+    );
+  }
 
-    return NextResponse.json({ success: true, data });
+  // Şablonu düz metne çevir
+  const message = buildMessage(templateName, parameters);
+
+  try {
+    const result = await sendBaileysMessage(
+      shop.id,
+      internationalPhone,
+      message,
+    );
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error ?? "Mesaj gönderilemedi" },
+        { status: 400 },
+      );
+    }
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("WhatsApp send error:", error);
+    console.error("Baileys send error:", error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
+}
+
+function buildMessage(templateName: string, parameters: string[]): string {
+  const p = parameters;
+  const messages: Record<string, string> = {
+    servis_teslim_alindi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) servisimize teslim alındı. Takip etmek için bize ulaşabilirsiniz.`,
+    fiyat_bildirimi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için tamir ücreti: ${p[3] ?? ""}. Onay vermek için lütfen bize ulaşın.`,
+    onay_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için onayınızı bekliyoruz. Lütfen en kısa sürede bilgi verin.`,
+    onay_verildi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için onayınız alındı. Tamir işlemi başlatıldı.`,
+    parca_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için gerekli parça temin edilmeyi bekleniyor.`,
+    tamiri_olmuyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) maalesef tamir edilemiyor. Neden: ${p[3] ?? ""}. Cihazınızı teslim alabilirsiniz.`,
+    sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) incelendi, herhangi bir sorun tespit edilmedi.`,
+    musteri_iade_istiyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) iade talebiniz alındı. En kısa sürede işleme alınacak.`,
+    onarim_tamamlandi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) onarımı tamamlandı. Teslim almak için bizi arayabilirsiniz.`,
+    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_tamir_olmuyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) tamir edilemeden teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) sorun tespit edilmeden teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_musteri_iade: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) iade talebiniz doğrultusunda teslim edildi.`,
+    ikinci_el_satin_alindi: `Sayın ${p[0] ?? ""}, ${p[1] ?? "cihazınız"} ${p[2] ?? ""} TL bedelle satın alındı. Teşekkür ederiz.`,
+  };
+
+  return (
+    messages[templateName] ??
+    `Servis durumunuz güncellendi. Bilgi için bize ulaşın.`
+  );
 }

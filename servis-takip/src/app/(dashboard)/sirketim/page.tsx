@@ -96,6 +96,14 @@ function SirketimPageInner() {
   const [waEnabled, setWaEnabled] = useState(false);
   const [showToken, setShowToken] = useState(false);
 
+  const [baileysPhone, setBaileysPhone] = useState("");
+  const [baileysCode, setBaileysCode] = useState("");
+  const [baileysStatus, setBaileysStatus] = useState<
+    "idle" | "waiting_code" | "connected" | "loading"
+  >("idle");
+  const [baileysConnected, setBaileysConnected] = useState(false);
+  const [savingBaileys, setSavingBaileys] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -114,6 +122,20 @@ function SirketimPageInner() {
       setWaPhoneNumberId(row.waPhoneNumberId ?? "");
       setWaAccessToken("");
       setWaEnabled(Boolean(row.waEnabled));
+
+      // Baileys bağlantı durumunu kontrol et
+      try {
+        const statusRes = await fetch("/api/baileys/status");
+        if (statusRes.ok) {
+          const statusData = (await statusRes.json()) as {
+            connected?: boolean;
+          };
+          setBaileysConnected(statusData.connected === true);
+          if (statusData.connected) setBaileysStatus("connected");
+        }
+      } catch {
+        // sessizce geç
+      }
     } catch {
       setError("Bağlantı hatası");
       setShop(null);
@@ -298,6 +320,73 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingWa(false);
+    }
+  }
+
+  async function handleBaileysConnect() {
+    if (!baileysPhone.trim()) {
+      toast.error("Telefon numarası girin");
+      return;
+    }
+    setSavingBaileys(true);
+    setBaileysStatus("loading");
+    try {
+      const res = await fetch("/api/baileys/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: baileysPhone.trim() }),
+      });
+      const data = (await res.json()) as {
+        success?: boolean;
+        code?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.success) {
+        toast.error(data.error ?? "Bağlantı başlatılamadı");
+        setBaileysStatus("idle");
+        return;
+      }
+      setBaileysCode(data.code ?? "");
+      setBaileysStatus("waiting_code");
+      toast.success("WhatsApp'ınıza bir kod gönderildi!");
+      // 30 saniye boyunca her 3 saniyede bağlandı mı kontrol et
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        const statusRes = await fetch("/api/baileys/status");
+        const statusData = (await statusRes.json()) as { connected?: boolean };
+        if (statusData.connected) {
+          setBaileysConnected(true);
+          setBaileysStatus("connected");
+          toast.success("WhatsApp başarıyla bağlandı! ✅");
+          clearInterval(interval);
+        }
+        if (attempts >= 10) clearInterval(interval);
+      }, 3000);
+    } catch {
+      toast.error("Bağlantı hatası");
+      setBaileysStatus("idle");
+    } finally {
+      setSavingBaileys(false);
+    }
+  }
+
+  async function handleBaileysDisconnect() {
+    setSavingBaileys(true);
+    try {
+      await fetch("/api/baileys/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      setBaileysConnected(false);
+      setBaileysStatus("idle");
+      setBaileysCode("");
+      setBaileysPhone("");
+      toast.success("WhatsApp bağlantısı kesildi");
+    } catch {
+      toast.error("Hata oluştu");
+    } finally {
+      setSavingBaileys(false);
     }
   }
 
@@ -704,7 +793,7 @@ function SirketimPageInner() {
             <div style={{ maxWidth: "600px", margin: "0 auto" }}>
               <div style={{ marginBottom: "24px" }}>
                 <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
-                  WhatsApp Business API
+                  WhatsApp Bağlantısı
                 </h1>
                 <p
                   style={{
@@ -713,12 +802,13 @@ function SirketimPageInner() {
                     marginTop: "4px",
                   }}
                 >
-                  WhatsApp bildirimlerini aktif etmek için API bilgilerinizi
-                  girin
+                  Kendi WhatsApp numaranızı bağlayarak müşterilerinize mesaj
+                  gönderin
                 </p>
               </div>
 
-              {shop.waEnabled ? (
+              {/* Durum bandı */}
+              {baileysConnected ? (
                 <div
                   style={{
                     background: "#dcfce7",
@@ -733,7 +823,7 @@ function SirketimPageInner() {
                     color: "#16a34a",
                   }}
                 >
-                  ✓ WhatsApp bildirimleri aktif
+                  ✅ WhatsApp bağlı — mesajlar aktif olarak gönderilebilir
                 </div>
               ) : (
                 <div
@@ -747,112 +837,140 @@ function SirketimPageInner() {
                     color: "#854d0e",
                   }}
                 >
-                  WhatsApp bildirimleri henüz aktif değil
+                  WhatsApp henüz bağlı değil
                 </div>
               )}
 
               <div
                 style={{
-                  display: "grid",
-                  gap: "16px",
                   border: "1px solid #e5e7eb",
                   borderRadius: "10px",
                   padding: "20px",
+                  display: "grid",
+                  gap: "16px",
                 }}
               >
-                <div>
-                  <label style={labelStyle}>Phone Number ID</label>
-                  <input
-                    type="text"
-                    value={waPhoneNumberId}
-                    onChange={(e) => setWaPhoneNumberId(e.target.value)}
-                    placeholder="123456789012345"
-                    style={inputStyle}
-                  />
-                </div>
+                {!baileysConnected ? (
+                  <>
+                    <div>
+                      <label style={labelStyle}>
+                        WhatsApp Telefon Numaranız
+                      </label>
+                      <input
+                        type="text"
+                        value={baileysPhone}
+                        onChange={(e) => setBaileysPhone(e.target.value)}
+                        placeholder="+905xxxxxxxxx"
+                        style={inputStyle}
+                        disabled={baileysStatus === "waiting_code"}
+                      />
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          marginTop: "4px",
+                        }}
+                      >
+                        Ülke kodu ile girin. Örn: +905321234567
+                      </p>
+                    </div>
 
-                <div>
-                  <label style={labelStyle}>
-                    Access Token
-                    {shop.waTokenConfigured ? (
-                      <span style={{ fontWeight: 400, color: "#16a34a" }}>
-                        {" "}
-                        (Kayıtlı — yeni token için doldurun)
-                      </span>
+                    {baileysStatus === "waiting_code" && baileysCode ? (
+                      <div
+                        style={{
+                          background: "#eff6ff",
+                          border: "1px solid #93c5fd",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          textAlign: "center",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            color: "#1d4ed8",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          WhatsApp uygulamanızda şu kodu girin:
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "32px",
+                            fontWeight: 700,
+                            color: "#1d4ed8",
+                            letterSpacing: "4px",
+                          }}
+                        >
+                          {baileysCode}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "#6b7280",
+                            marginTop: "8px",
+                          }}
+                        >
+                          WhatsApp → Bağlı Cihazlar → Cihaz Bağla → Telefon
+                          Numarası ile Bağlan
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "#6b7280",
+                            marginTop: "4px",
+                          }}
+                        >
+                          Bağlantı kontrol ediliyor...
+                        </p>
+                      </div>
                     ) : null}
-                  </label>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type={showToken ? "text" : "password"}
-                      value={waAccessToken}
-                      onChange={(e) => setWaAccessToken(e.target.value)}
-                      placeholder="EAAxxxxx..."
-                      autoComplete="new-password"
-                      style={{
-                        ...inputStyle,
-                        padding: "10px 40px 10px 12px",
-                      }}
-                    />
+
                     <button
                       type="button"
-                      onClick={() => setShowToken(!showToken)}
+                      onClick={() => void handleBaileysConnect()}
+                      disabled={
+                        savingBaileys || baileysStatus === "waiting_code"
+                      }
                       style={{
-                        position: "absolute",
-                        right: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        background: "none",
+                        padding: "10px 20px",
+                        background: savingBaileys ? "#86efac" : "#25D366",
+                        color: "white",
                         border: "none",
-                        cursor: "pointer",
-                        color: "#9ca3af",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        cursor: savingBaileys ? "wait" : "pointer",
+                        width: "fit-content",
                       }}
-                      aria-label={showToken ? "Token gizle" : "Token göster"}
                     >
-                      {showToken ? "🙈" : "👁"}
+                      {baileysStatus === "loading"
+                        ? "Bağlanıyor..."
+                        : baileysStatus === "waiting_code"
+                          ? "Kod Bekleniyor..."
+                          : "Bağlan"}
                     </button>
-                  </div>
-                </div>
-
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    cursor: "pointer",
-                    padding: "10px",
-                    background: "#f9fafb",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={waEnabled}
-                    onChange={(e) => setWaEnabled(e.target.checked)}
-                    style={{ width: "16px", height: "16px" }}
-                  />
-                  <span style={{ fontSize: "13px", color: "#374151" }}>
-                    WhatsApp bildirimlerini aktif et
-                  </span>
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() => void handleSaveWA()}
-                  disabled={savingWa}
-                  style={{
-                    padding: "10px 20px",
-                    background: savingWa ? "#86efac" : "#25D366",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    cursor: savingWa ? "wait" : "pointer",
-                    width: "fit-content",
-                  }}
-                >
-                  {savingWa ? "Kaydediliyor…" : "Ayarları Kaydet"}
-                </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void handleBaileysDisconnect()}
+                    disabled={savingBaileys}
+                    style={{
+                      padding: "10px 20px",
+                      background: "#fee2e2",
+                      color: "#dc2626",
+                      border: "1px solid #fca5a5",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      width: "fit-content",
+                    }}
+                  >
+                    Bağlantıyı Kes
+                  </button>
+                )}
               </div>
             </div>
           ) : (
