@@ -74,7 +74,6 @@ function SirketimPageInner() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [savingWa, setSavingWa] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     "sirket" | "whatsapp" | "google"
@@ -90,11 +89,6 @@ function SirketimPageInner() {
   const [address, setAddress] = useState("");
   const [taxOrTcNo, setTaxOrTcNo] = useState("");
   const [taxOffice, setTaxOffice] = useState("");
-
-  const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
-  const [waAccessToken, setWaAccessToken] = useState("");
-  const [waEnabled, setWaEnabled] = useState(false);
-  const [showToken, setShowToken] = useState(false);
 
   const [baileysPhone, setBaileysPhone] = useState("");
   const [baileysCode, setBaileysCode] = useState("");
@@ -119,9 +113,6 @@ function SirketimPageInner() {
       }
       const row = data as ShopFull;
       setShop(row);
-      setWaPhoneNumberId(row.waPhoneNumberId ?? "");
-      setWaAccessToken("");
-      setWaEnabled(Boolean(row.waEnabled));
 
       // Baileys bağlantı durumunu kontrol et
       try {
@@ -274,52 +265,6 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleSaveWA() {
-    if (!shop) {
-      toast.error("Şirket bilgisi yüklenemedi");
-      return;
-    }
-    if (shop.name.trim().length < 2) {
-      toast.error("Şirket adı eksik; önce şirket bilgilerini tamamlayın");
-      return;
-    }
-
-    setSavingWa(true);
-    try {
-      const body: Record<string, unknown> = {
-        name: shop.name.trim(),
-        phone: shop.phone,
-        email: shop.email,
-        website: shop.website,
-        address: shop.address,
-        taxOrTcNo: shop.taxOrTcNo,
-        taxOffice: shop.taxOffice,
-        waPhoneNumberId: waPhoneNumberId.trim() || null,
-        waEnabled,
-      };
-      if (waAccessToken.trim()) {
-        body.waAccessToken = waAccessToken.trim();
-      }
-      const res = await fetch("/api/shop", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        toast.error(data.error ?? "Kayıt başarısız");
-        return;
-      }
-      toast.success("WhatsApp ayarları kaydedildi");
-      setWaAccessToken("");
-      await load();
-    } catch {
-      toast.error("Bağlantı hatası");
-    } finally {
-      setSavingWa(false);
     }
   }
 

@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { jsonServerError } from "@/lib/server-error";
 import { sendBaileysMessage, getSessionStatus } from "@/lib/baileys-client";
-import { WA_TEMPLATES } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
