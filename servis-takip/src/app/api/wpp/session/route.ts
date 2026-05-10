@@ -42,6 +42,8 @@ export async function GET() {
   }
 
   const session = shop.id;
+  const sessionId = shop.id.slice(0, 8);
+  console.log("Checking session:", sessionId);
   const info = await getSessionStatus(session);
   const isConnected = info.connected;
   const phone: string | null = info.phone ?? shop.wppPhone ?? null;
@@ -112,6 +114,10 @@ export async function POST() {
       { status: 400 },
     );
   }
+
+  const sessionId = shop.id.slice(0, 8);
+  console.log("WPP Session ID:", sessionId);
+  console.log("WPP URL:", process.env.WPPCONNECT_URL);
 
   try {
     const ok = await startSession(shop.id);
