@@ -118,24 +118,34 @@ export async function POST(req: Request) {
 function buildMessage(templateName: string, parameters: string[]): string {
   const p = parameters;
   const messages: Record<string, string> = {
-    servis_teslim_alindi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) servisimize teslim alındı. Takip etmek için bize ulaşabilirsiniz.`,
-    fiyat_bildirimi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için tamir ücreti: ${p[3] ?? ""}. Onay vermek için lütfen bize ulaşın.`,
-    onay_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için onayınızı bekliyoruz. Lütfen en kısa sürede bilgi verin.`,
-    onay_verildi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için onayınız alındı. Tamir işlemi başlatıldı.`,
-    parca_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) için gerekli parça temin edilmeyi bekleniyor.`,
-    tamiri_olmuyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) maalesef tamir edilemiyor. Neden: ${p[3] ?? ""}. Cihazınızı teslim alabilirsiniz.`,
-    sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) incelendi, herhangi bir sorun tespit edilmedi.`,
-    musteri_iade_istiyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) iade talebiniz alındı. En kısa sürede işleme alınacak.`,
-    onarim_tamamlandi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) onarımı tamamlandı. Teslim almak için bizi arayabilirsiniz.`,
-    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.`,
-    teslim_tamir_olmuyor: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) tamir edilemeden teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.`,
-    teslim_sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) sorun tespit edilmeden teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.`,
-    teslim_musteri_iade: `Sayın ${p[0] ?? ""}, ${p[2] ?? "cihazınız"} (Seri No: ${p[1] ?? ""}) iade talebiniz doğrultusunda teslim edildi.`,
-    ikinci_el_satin_alindi: `Sayın ${p[0] ?? ""}, ${p[1] ?? "cihazınız"} ${p[2] ?? ""} TL bedelle satın alındı. Teşekkür ederiz.`,
+    servis_teslim_alindi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim alınmıştır. Cihazınızla ilgili gelişmeleri size bildireceğiz.`,
+
+    fiyat_bildirimi: `Sayın ${p[0] ?? ""}. ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın ${p[3] ?? ""} masrafı vardır. Onaylamak için lütfen bu mesajı yanıtlayın.`,
+
+    onay_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız için onayınızı bekliyoruz. Onaylıyorsanız lütfen bu mesajı sadece "onaylıyorum" yazarak yanıtlayın.`,
+
+    onay_verildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız için onay verdiniz. Cihazınızın onarımıyla ilgili sizi bilgilendireceğiz.`,
+
+    parca_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız için gerekli parçayı bekliyoruz. Parça temin edildiğinde cihazınızın onarımıyla ilgili sizi bilgilendireceğiz.`,
+
+    tamiri_olmuyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın onarımı maalesef yapılamıyor. Teknik servisimizin belirlediği neden: (${p[3] ?? ""}) Daha fazla bilgi için teknik servisimizle iletişime geçebilirsiniz.`,
+
+    sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın arıza tespitinde herhangi bir sorun görülmedi. Cihazınızı teslim alabilirsiniz.`,
+
+    musteri_iade_istiyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızı iade almak istediğinizi belirttiniz. Cihazınızı teslim alabilirsiniz.`,
+
+    onarim_tamamlandi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın onarımı tamamlanmıştır. Tamir ücreti ${p[3] ?? ""}. Cihazınızı teslim alabilirsiniz.`,
+
+    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz. Lütfen bize Google'dan yorum yapmayı unutmayın :) https://g.page/r/CVR6INoM1FuaEBE/review`,
+
+    teslim_tamir_olmuyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız tamiri yapılamamış olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+
+    teslim_sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın arıza tespitinde herhangi bir sorun görülmemiş olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+
+    teslim_musteri_iade: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızı iade almak istediğinizi belirttiniz ve herhangi bir işlem yapılmadan teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+
+    ikinci_el_satin_alindi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} cihazınız ${p[2] ?? ""} TL bedelle satın alındı. Teşekkür ederiz.`,
   };
 
-  return (
-    messages[templateName] ??
-    `Servis durumunuz güncellendi. Bilgi için bize ulaşın.`
-  );
+  return messages[templateName] ?? `Servis durumunuz güncellendi. Bilgi için bize ulaşın.`;
 }
