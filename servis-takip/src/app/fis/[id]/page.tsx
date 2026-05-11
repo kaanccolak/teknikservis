@@ -10,6 +10,7 @@ import { formatServiceOrderNo } from "@/lib/service-order-number";
 
 type ShopProfile = {
   name: string;
+  receiptNotes?: string | null;
 };
 
 type FisOrder = {
@@ -121,7 +122,12 @@ export default function ServisFisPage() {
       setOrder(orderData as FisOrder);
       setSettings(settingsData as PrintSettings);
       if (shopRes.ok && typeof (shopData as ShopProfile)?.name === "string") {
-        setShopProfile({ name: (shopData as ShopProfile).name });
+        const sd = shopData as ShopProfile;
+        setShopProfile({
+          name: sd.name,
+          receiptNotes:
+            typeof sd.receiptNotes === "string" ? sd.receiptNotes : null,
+        });
       } else {
         setShopProfile(null);
       }
@@ -322,6 +328,36 @@ export default function ServisFisPage() {
           <p className="mt-6 text-center text-[11px] text-slate-400">
             Bu fiş teknik servis kaydınızın belgesidir.
           </p>
+
+          {shopProfile?.receiptNotes ? (
+            <div
+              style={{
+                marginTop: "24px",
+                borderTop: "1px solid #e5e7eb",
+                paddingTop: "16px",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  marginBottom: "8px",
+                  color: "#111827",
+                }}
+              >
+                Servis Onarım Şartlarımız
+              </p>
+              <div
+                style={{ fontSize: "10px", color: "#374151", lineHeight: "1.6" }}
+              >
+                {shopProfile.receiptNotes.split("\n").map((line, i) => (
+                  <p key={i} style={{ margin: "2px 0" }}>
+                    • {line}
+                  </p>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </>

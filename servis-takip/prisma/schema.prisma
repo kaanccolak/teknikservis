@@ -19,6 +19,7 @@ model Shop {
   taxOrTcNo        String?
   taxOffice        String?
   website          String?
+  receiptNotes     String?           @default("Bu belge olmadan cihaz teslimi yapılamaz.\nBu fiyat 14 gün geçerlidir.\nSıvı temas ve darbeli ürünlerin onarımında garanti yoktur.\nTüm fiyatlarımıza KDV dahildir.\nKredi kartı ile ödemelerde bankaların belirlemiş olduğu komisyonlar dahil edilir.")
   logoUrl          String?
   waPhoneNumberId  String?
   waAccessToken    String?

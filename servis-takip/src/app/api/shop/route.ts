@@ -134,6 +134,9 @@ export async function PATCH(request: Request) {
           body.website !== undefined ? optStr(body.website) : shop.website,
         logoUrl:
           body.logoUrl !== undefined ? optStr(body.logoUrl) : shop.logoUrl,
+        ...(typeof body.receiptNotes === "string"
+          ? { receiptNotes: body.receiptNotes }
+          : {}),
         ...(body.waPhoneNumberId !== undefined
           ? {
               waPhoneNumberId: optStr(body.waPhoneNumberId as string),

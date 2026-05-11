@@ -46,6 +46,7 @@ type ShopFull = {
   waEnabled: boolean;
   waTokenConfigured?: boolean;
   googleContactsConnected?: boolean;
+  receiptNotes?: string | null;
 };
 
 function formatPhone(value: string) {
@@ -240,7 +241,7 @@ function DeleteConfirmDialog({
   );
 }
 
-type TanimlarSubTabId = "types" | "brands" | "models" | "print";
+type TanimlarSubTabId = "types" | "brands" | "models";
 
 
 
@@ -333,7 +334,6 @@ function SirketimTanimlarPanel() {
         {tabBtn("types", "Cihaz türleri")}
         {tabBtn("brands", "Markalar")}
         {tabBtn("models", "Modeller")}
-        {tabBtn("print", "Yazdırma Ayarları")}
       </div>
 
       {tanimlarSubTab === "types" ? (
@@ -345,7 +345,6 @@ function SirketimTanimlarPanel() {
       {tanimlarSubTab === "models" ? (
         <ModelsTab openDeletePasswordModal={openDeletePasswordModal} />
       ) : null}
-      {tanimlarSubTab === "print" ? <PrintSettingsTab /> : null}
 
       {showDeletePasswordModal ? (
         <div
@@ -953,229 +952,19 @@ function ModelsTab({
   );
 }
 
-type PrintSettings = {
-  servis_fisi_boyut: string;
-  servis_fisi_yon: string;
-  servis_fisi_kenar: string;
-  kargo_fisi_boyut: string;
-  kargo_fisi_yon: string;
-  kargo_fisi_kenar: string;
-};
-
-function PrintSettingsTab() {
-  const [settings, setSettings] = useState<PrintSettings>({
-    servis_fisi_boyut: "A4",
-    servis_fisi_yon: "portrait",
-    servis_fisi_kenar: "normal",
-    kargo_fisi_boyut: "A6",
-    kargo_fisi_yon: "portrait",
-    kargo_fisi_kenar: "dar",
-  });
-  const [loading, setLoading] = useState(true);
-  const [savingServis, setSavingServis] = useState(false);
-  const [savingKargo, setSavingKargo] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/settings");
-        const data = (await res.json()) as Partial<PrintSettings> & { error?: string };
-        if (!res.ok) {
-          toast.error(data.error ?? "Ayarlar yüklenemedi");
-          return;
-        }
-        setSettings((prev) => ({ ...prev, ...data }));
-      } catch {
-        toast.error("Ayarlar yüklenemedi");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  async function save(part: "servis" | "kargo") {
-    const payload =
-      part === "servis"
-        ? {
-            servis_fisi_boyut: settings.servis_fisi_boyut,
-            servis_fisi_yon: settings.servis_fisi_yon,
-            servis_fisi_kenar: settings.servis_fisi_kenar,
-          }
-        : {
-            kargo_fisi_boyut: settings.kargo_fisi_boyut,
-            kargo_fisi_yon: settings.kargo_fisi_yon,
-            kargo_fisi_kenar: settings.kargo_fisi_kenar,
-          };
-    if (part === "servis") {
-      setSavingServis(true);
-    } else {
-      setSavingKargo(true);
-    }
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        toast.error(data.error ?? "Ayarlar kaydedilemedi");
-        return;
-      }
-      toast.success("Ayarlar kaydedildi");
-    } catch {
-      toast.error("Ayarlar kaydedilemedi");
-    } finally {
-      if (part === "servis") {
-        setSavingServis(false);
-      } else {
-        setSavingKargo(false);
-      }
-    }
-  }
-
-  const sizeOptions = ["A4", "A5", "A6", "80mm termal", "58mm termal"];
-  const marginOptions = [
-    { value: "yok", label: "Yok" },
-    { value: "dar", label: "Dar" },
-    { value: "normal", label: "Normal" },
-    { value: "genis", label: "Geniş" },
-  ];
-
-  if (loading) {
-    return <p className="text-sm text-slate-600">Ayarlar yükleniyor...</p>;
-  }
-
-  return (
-    <div className="space-y-4">
-      <Card className="border-slate-200/80 bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle>Servis Giriş Fişi</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Kağıt Boyutu</Label>
-            <select
-              className={nativeSelectClassName}
-              value={settings.servis_fisi_boyut}
-              onChange={(e) => setSettings((p) => ({ ...p, servis_fisi_boyut: e.target.value }))}
-            >
-              {sizeOptions.map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>Yönlendirme</Label>
-            <div className="flex gap-4 text-sm">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="servis-yon"
-                  checked={settings.servis_fisi_yon === "portrait"}
-                  onChange={() => setSettings((p) => ({ ...p, servis_fisi_yon: "portrait" }))}
-                />
-                Dikey
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="servis-yon"
-                  checked={settings.servis_fisi_yon === "landscape"}
-                  onChange={() => setSettings((p) => ({ ...p, servis_fisi_yon: "landscape" }))}
-                />
-                Yatay
-              </label>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Kenar Boşluğu</Label>
-            <select
-              className={nativeSelectClassName}
-              value={settings.servis_fisi_kenar}
-              onChange={(e) => setSettings((p) => ({ ...p, servis_fisi_kenar: e.target.value }))}
-            >
-              {marginOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-          <Button type="button" onClick={() => void save("servis")} disabled={savingServis}>
-            {savingServis ? "Kaydediliyor..." : "Kaydet"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="border-slate-200/80 bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle>Kargo Gönderi Fişi</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Kağıt Boyutu</Label>
-            <select
-              className={nativeSelectClassName}
-              value={settings.kargo_fisi_boyut}
-              onChange={(e) => setSettings((p) => ({ ...p, kargo_fisi_boyut: e.target.value }))}
-            >
-              {sizeOptions.map((o) => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>Yönlendirme</Label>
-            <div className="flex gap-4 text-sm">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="kargo-yon"
-                  checked={settings.kargo_fisi_yon === "portrait"}
-                  onChange={() => setSettings((p) => ({ ...p, kargo_fisi_yon: "portrait" }))}
-                />
-                Dikey
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="kargo-yon"
-                  checked={settings.kargo_fisi_yon === "landscape"}
-                  onChange={() => setSettings((p) => ({ ...p, kargo_fisi_yon: "landscape" }))}
-                />
-                Yatay
-              </label>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Kenar Boşluğu</Label>
-            <select
-              className={nativeSelectClassName}
-              value={settings.kargo_fisi_kenar}
-              onChange={(e) => setSettings((p) => ({ ...p, kargo_fisi_kenar: e.target.value }))}
-            >
-              {marginOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-          <Button type="button" onClick={() => void save("kargo")} disabled={savingKargo}>
-            {savingKargo ? "Kaydediliyor..." : "Kaydet"}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-
 function SirketimPageInner() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "sirket" | "whatsapp" | "google" | "silinen" | "durumlar" | "tanimlar"
+    | "sirket"
+    | "whatsapp"
+    | "google"
+    | "silinen"
+    | "durumlar"
+    | "tanimlar"
+    | "fis"
   >("sirket");
   const [deletedOrders, setDeletedOrders] = useState<{
     id: string;
@@ -1192,6 +981,8 @@ function SirketimPageInner() {
   const [editing, setEditing] = useState(false);
 
   const [shop, setShop] = useState<ShopFull | null>(null);
+  const [receiptNotes, setReceiptNotes] = useState("");
+  const [savingReceiptNotes, setSavingReceiptNotes] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -1247,6 +1038,7 @@ function SirketimPageInner() {
       }
       const row = data as ShopFull;
       setShop(row);
+      setReceiptNotes(row.receiptNotes ?? "");
 
       // Baileys bağlantı durumunu kontrol et
       try {
@@ -1300,11 +1092,45 @@ function SirketimPageInner() {
     setEditing(false);
   }
 
+  async function handleSaveReceiptNotes() {
+    setSavingReceiptNotes(true);
+    try {
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receiptNotes }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("Fiş ayarları kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingReceiptNotes(false);
+    }
+  }
+
   function selectTab(
-    tab: "sirket" | "whatsapp" | "google" | "silinen" | "durumlar" | "tanimlar",
+    tab:
+      | "sirket"
+      | "whatsapp"
+      | "google"
+      | "silinen"
+      | "durumlar"
+      | "tanimlar"
+      | "fis",
   ) {
     setActiveTab(tab);
-    if (tab === "whatsapp" || tab === "google" || tab === "silinen" || tab === "tanimlar")
+    if (
+      tab === "whatsapp" ||
+      tab === "google" ||
+      tab === "silinen" ||
+      tab === "tanimlar" ||
+      tab === "fis"
+    )
       setEditing(false);
     if (tab === "silinen") void loadDeletedOrders();
     if (tab === "durumlar") void loadWaTemplates();
@@ -1853,6 +1679,26 @@ function SirketimPageInner() {
               }}
             >
               ⚙️ Tanımlar
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("fis")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "fis" ? "600" : "400",
+                color: activeTab === "fis" ? "#111827" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "fis"
+                    ? "2px solid #111827"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+              }}
+            >
+              🧾 Fiş / Nüsha Ayarları
             </button>
           </div>
 
@@ -2676,6 +2522,143 @@ function SirketimPageInner() {
                   </button>
                 )}
               </div>
+            </div>
+          ) : activeTab === "fis" ? (
+            <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "24px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
+                  Fiş / Nüsha Ayarları
+                </h1>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
+                  Müşteri nüshasının altında görünecek servis şartlarını
+                  düzenleyin
+                </p>
+              </div>
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Servis Onarım Şartları
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Her satır müşteri nüshasında ayrı madde olarak görünür
+                </p>
+                <textarea
+                  value={receiptNotes}
+                  onChange={(e) => setReceiptNotes(e.target.value)}
+                  rows={8}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    padding: "10px 12px",
+                    fontSize: "13px",
+                    resize: "vertical",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    lineHeight: "1.6",
+                  }}
+                  placeholder="Her satıra bir madde yazın..."
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleSaveReceiptNotes()}
+                  disabled={savingReceiptNotes}
+                  style={{
+                    marginTop: "16px",
+                    padding: "10px 20px",
+                    background: savingReceiptNotes ? "#d1d5db" : "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: savingReceiptNotes ? "wait" : "pointer",
+                  }}
+                >
+                  {savingReceiptNotes ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+              </div>
+
+              {receiptNotes ? (
+                <div
+                  style={{
+                    marginTop: "24px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    padding: "20px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      marginBottom: "12px",
+                      color: "#374151",
+                    }}
+                  >
+                    Önizleme
+                  </p>
+                  <div
+                    style={{
+                      borderTop: "1px solid #e5e7eb",
+                      paddingTop: "12px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        marginBottom: "8px",
+                        color: "#111827",
+                      }}
+                    >
+                      Servis Onarım Şartlarımız
+                    </p>
+                    {receiptNotes
+                      .split("\n")
+                      .filter((l) => l.trim())
+                      .map((line, i) => (
+                        <p
+                          key={i}
+                          style={{
+                            fontSize: "10px",
+                            color: "#374151",
+                            margin: "2px 0",
+                            lineHeight: "1.6",
+                          }}
+                        >
+                          • {line}
+                        </p>
+                      ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : activeTab === "tanimlar" ? (
             <div style={{ maxWidth: "900px", margin: "0 auto" }}>
