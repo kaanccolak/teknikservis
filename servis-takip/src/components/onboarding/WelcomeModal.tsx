@@ -82,6 +82,11 @@ export default function WelcomeModal() {
               title: "Raporlar ve Ciro",
               desc: "Günlük, haftalık ve aylık ciro takibi yapın. Hangi cihaz türünden ne kadar gelir elde ettiğinizi görün.",
             },
+            {
+              icon: "⚙️",
+              title: "Tanımlar — Önce Doldurun!",
+              desc: "Cihaz türü, marka ve model tanımlarını yapın. Bu bilgiler olmadan cihaz kaydı yapamazsınız. Şirketim > Tanımlar sekmesinden başlayın.",
+            },
           ].map((item, i) => (
             <div
               key={i}
@@ -125,7 +130,7 @@ export default function WelcomeModal() {
             background: "#eff6ff",
             borderRadius: "10px",
             padding: "14px 16px",
-            marginBottom: "24px",
+            marginBottom: "16px",
             display: "flex",
             gap: "10px",
             alignItems: "flex-start",
@@ -135,7 +140,28 @@ export default function WelcomeModal() {
           <p style={{ fontSize: "13px", color: "#1d4ed8", lineHeight: "1.5" }}>
             <strong>İlk yapmanız gereken:</strong> Şirket bilgilerinizi ve
             WhatsApp numaranızı bağlamak için <strong>Şirketim</strong> sayfasını
-            ziyaret edin.
+            ziyaret edin. Ayrıca cihaz kaydı yapabilmek için{" "}
+            <strong>Tanımlar</strong> sekmesinden cihaz türü, marka ve model
+            ekleyin.
+          </p>
+        </div>
+        <div
+          style={{
+            background: "#fef9c3",
+            borderRadius: "10px",
+            padding: "14px 16px",
+            marginBottom: "24px",
+            display: "flex",
+            gap: "10px",
+            alignItems: "flex-start",
+          }}
+        >
+          <span style={{ fontSize: "18px" }}>🔒</span>
+          <p style={{ fontSize: "13px", color: "#854d0e", lineHeight: "1.5" }}>
+            <strong>Güvenlik önerisi:</strong> Şirket ayarlarınızı korumak için
+            sağ üstteki{" "}
+            <strong>&quot;Şirket parolası oluştur&quot;</strong> seçeneğiyle bir
+            parola belirleyin.
           </p>
         </div>
 

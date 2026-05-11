@@ -2901,9 +2901,10 @@ export default function SirketimPage() {
         title="Şirketim"
         description="Şirket bilgilerinizi, WhatsApp entegrasyonunuzu ve uygulama ayarlarınızı buradan yönetin."
         tips={[
+          "Tanımlar sekmesinden cihaz türü, marka ve model ekleyin — bunlar olmadan cihaz kaydı yapamazsınız",
           "WhatsApp sekmesinden numaranızı bağlayın — müşterilere otomatik mesaj gönderebilirsiniz",
-          "Mesaj Şablonları sekmesinden gönderilecek mesajları özelleştirin",
-          "Fiş/Nüsha Ayarları'ndan servis şartlarınızı düzenleyin",
+          "Mesaj Şablonları sekmesinden gönderilecek mesaj metinlerini özelleştirin",
+          "Sağ üstteki 'Şirket parolası oluştur' ile ayarlarınızı yetkisiz erişime karşı koruyun",
         ]}
       />
       <Suspense fallback={<PageSkeleton />}>
