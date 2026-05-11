@@ -291,6 +291,7 @@ export default function ServisDetayPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRepairDetailsModal, setShowRepairDetailsModal] = useState(false);
   const [repairDetailsInput, setRepairDetailsInput] = useState("");
+  const [editingRepairDetails, setEditingRepairDetails] = useState(false);
   const [savingRepairDetails, setSavingRepairDetails] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
@@ -2009,17 +2010,113 @@ export default function ServisDetayPage() {
                   </DetailRow>
                 ) : null}
               </dl>
-              {order.repairDetails && (
-                <div style={{ marginTop: "12px" }}>
+              {/* Yapılan Onarım */}
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px 16px",
+                  background: "#f0fdf4",
+                  border: "1px solid #86efac",
+                  borderRadius: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "6px",
+                  }}
+                >
                   <p
                     style={{
                       fontSize: "12px",
-                      color: "#6b7280",
-                      marginBottom: "4px",
+                      fontWeight: 600,
+                      color: "#16a34a",
                     }}
                   >
-                    Yapılan Onarım
+                    🔧 Yapılan Onarım
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRepairDetailsInput(order.repairDetails ?? "");
+                      setEditingRepairDetails(true);
+                    }}
+                    style={{
+                      fontSize: "11px",
+                      color: "#16a34a",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Düzenle
+                  </button>
+                </div>
+                {editingRepairDetails ? (
+                  <div>
+                    <textarea
+                      value={repairDetailsInput}
+                      onChange={(e) => setRepairDetailsInput(e.target.value)}
+                      rows={3}
+                      style={{
+                        width: "100%",
+                        border: "1px solid #86efac",
+                        borderRadius: "6px",
+                        padding: "8px 10px",
+                        fontSize: "13px",
+                        resize: "vertical",
+                        outline: "none",
+                        boxSizing: "border-box",
+                        fontFamily: "inherit",
+                      }}
+                      autoFocus
+                    />
+                    <div
+                      style={{ display: "flex", gap: "8px", marginTop: "8px" }}
+                    >
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await patchOrder({
+                            repairDetails: repairDetailsInput,
+                          });
+                          setEditingRepairDetails(false);
+                          toast.success("Onarım detayı güncellendi");
+                          await load();
+                        }}
+                        style={{
+                          padding: "6px 14px",
+                          background: "#16a34a",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Kaydet
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRepairDetails(false)}
+                        style={{
+                          padding: "6px 14px",
+                          background: "white",
+                          color: "#374151",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        İptal
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                   <p
                     style={{
                       fontSize: "13px",
@@ -2027,10 +2124,10 @@ export default function ServisDetayPage() {
                       lineHeight: "1.6",
                     }}
                   >
-                    {order.repairDetails}
+                    {order.repairDetails || "Henüz onarım detayı girilmemiş"}
                   </p>
-                </div>
-              )}
+                )}
+              </div>
               {order.status === "repair_failed" &&
               order.repairFailedReason?.trim() ? (
                 <div
