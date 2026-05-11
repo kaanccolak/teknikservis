@@ -27,20 +27,24 @@ export default function WelcomeModal() {
         inset: 0,
         background: "rgba(0,0,0,0.6)",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "center",
         zIndex: 9999,
         padding: "16px",
+        overflowY: "auto",
       }}
     >
       <div
         style={{
           background: "white",
           borderRadius: "16px",
-          padding: "40px",
+          padding: "28px 24px",
           width: "100%",
           maxWidth: "560px",
           boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+          margin: "auto",
+          maxHeight: "calc(100vh - 32px)",
+          overflowY: "auto",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
