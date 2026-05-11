@@ -1478,7 +1478,7 @@ function SirketimPageInner() {
               padding: "10px 12px",
               border: passwordError ? "1px solid #fca5a5" : "1px solid #d1d5db",
               borderRadius: "8px",
-              fontSize: "14px",
+              fontSize: "16px",
               outline: "none",
               boxSizing: "border-box",
               marginBottom: "8px",
@@ -2217,6 +2217,7 @@ function SirketimPageInner() {
                     border: "1px solid #e5e7eb",
                     borderRadius: "10px",
                     overflow: "hidden",
+                    overflowX: "auto",
                   }}
                 >
                   <table
@@ -2224,6 +2225,7 @@ function SirketimPageInner() {
                       width: "100%",
                       borderCollapse: "collapse",
                       fontSize: "13px",
+                      minWidth: "500px",
                     }}
                   >
                     <thead>
