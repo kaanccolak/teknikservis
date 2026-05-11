@@ -1747,20 +1747,10 @@ export default function ServisDetayPage() {
           </Link>
           <Link
             href={`/teslim-fisi/${encodeURIComponent(order.id)}`}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 14px",
-              background: "#f0fdf4",
-              color: "#16a34a",
-              border: "1px solid #86efac",
-              borderRadius: "6px",
-              fontSize: "13px",
-              textDecoration: "none",
-            }}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
-            📄 Teslim Fişi
+            <Printer className="mr-2 size-4" aria-hidden />
+            Teslim Fişi
           </Link>
           <Link
             href={`/dukkan-nushasi/${encodeURIComponent(order.id)}`}
