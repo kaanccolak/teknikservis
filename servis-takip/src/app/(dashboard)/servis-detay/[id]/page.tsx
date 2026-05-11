@@ -1719,42 +1719,53 @@ export default function ServisDetayPage() {
           borderBottom: "1px solid #e5e7eb",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <Button type="button" variant="outline" size="sm" onClick={handleBack}>
+        <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="whitespace-nowrap"
+            onClick={handleBack}
+          >
             <ArrowLeft className="mr-2 size-4" aria-hidden />
             Geri Dön
           </Button>
           <Link
             href={editHref}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "whitespace-nowrap",
+            )}
           >
             <Pencil className="mr-2 size-4" aria-hidden />
             Kaydı Düzenle
           </Link>
           <Link
             href={`/fis/${encodeURIComponent(order.id)}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "whitespace-nowrap",
+            )}
           >
             <Printer className="mr-2 size-4" aria-hidden />
             Müşteri Nüshası
           </Link>
           <Link
             href={`/teslim-fisi/${encodeURIComponent(order.id)}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "whitespace-nowrap",
+            )}
           >
             <Printer className="mr-2 size-4" aria-hidden />
             Teslim Fişi
           </Link>
           <Link
             href={`/dukkan-nushasi/${encodeURIComponent(order.id)}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "whitespace-nowrap",
+            )}
           >
             <Printer className="mr-2 size-4" aria-hidden />
             Cihaz Etiketi
@@ -1763,6 +1774,7 @@ export default function ServisDetayPage() {
             type="button"
             variant="destructive"
             size="sm"
+            className="whitespace-nowrap"
             onClick={() => setDeleteOpen(true)}
           >
             <Trash2 className="mr-2 size-4" aria-hidden />

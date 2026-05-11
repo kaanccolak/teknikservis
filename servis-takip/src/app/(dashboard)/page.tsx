@@ -920,7 +920,14 @@ export default function DashboardPage() {
         }
         @media (max-width: 640px) {
           .dash-grid-r1, .dash-grid-r1-skel {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .dash-grid-r2, .dash-grid-r2-skel {
+            grid-template-columns: 1fr !important;
+          }
+          .dash-grid-bottom, .dash-grid-bottom-skel {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
@@ -934,8 +941,8 @@ export default function DashboardPage() {
             gidebilirsiniz.
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <div className="flex flex-wrap items-center gap-2 lg:gap-5">
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
             {!ratesLoading && (!rates.usd || !rates.eur) ? null : (
               <>
                 {ratesLoading ? (

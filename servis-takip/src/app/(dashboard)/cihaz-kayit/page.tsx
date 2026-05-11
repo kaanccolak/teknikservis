@@ -682,7 +682,7 @@ function CihazKayitServiceInner({
       ) : null}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="flex gap-6">
+        <div className="flex flex-col gap-6 lg:flex-row">
           <div className="min-w-0 flex-1 space-y-6">
             <Card className="border-slate-200/80 bg-white shadow-sm">
             <CardHeader>
@@ -1313,7 +1313,7 @@ function CihazKayitServiceInner({
             </div>
           </div>
 
-          <div className="w-96 shrink-0">
+          <div className="w-full shrink-0 lg:w-96">
             {customerPanelOpen ? (
               <aside className="sticky top-4 rounded-lg border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 p-4">

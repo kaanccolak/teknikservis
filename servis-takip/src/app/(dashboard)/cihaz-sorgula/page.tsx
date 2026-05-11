@@ -334,7 +334,7 @@ function CihazSorgulaInner() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+      <div className="flex flex-col flex-wrap gap-3 lg:flex-row lg:items-end">
         <div className="min-w-0 flex-1 space-y-1.5">
           <Label htmlFor="search" className="sr-only">
             Arama
@@ -349,7 +349,7 @@ function CihazSorgulaInner() {
               setSearch(value);
               updateURL({ search: value });
             }}
-            className="w-full"
+            className="w-full sm:w-auto"
           />
         </div>
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:gap-3">
@@ -598,7 +598,7 @@ function CihazSorgulaInner() {
             Kayıt bulunamadı
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="-mx-6 overflow-x-auto px-6 sm:mx-0 sm:px-0">
             <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/90">
