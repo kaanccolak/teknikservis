@@ -1545,8 +1545,12 @@ function SirketimPageInner() {
           <div
             style={{
               display: "flex",
+              overflowX: "auto",
               borderBottom: "1px solid #e5e7eb",
               marginBottom: "24px",
+              WebkitOverflowScrolling: "touch" as const,
+              scrollbarWidth: "none" as const,
+              gap: "0",
             }}
           >
             <button
@@ -1565,6 +1569,8 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               Şirket Bilgileri
@@ -1588,6 +1594,8 @@ function SirketimPageInner() {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               <svg
@@ -1618,6 +1626,8 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               💬 Mesaj Şablonları
@@ -1641,6 +1651,8 @@ function SirketimPageInner() {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               🗑️ Silinen Kayıtlar
@@ -1661,6 +1673,8 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               Google Contacts
@@ -1678,6 +1692,8 @@ function SirketimPageInner() {
                 borderBottom: activeTab === "tanimlar" ? "2px solid #111827" : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               ⚙️ Tanımlar
@@ -1698,6 +1714,8 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               🧾 Fiş / Nüsha Ayarları
