@@ -1542,17 +1542,23 @@ function SirketimPageInner() {
               {hasSettingsPassword ? "değiştir" : "oluştur"}
             </button>
           </div>
-          <div
-            style={{
-              display: "flex",
-              overflowX: "auto",
-              borderBottom: "1px solid #e5e7eb",
-              marginBottom: "24px",
-              WebkitOverflowScrolling: "touch" as const,
-              scrollbarWidth: "none" as const,
-              gap: "0",
-            }}
-          >
+          <div style={{ paddingTop: "16px" }}>
+            <div
+              style={{
+                display: "flex",
+                overflowX: "auto",
+                borderBottom: "1px solid #e5e7eb",
+                marginBottom: "24px",
+                WebkitOverflowScrolling: "touch" as const,
+                scrollbarWidth: "none" as const,
+                gap: "0",
+                position: "sticky",
+                top: 0,
+                background: "white",
+                zIndex: 10,
+                paddingTop: "8px",
+              }}
+            >
             <button
               type="button"
               onClick={() => selectTab("sirket")}
@@ -1569,7 +1575,7 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
@@ -1594,7 +1600,7 @@ function SirketimPageInner() {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
@@ -1626,7 +1632,7 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
@@ -1651,7 +1657,7 @@ function SirketimPageInner() {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
@@ -1673,7 +1679,7 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
@@ -1692,7 +1698,7 @@ function SirketimPageInner() {
                 borderBottom: activeTab === "tanimlar" ? "2px solid #111827" : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
@@ -1714,12 +1720,13 @@ function SirketimPageInner() {
                     : "2px solid transparent",
                 cursor: "pointer",
                 marginBottom: "-1px",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap" as const,
                 flexShrink: 0,
               }}
             >
               🧾 Fiş / Nüsha Ayarları
             </button>
+            </div>
           </div>
 
           {activeTab === "sirket" ? (
