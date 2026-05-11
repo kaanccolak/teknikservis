@@ -37,7 +37,7 @@ export async function GET(
   }
 
   const order = await prisma.serviceOrder.findFirst({
-    where: { id: orderId, shopId: shop.id },
+    where: { id: orderId, shopId: shop.id, deletedAt: null },
     select: { id: true },
   });
   if (!order) {
@@ -100,7 +100,7 @@ export async function POST(
   }
 
   const order = await prisma.serviceOrder.findFirst({
-    where: { id: orderId, shopId: shop.id },
+    where: { id: orderId, shopId: shop.id, deletedAt: null },
     select: { id: true },
   });
   if (!order) {

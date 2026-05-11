@@ -222,6 +222,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 ## Performans Notları
 
+- **`src/components/layout/Sidebar.tsx`** — Tüm **`Link`** bileşenlerine **`prefetch={false}`** verildi; gereksiz prefetch istekleri azaltıldı, dashboard ilk yükleme daha hafif.
 - `src/lib/cache.ts` — bellek içi cache (**device-types**, **brands**, **models**; yaklaşık **5 dk TTL**). Tanımlar / ilgili API’lerde POST/DELETE sonrası **invalidate** edilir.
 - `src/lib/getShop.ts` — Oturumdaki kullanıcının shop'unu döndürür; **TTL önbelleği yok** (`setShopCache` / `invalidateShopCache` uyumluluk için no-op olabilir).
 - Ağır dashboard / listeleme uçlarında mümkün olduğunca **`Promise.all`** ile paralel Prisma sorguları.
@@ -293,12 +294,15 @@ YYYYMM### — örnek: 202605001
 - **Meta WhatsApp Business API** giden mesaj için **kaldırıldı**; bildirimler **Baileys** tabanlı kendi altyapımızdan gider.
 - **VPS:** Hetzner **46.62.253.209**, Ubuntu **24.04**, **CX23**; **PM2** ile `baileys-api` yönetimi (restart sonrası otomatik ayağa kalkma). SSH: `ssh root@46.62.253.209`. Log / restart: `pm2 logs baileys-api`, `pm2 restart baileys-api`.
 - **Oturum dosyaları:** `/opt/baileys/sessions/{shopId}/` (VPS üzerinde).
-- **Şirketim:** sekme adı **WhatsApp**; her dükkan kendi numarasını **pairing kodu** ile bağlar (`/api/baileys/connect`, durum `/api/baileys/status`, kesme `/api/baileys/disconnect`).
+- **Oturum temizliği (Baileys sunucu):** WhatsApp’tan cihaz silindiğinde **`loggedOut`** event’i alınır; **`deleteSession`** ile session dosyaları otomatik temizlenir. Yeni bağlantı kurulmadan önce eski session temizlenir: **`/session/connect`** endpoint’i önce **`deleteSession`** çağırır, ardından yeni eşleme akışına devam eder.
+- **Şirketim:** sekme adı **“WhatsApp API”** → **“WhatsApp”** olarak güncellendi; her dükkan kendi numarasını **pairing kodu** ile bağlar (`/api/baileys/connect`, durum `/api/baileys/status`, kesme `/api/baileys/disconnect`).
+- **Şirketim — WhatsApp sekmesi telefon alanı:** Sabit **+90** prefix gösterilir; kullanıcı yalnızca **10 haneli** ulusal numarayı girer (yalnızca rakam, en fazla 10 karakter). API’ye **`+90` + girilen rakamlar** birleşik gönderilir.
+- **Pairing kodu gösterimi:** Dönen **8 karakterlik** kod arayüzde ortadan tire ile ayrılır (örn. `ABCD-1234`).
 - **Next.js ortamı:** `BAILEYS_API_URL`, `BAILEYS_API_KEY`; istemci kütüphane **`src/lib/baileys-client.ts`**.
 
 ### WhatsApp — mantıksal şablon anahtarları (`WA_TEMPLATES` + `buildMessage`)
 
-Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` ve **`getParams(order)`** (sıra korunur). **Gönderilen metin** Meta şablonu değil **düz metin**; `POST /api/whatsapp/send` içinde **`buildMessage(templateName, parameters)`** ile üretilir, ardından Baileys **`sendBaileysMessage`** çağrılır. `sent_to_external` için kayıt yok — **WA sorusu çıkmaz**.
+Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` ve **`getParams(order)`** (sıra korunur). **Gönderilen metin** Meta şablonu değil **düz metin**; `POST /api/whatsapp/send` içinde **`buildMessage(templateName, parameters)`** ile üretilir, ardından Baileys **`sendBaileysMessage`** çağrılır. `sent_to_external` için kayıt yok — **WA sorusu çıkmaz**. **`buildMessage`** güncellendi: tüm servis durumları için **Türkçe düz metin** mesajlar tanımlandı.
 
 | Uygulama durumu | Anahtar (`templateName`) | Parametreler (sıra, `getParams` ile uyumlu) |
 |-----------------|---------------------------|---------------------------------------------|
@@ -320,7 +324,7 @@ Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` 
 
 ### WA Mesajları sayfası
 
-- **`/whatsapp-mesajlari`** sayfası ve **sidebar** “WA Mesajları” menü öğesi **kaldırıldı**.
+- **`/whatsapp-mesajlari`** rotası, sayfa ve **sidebar** içindeki **“WA Mesajları”** menü öğesi **kaldırıldı**.
 
 ### Durum değişince WA bildirimi
 

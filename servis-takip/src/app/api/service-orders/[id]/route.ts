@@ -82,7 +82,7 @@ export async function GET(
 
   try {
     const order = await prisma.serviceOrder.findFirst({
-      where: { id, shopId: shop.id },
+      where: { id, shopId: shop.id, deletedAt: null },
       include: serviceOrderInclude,
     });
     if (!order) {
@@ -290,7 +290,7 @@ export async function PATCH(
   let existing;
   try {
     existing = await prisma.serviceOrder.findFirst({
-      where: { id, shopId: shop.id },
+      where: { id, shopId: shop.id, deletedAt: null },
       select: { id: true, status: true, customerId: true, externalServiceId: true },
     });
   } catch (e) {
@@ -425,7 +425,7 @@ export async function PATCH(
     });
 
     const updated = await prisma.serviceOrder.findFirst({
-      where: { id, shopId: shop.id },
+      where: { id, shopId: shop.id, deletedAt: null },
       include: serviceOrderInclude,
     });
 
@@ -466,7 +466,7 @@ export async function DELETE(
   let existing;
   try {
     existing = await prisma.serviceOrder.findFirst({
-      where: { id, shopId: shop.id },
+      where: { id, shopId: shop.id, deletedAt: null },
       select: { id: true },
     });
   } catch (e) {
@@ -497,7 +497,10 @@ export async function DELETE(
         where: { serviceOrderId: id, shopId: shop.id },
       });
       await tx.statusLog.deleteMany({ where: { serviceOrderId: id } });
-      await tx.serviceOrder.delete({ where: { id } });
+      await tx.serviceOrder.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
     });
     return new NextResponse(null, { status: 200 });
   } catch (e) {

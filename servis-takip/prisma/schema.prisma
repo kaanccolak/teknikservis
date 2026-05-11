@@ -246,6 +246,7 @@ model ServiceOrder {
   deliveryPersonName String?
   deliveryNote       String?
 
+  deletedAt      DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   statusLogs       StatusLog[]

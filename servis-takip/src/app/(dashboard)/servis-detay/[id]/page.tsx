@@ -280,10 +280,8 @@ export default function ServisDetayPage() {
   const [waConfirmSending, setWaConfirmSending] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const [waInboundMessages, setWaInboundMessages] = useState<WaInboundMsg[]>(
-    [],
-  );
-  const [waInboundLoading, setWaInboundLoading] = useState(false);
+  const [, setWaInboundMessages] = useState<WaInboundMsg[]>([]);
+  const [, setWaInboundLoading] = useState(false);
 
   const nativeSelectClassName =
     "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
@@ -2458,38 +2456,48 @@ export default function ServisDetayPage() {
               <CardTitle>Durum Geçmişi</CardTitle>
             </CardHeader>
             <CardContent>
-              {order.statusLogs.length === 0 ? (
-                <p className="text-sm text-slate-600">
-                  Henüz durum değişikliği yok
-                </p>
-              ) : (
-                <ul className="space-y-3">
-                  {order.statusLogs.map((log) => (
-                    <li
-                      key={log.id}
-                      className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2 text-sm"
-                    >
-                      <p className="text-xs text-slate-500">
-                        {formatLogAt(log.createdAt)}
-                      </p>
-                      <p className="mt-1 text-slate-800">
-                        <span className="font-medium">
-                          {log.oldStatus
-                            ? serviceOrderStatusLabel(log.oldStatus)
-                            : "—"}
-                        </span>
-                        <span className="mx-1.5 text-slate-400">→</span>
-                        <span className="font-medium">
-                          {serviceOrderStatusLabel(log.newStatus)}
-                        </span>
-                      </p>
-                      {log.note ? (
-                        <p className="mt-1 text-xs text-slate-600">{log.note}</p>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div
+                style={{
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                  paddingRight: "4px",
+                }}
+              >
+                {order.statusLogs.length === 0 ? (
+                  <p className="text-sm text-slate-600">
+                    Henüz durum değişikliği yok
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {order.statusLogs.map((log) => (
+                      <li
+                        key={log.id}
+                        className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2 text-sm"
+                      >
+                        <p className="text-xs text-slate-500">
+                          {formatLogAt(log.createdAt)}
+                        </p>
+                        <p className="mt-1 text-slate-800">
+                          <span className="font-medium">
+                            {log.oldStatus
+                              ? serviceOrderStatusLabel(log.oldStatus)
+                              : "—"}
+                          </span>
+                          <span className="mx-1.5 text-slate-400">→</span>
+                          <span className="font-medium">
+                            {serviceOrderStatusLabel(log.newStatus)}
+                          </span>
+                        </p>
+                        {log.note ? (
+                          <p className="mt-1 text-xs text-slate-600">
+                            {log.note}
+                          </p>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               {isDeliveredServiceOrderStatus(order.status) && order.deliveryType ? (
                 <div
                   style={{
@@ -2532,62 +2540,6 @@ export default function ServisDetayPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: "10px",
-              background: "white",
-            }}
-          >
-            <CardHeader className="border-b border-slate-100 pb-3">
-              <CardTitle className="text-base">WhatsApp Mesajları</CardTitle>
-              <CardDescription>
-                Bu kayıtla eşleşen gelen mesajlar
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              {waInboundLoading ? (
-                <p className="flex items-center gap-2 text-sm text-slate-600">
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
-                  Yükleniyor…
-                </p>
-              ) : waInboundMessages.length === 0 ? (
-                <p className="text-sm text-slate-600">Henüz mesaj yok</p>
-              ) : (
-                <div className="max-h-[420px] overflow-y-auto pr-1">
-                  {waInboundMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      style={{
-                        padding: "8px 12px",
-                        background: "#f0fdf4",
-                        borderRadius: "8px",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      <div
-                        style={{ fontSize: "12px", color: "#666" }}
-                      >
-                        {new Date(msg.timestamp).toLocaleString("tr-TR")}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          marginTop: "2px",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {msg.message}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

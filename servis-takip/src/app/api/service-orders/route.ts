@@ -76,6 +76,7 @@ export async function GET(request: Request) {
 
   const where: Prisma.ServiceOrderWhereInput = {
     shopId: shop.id,
+    deletedAt: null,
   };
 
   if (deviceTypeId) {

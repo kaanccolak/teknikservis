@@ -76,8 +76,17 @@ function SirketimPageInner() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "sirket" | "whatsapp" | "google"
+    "sirket" | "whatsapp" | "google" | "silinen"
   >("sirket");
+  const [deletedOrders, setDeletedOrders] = useState<{
+    id: string;
+    orderNo: string;
+    customerName: string;
+    deviceName: string;
+    deletedAt: string;
+    createdAt: string;
+  }[]>([]);
+  const [loadingDeleted, setLoadingDeleted] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const [shop, setShop] = useState<ShopFull | null>(null);
@@ -166,9 +175,24 @@ function SirketimPageInner() {
     setEditing(false);
   }
 
-  function selectTab(tab: "sirket" | "whatsapp" | "google") {
+  function selectTab(tab: "sirket" | "whatsapp" | "google" | "silinen") {
     setActiveTab(tab);
-    if (tab === "whatsapp" || tab === "google") setEditing(false);
+    if (tab === "whatsapp" || tab === "google" || tab === "silinen")
+      setEditing(false);
+    if (tab === "silinen") void loadDeletedOrders();
+  }
+
+  async function loadDeletedOrders() {
+    setLoadingDeleted(true);
+    try {
+      const res = await fetch("/api/shop/deleted-orders");
+      const data = await res.json();
+      setDeletedOrders(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Silinen kayıtlar yüklenemedi");
+    } finally {
+      setLoadingDeleted(false);
+    }
   }
 
   function handleGoogleConnect() {
@@ -422,6 +446,29 @@ function SirketimPageInner() {
                 <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.29-1.505A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.366l-.36-.214-3.733.893.924-3.638-.235-.374A9.818 9.818 0 1 1 12 21.818z" />
               </svg>
               WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("silinen")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "silinen" ? "600" : "400",
+                color: activeTab === "silinen" ? "#dc2626" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "silinen"
+                    ? "2px solid #dc2626"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              🗑️ Silinen Kayıtlar
             </button>
             <button
               type="button"
@@ -732,6 +779,152 @@ function SirketimPageInner() {
                     </button>
                   </div>
                 </>
+              )}
+            </div>
+          ) : activeTab === "silinen" ? (
+            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "24px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
+                  Silinen Kayıtlar
+                </h1>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
+                  Silinen servis kayıtlarının listesi
+                </p>
+              </div>
+
+              {loadingDeleted ? (
+                <p style={{ color: "#6b7280", fontSize: "14px" }}>
+                  Yükleniyor...
+                </p>
+              ) : deletedOrders.length === 0 ? (
+                <p style={{ color: "#6b7280", fontSize: "14px" }}>
+                  Silinmiş kayıt bulunamadı.
+                </p>
+              ) : (
+                <div
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontSize: "13px",
+                    }}
+                  >
+                    <thead>
+                      <tr
+                        style={{
+                          background: "#f9fafb",
+                          borderBottom: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <th
+                          style={{
+                            padding: "10px 16px",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            color: "#374151",
+                          }}
+                        >
+                          Kayıt No
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px 16px",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            color: "#374151",
+                          }}
+                        >
+                          Müşteri
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px 16px",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            color: "#374151",
+                          }}
+                        >
+                          Cihaz
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px 16px",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            color: "#374151",
+                          }}
+                        >
+                          Kayıt Tarihi
+                        </th>
+                        <th
+                          style={{
+                            padding: "10px 16px",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            color: "#374151",
+                          }}
+                        >
+                          Silinme Tarihi
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deletedOrders.map((order, i) => (
+                        <tr
+                          key={order.id}
+                          style={{
+                            borderBottom:
+                              i < deletedOrders.length - 1
+                                ? "1px solid #e5e7eb"
+                                : "none",
+                          }}
+                        >
+                          <td style={{ padding: "10px 16px", color: "#374151" }}>
+                            {order.orderNo}
+                          </td>
+                          <td style={{ padding: "10px 16px", color: "#374151" }}>
+                            {order.customerName}
+                          </td>
+                          <td style={{ padding: "10px 16px", color: "#374151" }}>
+                            {order.deviceName}
+                          </td>
+                          <td
+                            style={{
+                              padding: "10px 16px",
+                              color: "#6b7280",
+                            }}
+                          >
+                            {new Date(order.createdAt).toLocaleString(
+                              "tr-TR",
+                            )}
+                          </td>
+                          <td
+                            style={{
+                              padding: "10px 16px",
+                              color: "#dc2626",
+                            }}
+                          >
+                            {new Date(order.deletedAt).toLocaleString(
+                              "tr-TR",
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           ) : activeTab === "whatsapp" ? (
