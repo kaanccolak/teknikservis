@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     phone?: string;
     templateName?: string;
     parameters?: string[];
+    customMessage?: string;
   };
 
   try {
@@ -91,6 +92,29 @@ export async function POST(req: Request) {
       { error: "WhatsApp bağlantısı kontrol edilemedi" },
       { status: 500 },
     );
+  }
+
+  // Serbest mesaj gönderimi
+  if (templateName === "__custom__") {
+    const customMessage =
+      typeof body.customMessage === "string"
+        ? body.customMessage.trim()
+        : "";
+    if (!customMessage) {
+      return NextResponse.json({ error: "Mesaj boş olamaz" }, { status: 400 });
+    }
+    const result = await sendBaileysMessage(
+      shop.id,
+      internationalPhone,
+      customMessage,
+    );
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error ?? "Mesaj gönderilemedi" },
+        { status: 400 },
+      );
+    }
+    return NextResponse.json({ success: true });
   }
 
   // Şablonu düz metne çevir

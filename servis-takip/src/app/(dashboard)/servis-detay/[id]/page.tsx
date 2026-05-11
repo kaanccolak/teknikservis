@@ -280,6 +280,9 @@ export default function ServisDetayPage() {
   const [waConfirmSending, setWaConfirmSending] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  const [customWaMessage, setCustomWaMessage] = useState("");
+  const [sendingCustomWa, setSendingCustomWa] = useState(false);
+
   const [, setWaInboundMessages] = useState<WaInboundMsg[]>([]);
   const [, setWaInboundLoading] = useState(false);
 
@@ -840,6 +843,34 @@ export default function ServisDetayPage() {
   async function handleSendPaymentLink() {
     setShowPaymentModal(false);
     toast.info("Ödeme linki özelliği yakında aktif olacak.");
+  }
+
+  async function handleSendCustomWa() {
+    if (!customWaMessage.trim()) return;
+    setSendingCustomWa(true);
+    try {
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: order?.customer?.phone ?? "",
+          templateName: "__custom__",
+          parameters: [],
+          customMessage: customWaMessage.trim(),
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Mesaj gönderilemedi");
+        return;
+      }
+      toast.success("Mesaj gönderildi!");
+      setCustomWaMessage("");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSendingCustomWa(false);
+    }
   }
 
   async function handleWaSend() {
@@ -2451,6 +2482,76 @@ export default function ServisDetayPage() {
             </CardContent>
           </Card>
 
+          {/* Serbest WhatsApp Mesajı */}
+          <div
+            style={{
+              border: "1px solid #e5e7eb",
+              borderRadius: "10px",
+              padding: "16px",
+              marginBottom: "16px",
+              background: "white",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#374151",
+                marginBottom: "10px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                fill="#25D366"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.29-1.505A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.366l-.36-.214-3.733.893.924-3.638-.235-.374A9.818 9.818 0 1 1 12 21.818z" />
+              </svg>
+              WhatsApp Mesajı Gönder
+            </h3>
+            <textarea
+              value={customWaMessage}
+              onChange={(e) => setCustomWaMessage(e.target.value)}
+              placeholder="Müşteriye göndermek istediğiniz mesajı yazın..."
+              rows={3}
+              style={{
+                width: "100%",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "10px 12px",
+                fontSize: "13px",
+                resize: "vertical",
+                outline: "none",
+                boxSizing: "border-box",
+                fontFamily: "inherit",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void handleSendCustomWa()}
+              disabled={sendingCustomWa || !customWaMessage.trim()}
+              style={{
+                marginTop: "10px",
+                padding: "8px 18px",
+                background: sendingCustomWa ? "#86efac" : "#25D366",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: 500,
+                cursor: sendingCustomWa ? "wait" : "pointer",
+              }}
+            >
+              {sendingCustomWa ? "Gönderiliyor..." : "Mesajı Gönder"}
+            </button>
+          </div>
+
           <Card>
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle>Durum Geçmişi</CardTitle>
@@ -2477,17 +2578,40 @@ export default function ServisDetayPage() {
                         <p className="text-xs text-slate-500">
                           {formatLogAt(log.createdAt)}
                         </p>
-                        <p className="mt-1 text-slate-800">
-                          <span className="font-medium">
-                            {log.oldStatus
-                              ? serviceOrderStatusLabel(log.oldStatus)
-                              : "—"}
-                          </span>
-                          <span className="mx-1.5 text-slate-400">→</span>
-                          <span className="font-medium">
-                            {serviceOrderStatusLabel(log.newStatus)}
-                          </span>
-                        </p>
+                        {log.oldPrice != null || log.newPrice != null ? (
+                          <div>
+                            <span style={{ fontWeight: 600, color: "#374151" }}>
+                              Fiyat Güncellendi
+                            </span>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#6b7280",
+                                marginTop: "2px",
+                              }}
+                            >
+                              {log.oldPrice != null
+                                ? `${log.oldPrice.toLocaleString("tr-TR")} ₺`
+                                : "—"}
+                              {" → "}
+                              {log.newPrice != null
+                                ? `${log.newPrice.toLocaleString("tr-TR")} ₺`
+                                : "—"}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-slate-800">
+                            <span className="font-medium">
+                              {log.oldStatus
+                                ? serviceOrderStatusLabel(log.oldStatus)
+                                : "—"}
+                            </span>
+                            <span className="mx-1.5 text-slate-400">→</span>
+                            <span className="font-medium">
+                              {serviceOrderStatusLabel(log.newStatus)}
+                            </span>
+                          </p>
+                        )}
                         {log.note ? (
                           <p className="mt-1 text-xs text-slate-600">
                             {log.note}

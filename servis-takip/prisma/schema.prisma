@@ -309,6 +309,8 @@ model StatusLog {
   serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id])
   oldStatus      String?
   newStatus      String
+  oldPrice       Float?
+  newPrice       Float?
   note           String?
   createdAt      DateTime     @default(now())
 }

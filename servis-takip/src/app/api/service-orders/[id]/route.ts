@@ -328,6 +328,17 @@ export async function PATCH(
     }
   }
 
+  let currentOrder:
+    | { totalPrice: number | null }
+    | null = null;
+  if (body.totalPrice !== undefined) {
+    // Fiyat değişikliği log'u için mevcut fiyatı al
+    currentOrder = await prisma.serviceOrder.findFirst({
+      where: { id, shopId: shop.id, deletedAt: null },
+      select: { totalPrice: true },
+    });
+  }
+
   const { prismaData, statusChanged, newStatus } = buildServiceOrderUpdate(
     body,
     existing.status,
@@ -423,6 +434,23 @@ export async function PATCH(
         data: prismaData,
       });
     });
+
+    if (
+      body.totalPrice !== undefined &&
+      currentOrder &&
+      Number(body.totalPrice) !== Number(currentOrder.totalPrice)
+    ) {
+      await prisma.statusLog.create({
+        data: {
+          serviceOrderId: id,
+          oldStatus: "Fiyat Güncellendi",
+          newStatus: "Fiyat Güncellendi",
+          oldPrice: currentOrder.totalPrice ?? undefined,
+          newPrice: Number(body.totalPrice),
+          note: "Fiyat değişikliği",
+        },
+      });
+    }
 
     const updated = await prisma.serviceOrder.findFirst({
       where: { id, shopId: shop.id, deletedAt: null },
