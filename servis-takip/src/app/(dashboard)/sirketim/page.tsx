@@ -279,7 +279,7 @@ function SirketimPageInner() {
       const res = await fetch("/api/baileys/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: baileysPhone.trim() }),
+        body: JSON.stringify({ phone: "+90" + baileysPhone.trim() }),
       });
       const data = (await res.json()) as {
         success?: boolean;
@@ -801,14 +801,48 @@ function SirketimPageInner() {
                       <label style={labelStyle}>
                         WhatsApp Telefon Numaranız
                       </label>
-                      <input
-                        type="text"
-                        value={baileysPhone}
-                        onChange={(e) => setBaileysPhone(e.target.value)}
-                        placeholder="+905xxxxxxxxx"
-                        style={inputStyle}
-                        disabled={baileysStatus === "waiting_code"}
-                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding: "10px 12px",
+                            background: "#f3f4f6",
+                            color: "#374151",
+                            fontSize: "14px",
+                            borderRight: "1px solid #d1d5db",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          +90
+                        </span>
+                        <input
+                          type="text"
+                          value={baileysPhone}
+                          onChange={(e) => {
+                            const val = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 10);
+                            setBaileysPhone(val);
+                          }}
+                          placeholder="5xxxxxxxxx"
+                          style={{
+                            border: "none",
+                            outline: "none",
+                            padding: "10px 12px",
+                            fontSize: "14px",
+                            width: "100%",
+                          }}
+                          disabled={baileysStatus === "waiting_code"}
+                          maxLength={10}
+                        />
+                      </div>
                       <p
                         style={{
                           fontSize: "12px",
@@ -816,7 +850,7 @@ function SirketimPageInner() {
                           marginTop: "4px",
                         }}
                       >
-                        Ülke kodu ile girin. Örn: +905321234567
+                        Örn: 5321234567
                       </p>
                     </div>
 
@@ -847,7 +881,7 @@ function SirketimPageInner() {
                             letterSpacing: "4px",
                           }}
                         >
-                          {baileysCode}
+                          {baileysCode.slice(0, 4)}-{baileysCode.slice(4)}
                         </p>
                         <p
                           style={{
