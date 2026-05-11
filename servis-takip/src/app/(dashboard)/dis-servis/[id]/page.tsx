@@ -94,7 +94,12 @@ export default function DisServisDetayPage() {
     "confirm",
   );
   const [linkedCount, setLinkedCount] = useState(0);
-  const [deleting, setDeleting] = useState(false);
+  const [showDeletePasswordModal, setShowDeletePasswordModal] =
+    useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletePasswordError, setDeletePasswordError] = useState("");
+  const [deletingWithPassword, setDeletingWithPassword] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id.trim()) {
@@ -126,34 +131,52 @@ export default function DisServisDetayPage() {
     void load();
   }, [load]);
 
-  async function confirmDelete() {
-    if (deletePhase !== "confirm" || !id.trim()) return;
-    setDeleting(true);
+  async function confirmDeleteWithPassword() {
+    if (!deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    if (!pendingDeleteId?.trim()) return;
+    setDeletingWithPassword(true);
+    setDeletePasswordError("");
     try {
-      const res = await fetch(`/api/external-services/${id}`, {
+      const res = await fetch(`/api/external-services/${pendingDeleteId}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settingsPassword: deletePassword }),
       });
-      const body = (await res.json()) as {
+      const body = (await res.json().catch(() => ({}))) as {
         error?: string;
         linkedCount?: number;
       };
       if (!res.ok) {
+        if (res.status === 403) {
+          setDeletePasswordError(body.error ?? "Parola yanlış");
+          return;
+        }
         const n = body.linkedCount ?? 0;
         if (n > 0) {
           setLinkedCount(n);
           setDeletePhase("blocked");
+          setShowDeletePasswordModal(false);
+          setDeletePassword("");
+          setPendingDeleteId(null);
+          setDeleteOpen(true);
           return;
         }
-        toast.error(body.error ?? "Silme başarısız");
+        toast.error(body.error ?? "Silinemedi");
         return;
       }
-      toast.success("Dış servis silindi");
+      setShowDeletePasswordModal(false);
+      setDeletePassword("");
+      setPendingDeleteId(null);
       setDeleteOpen(false);
+      toast.success("Silindi");
       router.push("/dis-servis");
     } catch {
       toast.error("Bağlantı hatası");
     } finally {
-      setDeleting(false);
+      setDeletingWithPassword(false);
     }
   }
 
@@ -435,19 +458,149 @@ export default function DisServisDetayPage() {
                 <AlertDialogAction
                   type="button"
                   variant="destructive"
-                  disabled={deleting}
                   onClick={(e) => {
                     e.preventDefault();
-                    void confirmDelete();
+                    if (!id.trim()) return;
+                    setPendingDeleteId(id);
+                    setDeleteOpen(false);
+                    setShowDeletePasswordModal(true);
                   }}
                 >
-                  {deleting ? "Siliniyor…" : "Evet, Sil"}
+                  Evet, Sil
                 </AlertDialogAction>
               </>
             )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showDeletePasswordModal ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "380px",
+              margin: "0 16px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "32px",
+                textAlign: "center",
+                marginBottom: "12px",
+              }}
+            >
+              🗑️
+            </div>
+            <h2
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                textAlign: "center",
+                marginBottom: "8px",
+              }}
+            >
+              Silme İşlemi
+            </h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                textAlign: "center",
+                marginBottom: "20px",
+              }}
+            >
+              Bu işlemi onaylamak için yönetici parolasını girin
+            </p>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && void confirmDeleteWithPassword()
+              }
+              placeholder="Yönetici parolası"
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: deletePasswordError
+                  ? "1px solid #fca5a5"
+                  : "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "8px",
+              }}
+              autoFocus
+            />
+            {deletePasswordError ? (
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "#dc2626",
+                  marginBottom: "8px",
+                }}
+              >
+                {deletePasswordError}
+              </p>
+            ) : null}
+            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+              <button
+                type="button"
+                onClick={() => void confirmDeleteWithPassword()}
+                disabled={deletingWithPassword}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                {deletingWithPassword ? "Siliniyor..." : "Sil"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeletePasswordModal(false);
+                  setDeletePassword("");
+                  setDeletePasswordError("");
+                  setPendingDeleteId(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

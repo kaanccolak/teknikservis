@@ -162,6 +162,21 @@ export async function DELETE(
   } catch (e) {
     return jsonServerError("DELETE /api/bayiler/[id] (shop)", e, "Dükkan bilgisi alınamadı");
   }
+
+  // Parola doğrulama
+  const body = await request.json().catch(() => ({}));
+  const { settingsPassword } = body as { settingsPassword?: string };
+  if (!settingsPassword) {
+    return NextResponse.json({ error: "Parola gerekli" }, { status: 403 });
+  }
+  const { verifySettingsPassword } = await import(
+    "@/lib/verify-settings-password"
+  );
+  const valid = await verifySettingsPassword(shop.id, settingsPassword);
+  if (!valid) {
+    return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
+  }
+
   try {
     const row = await prisma.bayi.findFirst({ where: { id, shopId: shop.id } });
     if (!row) return NextResponse.json({ error: "Bayi bulunamadı" }, { status: 404 });

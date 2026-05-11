@@ -163,7 +163,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
@@ -180,6 +180,20 @@ export async function DELETE(
       e,
       "Dükkan bilgisi alınamadı",
     );
+  }
+
+  // Parola doğrulama
+  const body = await request.json().catch(() => ({}));
+  const { settingsPassword } = body as { settingsPassword?: string };
+  if (!settingsPassword) {
+    return NextResponse.json({ error: "Parola gerekli" }, { status: 403 });
+  }
+  const { verifySettingsPassword } = await import(
+    "@/lib/verify-settings-password"
+  );
+  const valid = await verifySettingsPassword(shop.id, settingsPassword);
+  if (!valid) {
+    return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
   }
 
   const existing = await prisma.paymentPlan.findFirst({

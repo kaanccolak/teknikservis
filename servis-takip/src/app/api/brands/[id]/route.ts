@@ -8,7 +8,7 @@ import { jsonServerError } from "@/lib/server-error";
 export const dynamic = "force-dynamic";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } },
 ) {
   const { id } = params;
@@ -18,6 +18,21 @@ export async function DELETE(
 
   try {
     const shop = await getOrCreateDefaultShop();
+
+    // Parola doğrulama
+    const body = await request.json().catch(() => ({}));
+    const { settingsPassword } = body as { settingsPassword?: string };
+    if (!settingsPassword) {
+      return NextResponse.json({ error: "Parola gerekli" }, { status: 403 });
+    }
+    const { verifySettingsPassword } = await import(
+      "@/lib/verify-settings-password"
+    );
+    const valid = await verifySettingsPassword(shop.id, settingsPassword);
+    if (!valid) {
+      return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
+    }
+
     const existing = await prisma.brand.findFirst({
       where: { id, shopId: shop.id },
     });
