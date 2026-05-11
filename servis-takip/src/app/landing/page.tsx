@@ -323,8 +323,12 @@ export default function LandingPage() {
             Referanslar
           </p>
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Sahalar ne diyor?
+            Kullanıcılarımız ne diyor?
           </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-base text-slate-600 sm:text-lg">
+            Türkiye&apos;nin dört bir yanındaki teknik servislerden gerçek
+            görüşler
+          </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {[
               {
