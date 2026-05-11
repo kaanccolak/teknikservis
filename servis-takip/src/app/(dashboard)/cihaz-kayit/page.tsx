@@ -20,6 +20,7 @@ import {
   type SecondHandRegisterInfo,
 } from "./second-hand-form";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import { WhatsAppBrandIcon } from "@/components/whatsapp-brand-icon";
 import { Button } from "@/components/ui/button";
 import {
@@ -1923,18 +1924,31 @@ function CihazKayitRoot() {
 
 export default function CihazKayitPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          className="flex items-center justify-center gap-2 py-24 text-slate-600"
-          role="status"
-        >
-          <Loader2 className="size-6 animate-spin" aria-hidden />
-          <span>Yükleniyor…</span>
-        </div>
-      }
-    >
-      <CihazKayitRoot />
-    </Suspense>
+    <>
+      <PageGuideModal
+        pageKey="cihaz_kayit"
+        icon="📋"
+        title="Cihaz Kayıt"
+        description="Müşteri cihazlarını buradan sisteme kaydedin. Her kayıt için otomatik bir takip numarası oluşturulur."
+        tips={[
+          "Müşteri bilgilerini ve cihaz detaylarını eksiksiz doldurun",
+          "Seri numarası varsa mutlaka girin — arama ve takipte kolaylık sağlar",
+          "Şikayet/arıza alanını doldurursanız müşteri nüshasında görünür",
+        ]}
+      />
+      <Suspense
+        fallback={
+          <div
+            className="flex items-center justify-center gap-2 py-24 text-slate-600"
+            role="status"
+          >
+            <Loader2 className="size-6 animate-spin" aria-hidden />
+            <span>Yükleniyor…</span>
+          </div>
+        }
+      >
+        <CihazKayitRoot />
+      </Suspense>
+    </>
   );
 }

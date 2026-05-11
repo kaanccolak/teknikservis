@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -747,18 +748,31 @@ function CihazSorgulaInner() {
 
 export default function CihazSorgulaPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          className="flex items-center justify-center gap-2 py-24 text-slate-600"
-          role="status"
-        >
-          <Loader2 className="size-6 animate-spin" aria-hidden />
-          <span>Yükleniyor…</span>
-        </div>
-      }
-    >
-      <CihazSorgulaInner />
-    </Suspense>
+    <>
+      <PageGuideModal
+        pageKey="cihaz_sorgula"
+        icon="🔍"
+        title="Cihaz Sorgula"
+        description="Tüm servis kayıtlarını buradan görüntüleyin, filtreleyin ve yönetin."
+        tips={[
+          "Durum butonlarıyla kayıtları filtreleyin",
+          "Kayıt numarası veya müşteri adıyla arama yapın",
+          "Bir kayda tıklayarak detayına gidin, durum güncelleyin",
+        ]}
+      />
+      <Suspense
+        fallback={
+          <div
+            className="flex items-center justify-center gap-2 py-24 text-slate-600"
+            role="status"
+          >
+            <Loader2 className="size-6 animate-spin" aria-hidden />
+            <span>Yükleniyor…</span>
+          </div>
+        }
+      >
+        <CihazSorgulaInner />
+      </Suspense>
+    </>
   );
 }

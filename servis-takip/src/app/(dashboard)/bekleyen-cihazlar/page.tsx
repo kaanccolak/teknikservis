@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -654,18 +655,30 @@ function BekleyenCihazlarInner() {
 
 export default function BekleyenCihazlarPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          className="flex items-center justify-center gap-2 py-24 text-slate-600"
-          role="status"
-        >
-          <Loader2 className="size-6 animate-spin" aria-hidden />
-          <span>Yükleniyor…</span>
-        </div>
-      }
-    >
-      <BekleyenCihazlarInner />
-    </Suspense>
+    <>
+      <PageGuideModal
+        pageKey="bekleyen_cihazlar"
+        icon="⏳"
+        title="Bekleyen Cihazlar"
+        description="Teslim alınmayı bekleyen, uzun süredir serviste kalan cihazları buradan takip edin."
+        tips={[
+          "Uzun süredir teslim alınmayan cihazları buradan görün",
+          "Müşteriyi hatırlatma için WhatsApp mesajı gönderin",
+        ]}
+      />
+      <Suspense
+        fallback={
+          <div
+            className="flex items-center justify-center gap-2 py-24 text-slate-600"
+            role="status"
+          >
+            <Loader2 className="size-6 animate-spin" aria-hidden />
+            <span>Yükleniyor…</span>
+          </div>
+        }
+      >
+        <BekleyenCihazlarInner />
+      </Suspense>
+    </>
   );
 }

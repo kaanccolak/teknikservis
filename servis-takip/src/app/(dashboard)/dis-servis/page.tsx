@@ -13,6 +13,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -700,8 +701,21 @@ function DisServisContent() {
 
 export default function DisServisPage() {
   return (
-    <Suspense fallback={<div>Yükleniyor...</div>}>
-      <DisServisContent />
-    </Suspense>
+    <>
+      <PageGuideModal
+        pageKey="dis_servis"
+        icon="🔧"
+        title="Dış Servisler"
+        description="Çözemediğiniz cihazları dış servise gönderdiğinizde buradan takip edin."
+        tips={[
+          "Dış servise gönderilen cihazın durumunu güncelleyin",
+          "Dış servis maliyetini kaydedin",
+          "Cihaz geri geldiğinde durumu güncelleyerek süreç tamamlanır",
+        ]}
+      />
+      <Suspense fallback={<div>Yükleniyor...</div>}>
+        <DisServisContent />
+      </Suspense>
+    </>
   );
 }

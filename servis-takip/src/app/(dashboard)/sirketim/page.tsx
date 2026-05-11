@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -2892,8 +2894,21 @@ function SirketimPageInner() {
 
 export default function SirketimPage() {
   return (
-    <Suspense fallback={<PageSkeleton />}>
-      <SirketimPageInner />
-    </Suspense>
+    <>
+      <PageGuideModal
+        pageKey="sirketim"
+        icon="🏪"
+        title="Şirketim"
+        description="Şirket bilgilerinizi, WhatsApp entegrasyonunuzu ve uygulama ayarlarınızı buradan yönetin."
+        tips={[
+          "WhatsApp sekmesinden numaranızı bağlayın — müşterilere otomatik mesaj gönderebilirsiniz",
+          "Mesaj Şablonları sekmesinden gönderilecek mesajları özelleştirin",
+          "Fiş/Nüsha Ayarları'ndan servis şartlarınızı düzenleyin",
+        ]}
+      />
+      <Suspense fallback={<PageSkeleton />}>
+        <SirketimPageInner />
+      </Suspense>
+    </>
   );
 }

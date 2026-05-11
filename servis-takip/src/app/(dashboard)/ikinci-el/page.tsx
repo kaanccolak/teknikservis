@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -608,15 +609,28 @@ function IkinciElInner() {
 
 export default function IkinciElPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center gap-2 py-24 text-slate-600">
-          <Loader2 className="size-6 animate-spin" aria-hidden />
-          <span>Yükleniyor…</span>
-        </div>
-      }
-    >
-      <IkinciElInner />
-    </Suspense>
+    <>
+      <PageGuideModal
+        pageKey="ikinci_el"
+        icon="♻️"
+        title="İkinci El Cihazlar"
+        description="Müşterilerden satın aldığınız veya elinizde bulunan ikinci el cihazları buradan yönetin."
+        tips={[
+          "Alış fiyatı ve cihaz bilgilerini kaydedin",
+          "Satıldığında satış fiyatını girerek kar/zarar görün",
+          "Raporlar sayfasında ikinci el ciro takibi yapabilirsiniz",
+        ]}
+      />
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center gap-2 py-24 text-slate-600">
+            <Loader2 className="size-6 animate-spin" aria-hidden />
+            <span>Yükleniyor…</span>
+          </div>
+        }
+      >
+        <IkinciElInner />
+      </Suspense>
+    </>
   );
 }

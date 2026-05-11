@@ -12,6 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -299,6 +300,16 @@ export default function BayilerPage() {
 
   return (
     <div className="space-y-6">
+      <PageGuideModal
+        pageKey="bayiler"
+        icon="🤝"
+        title="Bayiler"
+        description="Sisteminizi kullanan bayi veya şubeleri buradan yönetin."
+        tips={[
+          "Her bayi için ayrı hesap tanımlayın",
+          "Bayi bazında servis kayıtlarını takip edin",
+        ]}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-slate-900">Bayiler</h1>
         <Button type="button" onClick={openCreate}>

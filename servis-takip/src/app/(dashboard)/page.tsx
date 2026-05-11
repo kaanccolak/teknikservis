@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import WelcomeModal from "@/components/onboarding/WelcomeModal";
 import { Input } from "@/components/ui/input";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
 import { getStatusBadge } from "@/lib/statusConfig";
@@ -866,6 +867,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <WelcomeModal />
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

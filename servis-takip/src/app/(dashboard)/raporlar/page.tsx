@@ -1,5 +1,6 @@
 "use client";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -242,6 +243,17 @@ export default function RaporlarPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-1 sm:px-0">
+      <PageGuideModal
+        pageKey="raporlar"
+        icon="📊"
+        title="Raporlar"
+        description="İşletmenizin finansal ve operasyonel performansını buradan analiz edin."
+        tips={[
+          "Günlük, haftalık, aylık ve yıllık ciro görün",
+          "En çok gelen cihaz türlerini analiz edin",
+          "İkinci el alım/satım kar/zarar raporunu inceleyin",
+        ]}
+      />
       <div
         style={{
           display: "flex",

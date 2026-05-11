@@ -12,6 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -246,6 +247,17 @@ export default function CariPage() {
 
   return (
     <div className="space-y-6">
+      <PageGuideModal
+        pageKey="cari"
+        icon="💰"
+        title="Cari Yönetimi"
+        description="Müşteri ve tedarikçilerle olan borç/alacak takibini buradan yapın."
+        tips={[
+          "Her müşteri veya tedarikçi için cari hesap açın",
+          "Ödeme ve tahsilat işlemlerini kaydedin",
+          "Bakiye durumunu anlık görün",
+        ]}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-slate-900">Cari Yönetimi</h1>
         <Button type="button" onClick={openCreate}>

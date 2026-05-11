@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import { cn } from "@/lib/utils";
 
 type IdName = { id: string; name: string };
@@ -446,6 +447,17 @@ export default function StokPage() {
 
   return (
     <div className="space-y-6">
+      <PageGuideModal
+        pageKey="stok"
+        icon="📦"
+        title="Stok Yönetimi"
+        description="Yedek parça stoğunuzu buradan yönetin. Servis kaydına parça eklenince stok otomatik düşer."
+        tips={[
+          "Parça eklerken alış fiyatını girin, karlılık takibi yapın",
+          "Stok miktarı azaldığında uyarı alın",
+          "Servis detayından parça ekleyince stok otomatik güncellenir",
+        ]}
+      />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
