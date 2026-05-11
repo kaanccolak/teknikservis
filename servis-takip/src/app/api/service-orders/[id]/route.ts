@@ -182,6 +182,9 @@ function buildServiceOrderUpdate(
   if (body.physicalDamage !== undefined) {
     prismaData.physicalDamage = emptyToNull(body.physicalDamage);
   }
+  if (typeof body.repairDetails === "string") {
+    prismaData.repairDetails = body.repairDetails;
+  }
 
   if (body.repairFailedReason !== undefined) {
     prismaData.repairFailedReason =

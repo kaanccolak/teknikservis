@@ -124,6 +124,7 @@ type ServiceOrderDetail = {
   complaint: string | null;
   accessories: string | null;
   physicalDamage: string | null;
+  repairDetails?: string | null;
   arrivedByCargo: boolean;
   repairFailedReason?: string | null;
   cargoInfo: string | null;
@@ -288,6 +289,10 @@ export default function ServisDetayPage() {
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
   const [waConfirmSending, setWaConfirmSending] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showRepairDetailsModal, setShowRepairDetailsModal] = useState(false);
+  const [repairDetailsInput, setRepairDetailsInput] = useState("");
+  const [savingRepairDetails, setSavingRepairDetails] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const [customWaMessage, setCustomWaMessage] = useState("");
   const [sendingCustomWa, setSendingCustomWa] = useState(false);
@@ -609,8 +614,33 @@ export default function ServisDetayPage() {
     }
   }, []);
 
-  async function handleStatusChange(next: string | null) {
+  async function handleSaveRepairDetailsAndStatus() {
+    if (!pendingStatus) return;
+    setSavingRepairDetails(true);
+    try {
+      await patchOrder({ repairDetails: repairDetailsInput });
+      await handleStatusChange(pendingStatus, true);
+      setShowRepairDetailsModal(false);
+      setPendingStatus(null);
+      setRepairDetailsInput("");
+    } catch {
+      toast.error("Hata oluştu");
+    } finally {
+      setSavingRepairDetails(false);
+    }
+  }
+
+  async function handleStatusChange(
+    next: string | null,
+    skipCompletedRepairModal = false,
+  ) {
     if (!order || next == null || next === order.status) return;
+    if (next === "completed" && !skipCompletedRepairModal) {
+      setPendingStatus(next);
+      setRepairDetailsInput(order.repairDetails ?? "");
+      setShowRepairDetailsModal(true);
+      return;
+    }
     if (next === "repair_failed") {
       setRepairFailedReason("");
       setShowRepairFailedModal(true);
@@ -1168,6 +1198,106 @@ export default function ServisDetayPage() {
         </DialogContent>
       </Dialog>
 
+      {showRepairDetailsModal ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "500px",
+              margin: "0 16px",
+            }}
+          >
+            <h2
+              style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px" }}
+            >
+              Onarım Detayı
+            </h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                marginBottom: "16px",
+              }}
+            >
+              Yapılan onarım işlemini açıklayın. Bu bilgi teslim fişinde
+              görünecek.
+            </p>
+            <textarea
+              value={repairDetailsInput}
+              onChange={(e) => setRepairDetailsInput(e.target.value)}
+              placeholder="Örn: Ana kart üzerindeki güç entegresi değiştirildi. Ekran bağlantısı yenilendi..."
+              rows={5}
+              style={{
+                width: "100%",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "10px 12px",
+                fontSize: "13px",
+                resize: "vertical",
+                outline: "none",
+                boxSizing: "border-box",
+                fontFamily: "inherit",
+              }}
+              autoFocus
+            />
+            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+              <button
+                type="button"
+                onClick={() => void handleSaveRepairDetailsAndStatus()}
+                disabled={savingRepairDetails}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#16a34a",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  cursor: savingRepairDetails ? "wait" : "pointer",
+                }}
+              >
+                {savingRepairDetails
+                  ? "Kaydediliyor..."
+                  : "Kaydet ve Durumu Güncelle"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRepairDetailsModal(false);
+                  setPendingStatus(null);
+                  setRepairDetailsInput("");
+                }}
+                style={{
+                  padding: "10px 20px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <Dialog
         open={showDeliveryModal}
         onOpenChange={(open) => {
@@ -1613,6 +1743,23 @@ export default function ServisDetayPage() {
           >
             <Printer className="mr-2 size-4" aria-hidden />
             Müşteri Nüshası
+          </Link>
+          <Link
+            href={`/teslim-fisi/${encodeURIComponent(order.id)}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 14px",
+              background: "#f0fdf4",
+              color: "#16a34a",
+              border: "1px solid #86efac",
+              borderRadius: "6px",
+              fontSize: "13px",
+              textDecoration: "none",
+            }}
+          >
+            📄 Teslim Fişi
           </Link>
           <Link
             href={`/dukkan-nushasi/${encodeURIComponent(order.id)}`}

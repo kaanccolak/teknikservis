@@ -238,6 +238,7 @@ model ServiceOrder {
   complaint      String?
   accessories    String?
   physicalDamage String?
+  repairDetails  String?
 
   technicianNote String?
   totalPrice     Float?
