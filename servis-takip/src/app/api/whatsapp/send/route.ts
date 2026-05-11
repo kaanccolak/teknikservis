@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
+import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 import { sendBaileysMessage, getSessionStatus } from "@/lib/baileys-client";
 
@@ -117,8 +118,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   }
 
-  // Şablonu düz metne çevir
-  const message = buildMessage(templateName, parameters);
+  // DB'den dükkanın özel şablonuna bak
+  const dbTemplate = await prisma.waTemplate.findUnique({
+    where: {
+      shopId_templateName: {
+        shopId: shop.id,
+        templateName,
+      },
+    },
+  });
+
+  let message: string;
+  if (dbTemplate) {
+    // DB şablonunu kullan, değişkenleri replace et
+    message = dbTemplate.message
+      .replace(/{isim}/g, parameters[0] ?? "")
+      .replace(/{seriNo}/g, parameters[1] ?? "")
+      .replace(/{cihaz}/g, parameters[2] ?? "")
+      .replace(/{fiyat}/g, parameters[3] ?? "")
+      .replace(/{neden}/g, parameters[3] ?? "")
+      .replace(/{kayitNo}/g, parameters[0] ?? "");
+  } else {
+    // Default şablonu kullan
+    message = buildMessage(templateName, parameters);
+  }
 
   try {
     const result = await sendBaileysMessage(

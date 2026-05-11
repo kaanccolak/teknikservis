@@ -70,13 +70,97 @@ function PageSkeleton() {
   );
 }
 
+const DEFAULT_TEMPLATES: Record<
+  string,
+  { label: string; defaultMessage: string; variables: string[] }
+> = {
+  servis_teslim_alindi: {
+    label: "Teslim Alındı",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız teslim alınmıştır. Cihazınızla ilgili gelişmeleri size bildireceğiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  fiyat_bildirimi: {
+    label: "Fiyat Bildirimi",
+    defaultMessage:
+      "Sayın {isim}. {seriNo} seri numaralı {cihaz} cihazınızın {fiyat} masrafı vardır. Onaylamak için lütfen bu mesajı yanıtlayın.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}", "{fiyat}"],
+  },
+  onay_bekleniyor: {
+    label: "Onay Bekliyor",
+    defaultMessage:
+      'Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız için onayınızı bekliyoruz. Onaylıyorsanız lütfen bu mesajı sadece "onaylıyorum" yazarak yanıtlayın.',
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  onay_verildi: {
+    label: "Onay Verildi",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız için onay verdiniz. Cihazınızın onarımıyla ilgili sizi bilgilendireceğiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  parca_bekleniyor: {
+    label: "Parça Bekliyor",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız için gerekli parçayı bekliyoruz. Parça temin edildiğinde sizi bilgilendireceğiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  tamiri_olmuyor: {
+    label: "Tamiri Olmuyor",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızın onarımı maalesef yapılamıyor. Teknik servisimizin belirlediği neden: ({neden}) Daha fazla bilgi için teknik servisimizle iletişime geçebilirsiniz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}", "{neden}"],
+  },
+  sorun_gorulmedi: {
+    label: "Sorun Görülmedi",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızın arıza tespitinde herhangi bir sorun görülmedi. Cihazınızı teslim alabilirsiniz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  musteri_iade_istiyor: {
+    label: "Müşteri İade İstiyor",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızı iade almak istediğinizi belirttiniz. Cihazınızı teslim alabilirsiniz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  onarim_tamamlandi: {
+    label: "Onarım Tamamlandı",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızın onarımı tamamlanmıştır. Tamir ücreti {fiyat}. Cihazınızı teslim alabilirsiniz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}", "{fiyat}"],
+  },
+  teslim_edildi: {
+    label: "Teslim Edildi",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz. Lütfen bize Google'dan yorum yapmayı unutmayın :) https://g.page/r/CVR6INoM1FuaEBE/review",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  teslim_tamir_olmuyor: {
+    label: "Teslim (Tamir Olmuyor)",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız tamiri yapılamamış olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  teslim_sorun_gorulmedi: {
+    label: "Teslim (Sorun Görülmedi)",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızın arıza tespitinde herhangi bir sorun görülmemiş olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+  teslim_musteri_iade: {
+    label: "Teslim (Müşteri İade)",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızı iade almak istediğinizi belirttiniz ve herhangi bir işlem yapılmadan teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
+};
+
 function SirketimPageInner() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "sirket" | "whatsapp" | "google" | "silinen"
+    "sirket" | "whatsapp" | "google" | "silinen" | "durumlar"
   >("sirket");
   const [deletedOrders, setDeletedOrders] = useState<{
     id: string;
@@ -87,6 +171,9 @@ function SirketimPageInner() {
     createdAt: string;
   }[]>([]);
   const [loadingDeleted, setLoadingDeleted] = useState(false);
+  const [waTemplates, setWaTemplates] = useState<Record<string, string>>({});
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
   const [shop, setShop] = useState<ShopFull | null>(null);
@@ -107,10 +194,33 @@ function SirketimPageInner() {
   const [baileysConnected, setBaileysConnected] = useState(false);
   const [savingBaileys, setSavingBaileys] = useState(false);
 
+  const [settingsLocked, setSettingsLocked] = useState(true);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [checkingPassword, setCheckingPassword] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [modalCurrentPassword, setModalCurrentPassword] = useState("");
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // Parola durumunu kontrol et
+      try {
+        const pwRes = await fetch("/api/shop/settings-password");
+        const pwData = (await pwRes.json()) as { hasPassword?: boolean };
+        setHasSettingsPassword(!!pwData.hasPassword);
+        if (!pwData.hasPassword) {
+          setSettingsLocked(false); // parola yoksa direkt aç
+        }
+      } catch {
+        // parola uç noktası hata verirse ayarlar yine yüklensin
+      }
+
       const res = await fetch("/api/shop");
       const data = (await res.json()) as ShopFull | { error?: string };
       if (!res.ok) {
@@ -175,11 +285,14 @@ function SirketimPageInner() {
     setEditing(false);
   }
 
-  function selectTab(tab: "sirket" | "whatsapp" | "google" | "silinen") {
+  function selectTab(
+    tab: "sirket" | "whatsapp" | "google" | "silinen" | "durumlar",
+  ) {
     setActiveTab(tab);
     if (tab === "whatsapp" || tab === "google" || tab === "silinen")
       setEditing(false);
     if (tab === "silinen") void loadDeletedOrders();
+    if (tab === "durumlar") void loadWaTemplates();
   }
 
   async function loadDeletedOrders() {
@@ -193,6 +306,52 @@ function SirketimPageInner() {
     } finally {
       setLoadingDeleted(false);
     }
+  }
+
+  async function loadWaTemplates() {
+    setLoadingTemplates(true);
+    try {
+      const res = await fetch("/api/shop/wa-templates");
+      const data = await res.json();
+      const map: Record<string, string> = {};
+      if (Array.isArray(data)) {
+        data.forEach((t: { templateName: string; message: string }) => {
+          map[t.templateName] = t.message;
+        });
+      }
+      setWaTemplates(map);
+    } catch {
+      toast.error("Şablonlar yüklenemedi");
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }
+
+  async function handleSaveTemplate(templateName: string, message: string) {
+    setSavingTemplate(templateName);
+    try {
+      const res = await fetch("/api/shop/wa-templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateName, message }),
+      });
+      if (!res.ok) {
+        toast.error("Kayıt başarısız");
+        return;
+      }
+      setWaTemplates((prev) => ({ ...prev, [templateName]: message }));
+      toast.success("Şablon kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingTemplate(null);
+    }
+  }
+
+  function handleResetTemplate(templateName: string) {
+    const def = DEFAULT_TEMPLATES[templateName];
+    if (!def) return;
+    setWaTemplates((prev) => ({ ...prev, [templateName]: def.defaultMessage }));
   }
 
   function handleGoogleConnect() {
@@ -359,6 +518,77 @@ function SirketimPageInner() {
     }
   }
 
+  async function handleVerifyPassword() {
+    if (!passwordInput.trim()) return;
+    setCheckingPassword(true);
+    setPasswordError("");
+    try {
+      const res = await fetch("/api/shop/settings-password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      const data = (await res.json()) as { valid?: boolean };
+      if (data.valid) {
+        setSettingsLocked(false);
+        setPasswordInput("");
+        // sessionStorage'a işaretle
+        sessionStorage.setItem("sirketim_unlocked", "1");
+      } else {
+        setPasswordError("Parola yanlış, tekrar deneyin");
+      }
+    } catch {
+      setPasswordError("Bağlantı hatası");
+    } finally {
+      setCheckingPassword(false);
+    }
+  }
+
+  async function handleCreatePassword() {
+    if (newPassword.length < 4) {
+      toast.error("Parola en az 4 karakter olmalı");
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      toast.error("Parolalar eşleşmiyor");
+      return;
+    }
+    if (hasSettingsPassword && !modalCurrentPassword.trim()) {
+      toast.error("Mevcut parolayı girin");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const res = await fetch("/api/shop/settings-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          hasSettingsPassword
+            ? {
+                password: newPassword,
+                currentPassword: modalCurrentPassword,
+              }
+            : { password: newPassword },
+        ),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Hata oluştu");
+        return;
+      }
+      setHasSettingsPassword(true);
+      setShowCreatePassword(false);
+      setNewPassword("");
+      setNewPasswordConfirm("");
+      setModalCurrentPassword("");
+      toast.success("Parola oluşturuldu!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
   const inputStyle: CSSProperties = {
     width: "100%",
     padding: "10px 12px",
@@ -375,6 +605,71 @@ function SirketimPageInner() {
     marginBottom: "6px",
   };
 
+  // Parola ekranını göster
+  if (settingsLocked && hasSettingsPassword) {
+    return (
+      <div style={{ maxWidth: "400px", margin: "80px auto", padding: "0 16px" }}>
+        <div
+          style={{
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            padding: "32px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "40px", marginBottom: "16px" }}>🔒</div>
+          <h2 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px" }}>
+            Şirket Ayarları Korumalı
+          </h2>
+          <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "24px" }}>
+            Devam etmek için parolanızı girin
+          </p>
+          <input
+            type="password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && void handleVerifyPassword()}
+            placeholder="Parolanız"
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: passwordError ? "1px solid #fca5a5" : "1px solid #d1d5db",
+              borderRadius: "8px",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+              marginBottom: "8px",
+            }}
+            autoFocus
+          />
+          {passwordError ? (
+            <p style={{ fontSize: "12px", color: "#dc2626", marginBottom: "8px" }}>
+              {passwordError}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void handleVerifyPassword()}
+            disabled={checkingPassword}
+            style={{
+              width: "100%",
+              padding: "10px",
+              background: "#111827",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 500,
+              cursor: checkingPassword ? "wait" : "pointer",
+            }}
+          >
+            {checkingPassword ? "Doğrulanıyor..." : "Giriş Yap"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {error ? (
@@ -387,6 +682,23 @@ function SirketimPageInner() {
         <PageSkeleton />
       ) : shop ? (
         <>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              onClick={() => setShowCreatePassword(true)}
+              style={{
+                fontSize: "12px",
+                color: "#6b7280",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              🔒 Şirket parolasını{" "}
+              {hasSettingsPassword ? "değiştir" : "oluştur"}
+            </button>
+          </div>
           <div
             style={{
               display: "flex",
@@ -446,6 +758,26 @@ function SirketimPageInner() {
                 <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.29-1.505A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.366l-.36-.214-3.733.893.924-3.638-.235-.374A9.818 9.818 0 1 1 12 21.818z" />
               </svg>
               WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("durumlar")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "durumlar" ? "600" : "400",
+                color: activeTab === "durumlar" ? "#25D366" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "durumlar"
+                    ? "2px solid #25D366"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+              }}
+            >
+              💬 Mesaj Şablonları
             </button>
             <button
               type="button"
@@ -779,6 +1111,174 @@ function SirketimPageInner() {
                     </button>
                   </div>
                 </>
+              )}
+            </div>
+          ) : activeTab === "durumlar" ? (
+            <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "24px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
+                  WhatsApp Mesaj Şablonları
+                </h1>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
+                  Her durum için gönderilecek mesajı özelleştirin. Değişken
+                  kullanımı: {"{isim}"}, {"{seriNo}"}, {"{cihaz}"}, {"{fiyat}"},{" "}
+                  {"{neden}"}
+                </p>
+              </div>
+
+              {loadingTemplates ? (
+                <p style={{ color: "#6b7280", fontSize: "14px" }}>
+                  Yükleniyor...
+                </p>
+              ) : (
+                <div style={{ display: "grid", gap: "20px" }}>
+                  {Object.entries(DEFAULT_TEMPLATES).map(([key, def]) => {
+                    const currentMessage = waTemplates[key] ?? def.defaultMessage;
+                    const isModified =
+                      waTemplates[key] !== undefined &&
+                      waTemplates[key] !== def.defaultMessage;
+                    return (
+                      <div
+                        key={key}
+                        style={{
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "10px",
+                          padding: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          <label
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: 600,
+                              color: "#374151",
+                            }}
+                          >
+                            {def.label}
+                            {isModified ? (
+                              <span
+                                style={{
+                                  marginLeft: "8px",
+                                  fontSize: "11px",
+                                  color: "#25D366",
+                                  fontWeight: 400,
+                                }}
+                              >
+                                ● Özelleştirildi
+                              </span>
+                            ) : null}
+                          </label>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "8px",
+                              fontSize: "11px",
+                              color: "#6b7280",
+                            }}
+                          >
+                            {def.variables.map((v) => (
+                              <span
+                                key={v}
+                                style={{
+                                  background: "#f3f4f6",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  fontFamily: "monospace",
+                                }}
+                              >
+                                {v}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <textarea
+                          value={currentMessage}
+                          onChange={(e) =>
+                            setWaTemplates((prev) => ({
+                              ...prev,
+                              [key]: e.target.value,
+                            }))
+                          }
+                          rows={3}
+                          style={{
+                            width: "100%",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            padding: "10px 12px",
+                            fontSize: "13px",
+                            resize: "vertical",
+                            outline: "none",
+                            boxSizing: "border-box",
+                            fontFamily: "inherit",
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "8px",
+                            marginTop: "10px",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleSaveTemplate(
+                                key,
+                                waTemplates[key] ?? def.defaultMessage,
+                              )
+                            }
+                            disabled={savingTemplate === key}
+                            style={{
+                              padding: "7px 16px",
+                              background:
+                                savingTemplate === key ? "#86efac" : "#25D366",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "8px",
+                              fontSize: "13px",
+                              fontWeight: 500,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {savingTemplate === key
+                              ? "Kaydediliyor..."
+                              : "Kaydet"}
+                          </button>
+                          {isModified ? (
+                            <button
+                              type="button"
+                              onClick={() => handleResetTemplate(key)}
+                              style={{
+                                padding: "7px 16px",
+                                background: "white",
+                                color: "#6b7280",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "8px",
+                                fontSize: "13px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Varsayılana Dön
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           ) : activeTab === "silinen" ? (
@@ -1254,6 +1754,118 @@ function SirketimPageInner() {
             </div>
           )}
         </>
+      ) : null}
+
+      {showCreatePassword ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "400px",
+              margin: "0 16px",
+            }}
+          >
+            <h2 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "20px" }}>
+              {hasSettingsPassword ? "Parolayı Değiştir" : "Parola Oluştur"}
+            </h2>
+            <div style={{ display: "grid", gap: "12px" }}>
+              {hasSettingsPassword ? (
+                <input
+                  type="password"
+                  value={modalCurrentPassword}
+                  onChange={(e) => setModalCurrentPassword(e.target.value)}
+                  placeholder="Mevcut parola"
+                  style={{
+                    padding: "10px 12px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                />
+              ) : null}
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Yeni parola (min 4 karakter)"
+                style={{
+                  padding: "10px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+              />
+              <input
+                type="password"
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                placeholder="Parola tekrar"
+                style={{
+                  padding: "10px 12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+              />
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => void handleCreatePassword()}
+                  disabled={savingPassword}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    background: "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {savingPassword ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreatePassword(false);
+                    setNewPassword("");
+                    setNewPasswordConfirm("");
+                    setModalCurrentPassword("");
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    background: "white",
+                    color: "#374151",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

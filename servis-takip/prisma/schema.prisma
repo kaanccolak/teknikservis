@@ -26,6 +26,7 @@ model Shop {
   googleAccessToken  String?
   googleRefreshToken String?
   googleTokenExpiry  DateTime?
+  settingsPassword   String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
@@ -42,6 +43,19 @@ model Shop {
   paymentPlans     PaymentPlan[]
   secondHandDevices SecondHandDevice[]
   whatsAppMessages WhatsAppMessage[]
+  waTemplates        WaTemplate[]
+}
+
+model WaTemplate {
+  id           String   @id @default(cuid())
+  shopId       String
+  templateName String
+  message      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  shop         Shop     @relation(fields: [shopId], references: [id])
+
+  @@unique([shopId, templateName])
 }
 
 model WhatsAppMessage {
