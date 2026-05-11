@@ -124,7 +124,7 @@ type ServiceOrderDetail = {
   complaint: string | null;
   accessories: string | null;
   physicalDamage: string | null;
-  repairDetails?: string | null;
+  repairDetails: string | null;
   arrivedByCargo: boolean;
   repairFailedReason?: string | null;
   cargoInfo: string | null;
@@ -2009,6 +2009,28 @@ export default function ServisDetayPage() {
                   </DetailRow>
                 ) : null}
               </dl>
+              {order.repairDetails && (
+                <div style={{ marginTop: "12px" }}>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#6b7280",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Yapılan Onarım
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "#111827",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    {order.repairDetails}
+                  </p>
+                </div>
+              )}
               {order.status === "repair_failed" &&
               order.repairFailedReason?.trim() ? (
                 <div
