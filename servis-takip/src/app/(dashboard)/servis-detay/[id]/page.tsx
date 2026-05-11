@@ -69,6 +69,8 @@ type StatusLogRow = {
   id: string;
   oldStatus: string | null;
   newStatus: string;
+  oldPrice?: number | null;
+  newPrice?: number | null;
   note: string | null;
   createdAt: string;
 };
