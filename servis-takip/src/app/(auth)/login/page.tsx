@@ -47,18 +47,20 @@ function LoginPageContent() {
 
   useEffect(() => {
     const code = searchParams.get("code");
-    if (code) {
-      const supabase = createClient();
-      void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (!error) {
-          toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz.");
-          router.replace("/login");
-        } else {
-          toast.error("Doğrulama başarısız, lütfen tekrar deneyin.");
-        }
-      });
-    }
-  }, [searchParams]);
+    if (!code) return;
+
+    // URL'den code'u hemen temizle (tekrar çalışmasın)
+    router.replace("/login");
+
+    const supabase = createClient();
+    void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+      if (!error) {
+        toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz.");
+      }
+      // Hata olursa sessizce geç — code zaten kullanılmış olabilir
+    });
+    // searchParams bağımlılığını kaldır — sadece ilk render'da çalışsın
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
