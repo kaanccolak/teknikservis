@@ -1,92 +1,81 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createServerClient } from "@supabase/ssr";
+"use client";
 
-import { prisma } from "@/lib/prisma";
+import { useEffect, useState } from "react";
 
-export const dynamic = "force-dynamic";
+type AdminStatsResponse = {
+  shops: Array<{
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+    waEnabled: boolean;
+    _count: { orders: number };
+    orders: Array<{ id: string }>;
+  }>;
+  totalOrders: number;
+  todayOrders: number;
+  activeShops: number;
+  newShopsThisMonth: number;
+  error?: string;
+};
 
-async function getAdminData() {
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+export default function AdminPage() {
+  const [data, setData] = useState<AdminStatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  useEffect(() => {
+    fetch("/api/admin/stats")
+      .then((r) => r.json())
+      .then((d: AdminStatsResponse) => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+  async function handleDelete(shopId: string, shopName: string) {
+    if (
+      !confirm(
+        `"${shopName}" dükkanını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+      )
+    )
+      return;
+    await fetch(`/api/admin/shops/${shopId}`, { method: "DELETE" });
+    window.location.reload();
+  }
 
-  const [shops, totalOrders, todayOrders, recentOrders] = await Promise.all([
-    prisma.shop.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        _count: {
-          select: { orders: true },
-        },
-      },
-    }),
-    prisma.serviceOrder.count({ where: { deletedAt: null } }),
-    prisma.serviceOrder.count({
-      where: {
-        deletedAt: null,
-        createdAt: { gte: startOfToday },
-      },
-    }),
-    prisma.serviceOrder.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-      include: { shop: { select: { name: true } } },
-    }),
-  ]);
+  if (loading)
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f9fafb",
+        }}
+      >
+        <p style={{ color: "#6b7280" }}>Yükleniyor...</p>
+      </div>
+    );
 
-  const activeShops = shops.filter((s) => s.updatedAt >= sevenDaysAgo).length;
-  const newShopsThisMonth = shops.filter((s) => s.createdAt >= thirtyDaysAgo)
-    .length;
+  if (!data || data.error)
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f9fafb",
+        }}
+      >
+        <p style={{ color: "#dc2626" }}>Yetkisiz erişim</p>
+      </div>
+    );
 
-  return {
-    shops,
-    totalOrders,
-    todayOrders,
-    recentOrders,
-    activeShops,
-    newShopsThisMonth,
-  };
-}
-
-export default async function AdminPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            /* Server Component: set yalnızca Server Action / Route Handler içinde */
-          }
-        },
-      },
-    },
-  );
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || user.email !== "kaanccolak@gmail.com") redirect("/");
-
-  const {
-    shops,
-    totalOrders,
-    todayOrders,
-    recentOrders,
-    activeShops,
-    newShopsThisMonth,
-  } = await getAdminData();
+  const { shops, totalOrders, todayOrders, activeShops, newShopsThisMonth } =
+    data;
 
   return (
     <div
@@ -133,11 +122,11 @@ export default async function AdminPage() {
         </a>
       </div>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
+      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 24px" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
             gap: "16px",
             marginBottom: "32px",
           }}
@@ -218,161 +207,112 @@ export default async function AdminPage() {
 
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "24px",
+            background: "white",
+            borderRadius: "12px",
+            border: "1px solid #e5e7eb",
+            overflow: "hidden",
           }}
         >
           <div
             style={{
-              background: "white",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-              overflow: "hidden",
+              padding: "20px",
+              borderBottom: "1px solid #e5e7eb",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <div
-              style={{
-                padding: "20px",
-                borderBottom: "1px solid #e5e7eb",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h2
-                style={{ fontSize: "15px", fontWeight: 700, color: "#111827" }}
-              >
-                Kayıtlı Dükkanlar
-              </h2>
-              <span style={{ fontSize: "12px", color: "#6b7280" }}>
-                {shops.length} toplam
-              </span>
-            </div>
-            <div style={{ maxHeight: "500px", overflowY: "auto" }}>
-              {shops.map((shop) => (
-                <div
-                  key={shop.id}
-                  style={{
-                    padding: "14px 20px",
-                    borderBottom: "1px solid #f3f4f6",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <p
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#111827",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      {shop.name}
-                    </p>
-                    <p style={{ fontSize: "11px", color: "#9ca3af" }}>
-                      {new Date(shop.createdAt).toLocaleDateString("tr-TR")} ·{" "}
-                      {shop._count.orders} kayıt
-                    </p>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        padding: "2px 8px",
-                        borderRadius: "9999px",
-                        background:
-                          shop.updatedAt >=
-                          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                            ? "#dcfce7"
-                            : "#f3f4f6",
-                        color:
-                          shop.updatedAt >=
-                          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                            ? "#16a34a"
-                            : "#6b7280",
-                      }}
-                    >
-                      {shop.updatedAt >=
-                      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                        ? "Aktif"
-                        : "Pasif"}
-                    </span>
-                    <p
-                      style={{
-                        fontSize: "11px",
-                        color: "#9ca3af",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {shop.waEnabled ? "✅ WA" : "❌ WA"}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827" }}>
+              Kayıtlı Dükkanlar
+            </h2>
+            <span style={{ fontSize: "12px", color: "#6b7280" }}>
+              {shops.length} toplam
+            </span>
           </div>
-
-          <div
-            style={{
-              background: "white",
-              borderRadius: "12px",
-              border: "1px solid #e5e7eb",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding: "20px",
-                borderBottom: "1px solid #e5e7eb",
-              }}
-            >
-              <h2
-                style={{ fontSize: "15px", fontWeight: 700, color: "#111827" }}
+          <div>
+            {shops.map((shop) => (
+              <div
+                key={shop.id}
+                style={{
+                  padding: "14px 20px",
+                  borderBottom: "1px solid #f3f4f6",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
               >
-                Son Servis Kayıtları
-              </h2>
-            </div>
-            <div style={{ maxHeight: "500px", overflowY: "auto" }}>
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  style={{
-                    padding: "14px 20px",
-                    borderBottom: "1px solid #f3f4f6",
-                  }}
-                >
-                  <div
+                <div style={{ flex: 1 }}>
+                  <p
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#111827",
+                      marginBottom: "2px",
                     }}
                   >
-                    <div>
-                      <p
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          color: "#111827",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        #{order.orderNumber ?? "—"}
-                      </p>
-                      <p style={{ fontSize: "11px", color: "#6b7280" }}>
-                        {order.shop.name}
-                      </p>
-                    </div>
-                    <p style={{ fontSize: "11px", color: "#9ca3af" }}>
-                      {new Date(order.createdAt).toLocaleDateString("tr-TR")}
-                    </p>
-                  </div>
+                    {shop.name}
+                  </p>
+                  <p style={{ fontSize: "11px", color: "#9ca3af" }}>
+                    Kayıt:{" "}
+                    {new Date(shop.createdAt).toLocaleDateString("tr-TR")} ·
+                    Toplam: {shop._count.orders} · Bu ay: {shop.orders.length}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      padding: "2px 8px",
+                      borderRadius: "9999px",
+                      background:
+                        new Date(shop.updatedAt) >=
+                        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                          ? "#dcfce7"
+                          : "#f3f4f6",
+                      color:
+                        new Date(shop.updatedAt) >=
+                        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                          ? "#16a34a"
+                          : "#6b7280",
+                    }}
+                  >
+                    {new Date(shop.updatedAt) >=
+                    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                      ? "Aktif"
+                      : "Pasif"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      color: shop.waEnabled ? "#16a34a" : "#9ca3af",
+                    }}
+                  >
+                    {shop.waEnabled ? "✅ WA" : "❌ WA"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(shop.id, shop.name)}
+                    style={{
+                      background: "#fee2e2",
+                      color: "#dc2626",
+                      border: "1px solid #fca5a5",
+                      borderRadius: "6px",
+                      padding: "4px 10px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Sil
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
