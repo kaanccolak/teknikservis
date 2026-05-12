@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getSessionStatus } from "@/lib/baileys-client";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -72,13 +73,26 @@ export async function GET() {
     }),
   ]);
 
-  const activeShops = shops.filter((s) => s.updatedAt >= sevenDaysAgo).length;
-  const newShopsThisMonth = shops.filter(
+  const shopsWithWaStatus = await Promise.all(
+    shops.map(async (shop) => {
+      try {
+        const status = await getSessionStatus(shop.id);
+        return { ...shop, waConnected: status.connected === true };
+      } catch {
+        return { ...shop, waConnected: false };
+      }
+    }),
+  );
+
+  const activeShops = shopsWithWaStatus.filter(
+    (s) => s.updatedAt >= sevenDaysAgo,
+  ).length;
+  const newShopsThisMonth = shopsWithWaStatus.filter(
     (s) => s.createdAt >= thirtyDaysAgo,
   ).length;
 
   return NextResponse.json({
-    shops,
+    shops: shopsWithWaStatus,
     totalOrders,
     todayOrders,
     activeShops,

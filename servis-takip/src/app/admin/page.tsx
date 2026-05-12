@@ -13,6 +13,7 @@ type AdminStatsResponse = {
     updatedAt: string;
     waEnabled: boolean;
     waPhoneNumberId: string | null;
+    waConnected: boolean;
     _count: { orders: number };
     orders: Array<{ id: string }>;
   }>;
@@ -344,14 +345,11 @@ export default function AdminPage() {
                   <span
                     style={{
                       fontSize: "11px",
-                      color:
-                        shop.waEnabled && shop.waPhoneNumberId
-                          ? "#16a34a"
-                          : "#9ca3af",
+                      color: shop.waConnected ? "#16a34a" : "#9ca3af",
                     }}
                   >
-                    {shop.waEnabled && shop.waPhoneNumberId
-                      ? "✅ WA Aktif"
+                    {shop.waConnected
+                      ? "✅ WA Bağlı"
                       : "❌ WA Bağlı Değil"}
                   </span>
                   <button
