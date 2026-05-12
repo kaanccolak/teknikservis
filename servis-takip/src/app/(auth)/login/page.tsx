@@ -45,29 +45,6 @@ function LoginPageContent() {
     }
   }, [isDemo]);
 
-  useEffect(() => {
-    const verified = searchParams.get("verified");
-    if (verified === "true") {
-      toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz. 🎉");
-      router.replace("/login");
-      return;
-    }
-
-    const code = searchParams.get("code");
-    if (!code) return;
-
-    const supabase = createClient();
-    void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (!error) {
-        void supabase.auth.signOut().then(() => {
-          router.replace("/login?verified=true");
-        });
-      } else {
-        router.replace("/login");
-      }
-    });
-  }, [searchParams]);
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -130,7 +107,7 @@ function LoginPageContent() {
       email: emailTrim,
       password: passwordTrim,
       options: {
-        emailRedirectTo: "https://www.tamirtakip.com.tr/login",
+        emailRedirectTo: "https://www.tamirtakip.com.tr/email-dogrulama",
         data: {
           shop_name: nameTrim,
         },
