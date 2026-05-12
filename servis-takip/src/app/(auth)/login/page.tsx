@@ -45,6 +45,20 @@ function LoginPageContent() {
     }
   }, [isDemo]);
 
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (code) {
+      const supabase = createClient();
+      void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (!error) {
+          toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz.");
+        } else {
+          toast.error("Doğrulama başarısız, lütfen tekrar deneyin.");
+        }
+      });
+    }
+  }, [searchParams]);
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
