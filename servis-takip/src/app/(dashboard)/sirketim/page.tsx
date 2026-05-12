@@ -1117,7 +1117,11 @@ function SirketimPageInner() {
       }
       const row = data as ShopFull;
       setShop(row);
-      setIsDemo(row.isDemo === true);
+      const isDemoAccount = row.isDemo === true;
+      const isUnlocked =
+        typeof document !== "undefined" &&
+        document.cookie.includes("demo_unlocked=true");
+      setIsDemo(isDemoAccount && !isUnlocked);
       setReceiptNotes(row.receiptNotes ?? "");
 
       // Baileys bağlantı durumunu kontrol et
