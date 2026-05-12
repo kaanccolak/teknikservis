@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -56,6 +57,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const { id } = await params;
   let body: unknown;
   try {
@@ -298,6 +302,9 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const { id } = await params;
   let shop;
   try {

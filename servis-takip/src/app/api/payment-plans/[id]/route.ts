@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -24,6 +25,9 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const { id } = await context.params;
   if (!id?.trim()) {
     return NextResponse.json({ error: "Geçersiz kayıt" }, { status: 400 });
@@ -166,6 +170,9 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const { id } = await context.params;
   if (!id?.trim()) {
     return NextResponse.json({ error: "Geçersiz kayıt" }, { status: 400 });

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { invalidateShopCache } from "@/lib/getShop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,12 @@ function normalizeDigits(value: string | undefined | null): string | null {
 
 export async function GET() {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const isDemo = user?.email === "demo@demo.tr";
+
     const shop = await getOrCreateDefaultShop();
     const {
       waAccessToken: _omit,
@@ -42,6 +50,7 @@ export async function GET() {
         _gAccess && String(_gAccess).trim().length > 0,
       ),
       waUnreadCount,
+      isDemo,
     });
   } catch (e) {
     return jsonServerError("GET /api/shop", e, "Şirket bilgileri alınamadı");
@@ -49,6 +58,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   let json: unknown;
   try {
     json = await request.json();

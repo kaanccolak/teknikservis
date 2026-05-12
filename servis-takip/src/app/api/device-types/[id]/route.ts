@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { invalidateCache, invalidateCachePrefix } from "@/lib/cache";
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -11,6 +12,9 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } },
 ) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const { id } = params;
   if (!id) {
     return NextResponse.json({ error: "id gerekli" }, { status: 400 });

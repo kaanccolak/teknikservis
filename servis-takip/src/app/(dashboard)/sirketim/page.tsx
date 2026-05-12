@@ -2132,6 +2132,35 @@ function SirketimPageInner() {
                         />
                         <div
                           style={{
+                            marginTop: "10px",
+                            padding: "12px 14px",
+                            background: "#dcfce7",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            color: "#166534",
+                            lineHeight: "1.6",
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "#16a34a",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            📱 Önizleme:
+                          </p>
+                          {(waTemplates[key] ?? def.defaultMessage)
+                            .replace(/{isim}/g, "Ahmet Yılmaz")
+                            .replace(/{seriNo}/g, "PS5-XA234567")
+                            .replace(/{cihaz}/g, "Playstation 5")
+                            .replace(/{fiyat}/g, "1.500 TL")
+                            .replace(/{neden}/g, "Ana kart hasarı")}
+                        </div>
+                        <div
+                          style={{
                             display: "flex",
                             gap: "8px",
                             marginTop: "10px",

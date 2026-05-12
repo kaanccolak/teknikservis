@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -8,6 +9,9 @@ import { sendBaileysMessage, getSessionStatus } from "@/lib/baileys-client";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   let body: {
     phone?: string;
     templateName?: string;

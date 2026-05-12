@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { getShop } from "@/lib/getShop";
 import {
@@ -100,6 +101,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(request: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   let json: unknown;
   try {
     json = await request.json();

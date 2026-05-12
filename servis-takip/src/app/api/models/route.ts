@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCache, invalidateCache, setCache } from "@/lib/cache";
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
@@ -39,6 +40,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -86,6 +90,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const id = new URL(request.url).searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "id gerekli" }, { status: 400 });

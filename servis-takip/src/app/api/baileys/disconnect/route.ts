@@ -1,9 +1,13 @@
+import { demoGuard } from "@/lib/demo-guard";
 import { getShop } from "@/lib/getShop";
 import { disconnectShopWhatsApp } from "@/lib/baileys-client";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   const shop = await getShop();
   if (!shop)
     return Response.json({ error: "Shop bulunamadı" }, { status: 401 });

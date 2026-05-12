@@ -1,3 +1,5 @@
+import type { Shop } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { getShop, setShopCache } from "@/lib/getShop";
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
@@ -14,7 +16,7 @@ export const DEFAULT_SHOP_NAME = "Varsayılan Dükkan";
  * Supabase pooler ile uyum için shop oluşturma tek bir `create` ile yapılır
  * (interactive transaction kullanılmaz).
  */
-export async function getOrCreateDefaultShop() {
+export async function getOrCreateDefaultShop(): Promise<Shop> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -51,28 +53,31 @@ export async function getOrCreateDefaultShop() {
     }
   }
 
-  let shop = await getShop();
-  if (shop) {
-    return shop;
+  const shopWithDemo = await getShop();
+  if (shopWithDemo) {
+    const { isDemo, ...plainShop } = shopWithDemo;
+    void isDemo;
+    setShopCache(plainShop);
+    return plainShop;
   }
 
   try {
-    shop = await prisma.shop.create({
+    const created = await prisma.shop.create({
       data: { name: DEFAULT_SHOP_NAME },
     });
-    setShopCache(shop);
-    return shop;
+    setShopCache(created);
+    return created;
   } catch (createErr) {
     console.error(
       "[getOrCreateDefaultShop] İlk create başarısız, tekrar findFirst deneniyor",
       createErr,
     );
-    shop = await prisma.shop.findFirst({
+    const recovered = await prisma.shop.findFirst({
       orderBy: { createdAt: "asc" },
     });
-    if (shop) {
-      setShopCache(shop);
-      return shop;
+    if (recovered) {
+      setShopCache(recovered);
+      return recovered;
     }
     throw createErr;
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { parseDatetimeLocal } from "@/lib/datetime-local";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { addContactToGoogle } from "@/lib/googleContacts";
@@ -173,6 +174,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   let json: unknown;
   try {
     json = await request.json();

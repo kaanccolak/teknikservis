@@ -3,7 +3,9 @@ import type { Shop } from "@prisma/client";
 import { prisma } from "./prisma";
 import { createClient } from "./supabase/server";
 
-export async function getShop(): Promise<Shop | null> {
+export type ShopWithDemo = Shop & { isDemo: boolean };
+
+export async function getShop(): Promise<ShopWithDemo | null> {
   try {
     const supabase = await createClient();
     const {
@@ -16,7 +18,12 @@ export async function getShop(): Promise<Shop | null> {
       where: { userId: user.id },
     });
 
-    return shop;
+    if (!shop) return null;
+
+    return {
+      ...shop,
+      isDemo: user.email === "demo@demo.tr",
+    };
   } catch {
     return null;
   }
