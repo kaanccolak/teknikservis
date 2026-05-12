@@ -22,6 +22,10 @@ export async function getOrCreateDefaultShop(): Promise<Shop> {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (user?.email === "kaanccolak@gmail.com") {
+    throw new Error("Admin kullanıcısı için dükkan oluşturulamaz");
+  }
+
   if (user?.id) {
     let shop = await prisma.shop.findUnique({
       where: { userId: user.id },
