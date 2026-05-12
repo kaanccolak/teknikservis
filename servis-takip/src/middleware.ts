@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Korumasız sayfalar
-  const publicPaths = ["/login", "/landing", "/sorgula", "/reset-password", "/sitemap.xml", "/robots.txt"];
+  const publicPaths = ["/login", "/landing", "/sorgula", "/reset-password", "/sitemap.xml", "/robots.txt", "/api/cron"];
 
   const isPublic = publicPaths.some(
     (path) =>
