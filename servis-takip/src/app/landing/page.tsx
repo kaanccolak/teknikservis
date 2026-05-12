@@ -135,12 +135,16 @@ export default function LandingPage() {
               Tüm teknik servisler için
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-[2.75rem] xl:text-5xl">
-              Servis yönetimini{" "}
-              <span className="text-indigo-600">kolaylaştırın</span>
+              Teknik Servis Takip Programı
+              <span style={{ color: "#4f46e5", display: "block" }}>
+                Artık Çok Kolay
+              </span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-slate-600 lg:mx-0 mx-auto">
-              Cihaz kayıt, takip, stok ve WhatsApp bildirimleri — hepsi tek
-              platformda. Kurulum gerektirmez.
+              TamirTakip ile cep telefonu, beyaz eşya ve televizyon teknik
+              servislerinizi online yönetin. Cihaz kayıt, servis takip, stok
+              yönetimi ve WhatsApp bildirimleri tek platformda. Kurulum
+              gerektirmez.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <button
@@ -283,7 +287,7 @@ export default function LandingPage() {
             Özellikler
           </p>
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            İhtiyacınız olan her şey, tek platformda
+            Online Servis Takip Programının Tüm Özellikleri
           </h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
@@ -352,7 +356,7 @@ export default function LandingPage() {
             Nasıl çalışır
           </p>
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Üç adımda başlayın
+            Teknik Servis Programına 3 Adımda Başlayın
           </h2>
           <div className="mx-auto mt-14 grid max-w-4xl gap-8 sm:grid-cols-3">
             {[
@@ -401,7 +405,7 @@ export default function LandingPage() {
             Referanslar
           </p>
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Kullanıcılarımız ne diyor?
+            Teknik Servisler TamirTakip Hakkında Ne Diyor?
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-base text-slate-600 sm:text-lg">
             Türkiye&apos;nin dört bir yanındaki teknik servislerden gerçek
@@ -468,6 +472,207 @@ export default function LandingPage() {
           >
             Demo ile incele
           </button>
+        </div>
+      </section>
+
+      {/* Kimler Kullanabilir Bölümü */}
+      <section
+        style={{ padding: "80px 24px", background: "#f9fafb" }}
+      >
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#4f46e5",
+                fontWeight: 600,
+                letterSpacing: "2px",
+                marginBottom: "12px",
+              }}
+            >
+              HER TEKNİK SERVİS İÇİN
+            </p>
+            <h2
+              style={{
+                fontSize: "36px",
+                fontWeight: 800,
+                color: "#111827",
+                marginBottom: "16px",
+              }}
+            >
+              Hangi Servisler Kullanabilir?
+            </h2>
+            <p
+              style={{
+                fontSize: "16px",
+                color: "#6b7280",
+                maxWidth: "600px",
+                margin: "0 auto",
+              }}
+            >
+              TamirTakip, her türlü teknik servis ve tamirci için tasarlanmış
+              online servis takip programıdır.
+            </p>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: "20px",
+            }}
+          >
+            {[
+              {
+                icon: "📱",
+                title: "Cep Telefonu Teknik Servisi",
+                desc: "iPhone, Samsung, Xiaomi ve tüm marka cep telefonu tamiri için servis takip programı.",
+              },
+              {
+                icon: "📺",
+                title: "Televizyon Teknik Servisi",
+                desc: "LED, OLED, Smart TV tamiri için televizyon teknik servis takip programı.",
+              },
+              {
+                icon: "🧺",
+                title: "Beyaz Eşya Teknik Servisi",
+                desc: "Çamaşır makinesi, buzdolabı, bulaşık makinesi tamiri için beyaz eşya servis takip programı.",
+              },
+              {
+                icon: "🎮",
+                title: "Oyun Konsolu Servisi",
+                desc: "PlayStation, Xbox, Nintendo tamiri için oyun konsolu servis kayıt ve takip programı.",
+              },
+              {
+                icon: "💻",
+                title: "Bilgisayar Teknik Servisi",
+                desc: "Laptop, masaüstü bilgisayar tamiri için online servis kayıt programı.",
+              },
+              {
+                icon: "🔧",
+                title: "Genel Tamir & Servis",
+                desc: "Her türlü elektronik cihaz tamiri için kapsamlı teknik servis yönetim programı.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "white",
+                  borderRadius: "12px",
+                  padding: "24px",
+                  border: "1px solid #e5e7eb",
+                }}
+              >
+                <div style={{ fontSize: "32px", marginBottom: "12px" }}>
+                  {item.icon}
+                </div>
+                <h3
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: "#111827",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SSS Bölümü */}
+      <section style={{ padding: "80px 24px", background: "white" }}>
+        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#4f46e5",
+                fontWeight: 600,
+                letterSpacing: "2px",
+                marginBottom: "12px",
+              }}
+            >
+              SSS
+            </p>
+            <h2
+              style={{
+                fontSize: "36px",
+                fontWeight: 800,
+                color: "#111827",
+              }}
+            >
+              Sıkça Sorulan Sorular
+            </h2>
+          </div>
+          <div style={{ display: "grid", gap: "16px" }}>
+            {[
+              {
+                q: "TamirTakip nedir?",
+                a: "TamirTakip, teknik servisler için geliştirilmiş online servis takip programıdır. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok yönetimi ve ciro raporlaması gibi tüm servis yönetimi ihtiyaçlarınızı karşılar.",
+              },
+              {
+                q: "Hangi teknik servisler kullanabilir?",
+                a: "Cep telefonu, televizyon, beyaz eşya, oyun konsolu, bilgisayar ve her türlü elektronik cihaz tamiri yapan teknik servisler TamirTakip'i kullanabilir.",
+              },
+              {
+                q: "WhatsApp entegrasyonu nasıl çalışıyor?",
+                a: "Kendi WhatsApp numaranızı sisteme bağlayarak müşterilerinize otomatik bildirim gönderebilirsiniz. Cihaz durumu değiştiğinde, fiyat bildirimi yapıldığında veya cihaz teslim edildiğinde müşterinize otomatik mesaj gider.",
+              },
+              {
+                q: "Kurulum gerekiyor mu?",
+                a: "Hayır, TamirTakip tamamen online çalışan bir servis takip programıdır. Herhangi bir kurulum veya yükleme gerekmez. Kayıt olduktan sonra anında kullanmaya başlayabilirsiniz.",
+              },
+              {
+                q: "Mobil cihazdan kullanabilir miyim?",
+                a: "Evet, TamirTakip mobil uyumlu tasarımı ile telefon ve tablet üzerinden de kullanılabilir. Dükkanınızda olmadığınızda bile servis kayıtlarınıza erişebilirsiniz.",
+              },
+              {
+                q: "Verilerimin güvenliği nasıl sağlanıyor?",
+                a: "Tüm verileriniz şifreli olarak saklanır. Her dükkanın verileri birbirinden tamamen bağımsızdır. Şirket ayarlarınızı parola korumasıyla güvence altına alabilirsiniz.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "12px",
+                  padding: "24px",
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: "#111827",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {item.q}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#6b7280",
+                    lineHeight: "1.7",
+                    margin: 0,
+                  }}
+                >
+                  {item.a}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
