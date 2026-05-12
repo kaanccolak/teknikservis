@@ -35,6 +35,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    if (!user) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (user.email !== "kaanccolak@gmail.com") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    return supabaseResponse;
+  }
+
   // Korumasız sayfalar
   const publicPaths = ["/login", "/landing", "/sorgula", "/reset-password", "/sitemap.xml", "/robots.txt", "/api/cron"];
 
