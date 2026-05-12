@@ -32,6 +32,9 @@ export async function middleware(request: NextRequest) {
 
   // Login sayfasına gidiyorsa ve zaten giriş yaptıysa dashboard'a yönlendir
   if (request.nextUrl.pathname === "/login" && user) {
+    if (user.email === "kaanccolak@gmail.com") {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
     return NextResponse.redirect(new URL("/", request.url));
   }
 
