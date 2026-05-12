@@ -168,7 +168,7 @@ function LoginPageContent() {
 
       const supabase = createClient();
       const { error } = await supabase.auth.resetPasswordForEmail(emailTrim, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: "https://www.tamirtakip.com.tr/reset-password",
       });
       if (error) {
         toast.error("Hata: " + error.message);
