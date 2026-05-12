@@ -49,17 +49,15 @@ function LoginPageContent() {
     const code = searchParams.get("code");
     if (!code) return;
 
-    // URL'den code'u hemen temizle (tekrar çalışmasın)
-    router.replace("/login");
-
     const supabase = createClient();
     void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
       if (!error) {
         toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz.");
       }
-      // Hata olursa sessizce geç — code zaten kullanılmış olabilir
+      // Her durumda URL'den code'u temizle
+      router.replace("/login");
     });
-    // searchParams bağımlılığını kaldır — sadece ilk render'da çalışsın
+    // sadece mount'ta çalış
   }, []);
 
   async function handleLogin(e: React.FormEvent) {
