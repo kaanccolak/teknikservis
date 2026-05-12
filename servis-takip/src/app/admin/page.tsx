@@ -117,12 +117,37 @@ export default function AdminPage() {
             TamirTakip Admin
           </span>
         </div>
-        <a
-          href="/"
-          style={{ color: "#9ca3af", fontSize: "13px", textDecoration: "none" }}
-        >
-          ← Uygulamaya Dön
-        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <a
+            href="/"
+            style={{
+              color: "#9ca3af",
+              fontSize: "13px",
+              textDecoration: "none",
+            }}
+          >
+            ← Uygulamaya Dön
+          </a>
+          <button
+            onClick={async () => {
+              const { createClient } = await import("@/lib/supabase/client");
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              window.location.href = "/login";
+            }}
+            style={{
+              background: "#dc2626",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              padding: "6px 14px",
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            Çıkış Yap
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "32px 24px" }}>
