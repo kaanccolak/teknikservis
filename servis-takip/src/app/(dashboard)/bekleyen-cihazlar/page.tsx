@@ -47,6 +47,7 @@ type Named = { name: string };
 type ServiceOrderListRow = {
   id: string;
   orderNumber: string | null;
+  reminderSentAt?: string | null;
   arrivedAt: string;
   serialNo: string | null;
   noSerialNo: boolean;
@@ -677,21 +678,49 @@ function BekleyenCihazlarInner() {
                         {row.noSerialNo ? "—" : (row.serialNo ?? "—")}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2.5">
-                        <span
+                        <div
                           style={{
-                            display: "inline-block",
-                            padding: "3px 10px",
-                            borderRadius: "20px",
-                            fontSize: "11px",
-                            fontWeight: "500",
-                            background: statusBadge.bg,
-                            color: statusBadge.color,
-                            border: `1px solid ${statusBadge.border}`,
-                            whiteSpace: "nowrap",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            flexWrap: "wrap",
                           }}
                         >
-                          {statusBadge.label}
-                        </span>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "3px 10px",
+                              borderRadius: "20px",
+                              fontSize: "11px",
+                              fontWeight: "500",
+                              background: statusBadge.bg,
+                              color: statusBadge.color,
+                              border: `1px solid ${statusBadge.border}`,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {statusBadge.label}
+                          </span>
+                          {row.reminderSentAt ? (
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                background: "#f0fdf4",
+                                color: "#16a34a",
+                                border: "1px solid #86efac",
+                                borderRadius: "4px",
+                                padding: "2px 6px",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              📨{" "}
+                              {new Date(row.reminderSentAt).toLocaleDateString(
+                                "tr-TR",
+                              )}{" "}
+                              hatırlatıldı
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-2.5">
                         <span className={waitingDaysClass(days)}>
