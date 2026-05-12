@@ -71,7 +71,14 @@ function LoginPageContent() {
     }
 
     router.refresh();
-    router.push("/");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user?.email === "kaanccolak@gmail.com") {
+      router.push("/admin");
+    } else {
+      router.push("/");
+    }
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -137,7 +144,14 @@ function LoginPageContent() {
 
     toast.success("Kayıt başarılı! Giriş yapılıyor...");
     router.refresh();
-    router.push("/");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user?.email === "kaanccolak@gmail.com") {
+      router.push("/admin");
+    } else {
+      router.push("/");
+    }
     setRegisterLoading(false);
   }
 
