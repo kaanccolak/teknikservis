@@ -52,6 +52,7 @@ function LoginPageContent() {
       void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (!error) {
           toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz.");
+          router.replace("/login");
         } else {
           toast.error("Doğrulama başarısız, lütfen tekrar deneyin.");
         }
