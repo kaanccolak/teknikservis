@@ -46,24 +46,19 @@ function LoginPageContent() {
   }, [isDemo]);
 
   useEffect(() => {
-    // Doğrulama başarılı mesajı
     const verified = searchParams.get("verified");
     if (verified === "true") {
-      toast.success(
-        "E-posta adresiniz doğrulandı! Giriş yapabilirsiniz. 🎉",
-      );
+      toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz. 🎉");
       router.replace("/login");
       return;
     }
 
-    // Code exchange
     const code = searchParams.get("code");
     if (!code) return;
 
     const supabase = createClient();
     void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
       if (!error) {
-        // Önce logout yap, sonra verified sayfasına yönlendir
         void supabase.auth.signOut().then(() => {
           router.replace("/login?verified=true");
         });
@@ -71,7 +66,7 @@ function LoginPageContent() {
         router.replace("/login");
       }
     });
-  }, []);
+  }, [searchParams]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
