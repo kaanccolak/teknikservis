@@ -50,14 +50,25 @@ function LoginPageContent() {
     if (!code) return;
 
     const supabase = createClient();
-    void supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (!error) {
-        toast.success("E-posta adresiniz doğrulandı! Giriş yapabilirsiniz.");
+    void supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+      if (!error && data.session) {
+        // URL'den code'u temizle
+        router.replace("/login");
+        // Kısa bir gecikme ile toast göster, sonra yönlendir
+        setTimeout(() => {
+          toast.success("E-posta adresiniz doğrulandı! 🎉");
+          setTimeout(() => {
+            if (data.session.user.email === "kaanccolak@gmail.com") {
+              router.push("/admin");
+            } else {
+              router.push("/");
+            }
+          }, 2000); // 2 saniye toast göster, sonra yönlendir
+        }, 100);
+      } else {
+        router.replace("/login");
       }
-      // Her durumda URL'den code'u temizle
-      router.replace("/login");
     });
-    // sadece mount'ta çalış
   }, []);
 
   async function handleLogin(e: React.FormEvent) {
