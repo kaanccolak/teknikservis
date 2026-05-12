@@ -148,15 +148,11 @@ export function Sidebar() {
         )}
       >
         <div className="border-b border-slate-100 px-5 py-6">
-          <p className="logo-sub text-xs font-medium uppercase tracking-wide text-slate-500">
-            Teknik Servis Yönetimi
-          </p>
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              marginBottom: "4px",
             }}
           >
             <div
@@ -234,7 +230,7 @@ export function Sidebar() {
               <span style={{ fontWeight: 300, color: "#4f46e5" }}>takip</span>
             </span>
           </div>
-          <p className="logo-title mt-1 text-lg font-semibold text-slate-900">
+          <p className="mt-2 text-xs text-slate-500">
             {shopName || "TamirTakip"}
           </p>
         </div>
