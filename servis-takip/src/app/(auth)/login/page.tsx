@@ -101,9 +101,17 @@ function LoginPageContent() {
     setRegisterLoading(true);
 
     const supabase = createClient();
+    const emailTrim = registerEmail.trim();
+    const passwordTrim = registerPassword.trim();
     const { data, error } = await supabase.auth.signUp({
-      email: registerEmail.trim(),
-      password: registerPassword,
+      email: emailTrim,
+      password: passwordTrim,
+      options: {
+        emailRedirectTo: "https://www.tamirtakip.com.tr/login",
+        data: {
+          shop_name: nameTrim,
+        },
+      },
     });
 
     if (error) {
@@ -120,9 +128,9 @@ function LoginPageContent() {
 
     if (!data.session) {
       setRegisterLoading(false);
-      toast.message(
-        "Kayıt alındı. E-postanızdaki onay bağlantısına tıklayın; ardından giriş yaparak devam edin.",
-      );
+      // Email doğrulama aktif olduğu için direkt login olmaz
+      toast.success("Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.");
+      setMode("login");
       return;
     }
 
@@ -142,16 +150,9 @@ function LoginPageContent() {
       return;
     }
 
-    toast.success("Kayıt başarılı! Giriş yapılıyor...");
-    router.refresh();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user?.email === "kaanccolak@gmail.com") {
-      router.push("/admin");
-    } else {
-      router.push("/");
-    }
+    // Email doğrulama aktif olduğu için direkt login olmaz
+    toast.success("Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.");
+    setMode("login");
     setRegisterLoading(false);
   }
 
