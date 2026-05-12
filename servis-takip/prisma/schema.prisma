@@ -266,6 +266,7 @@ model ServiceOrder {
   deliveryNote       String?
 
   deletedAt      DateTime?
+  reminderSentAt DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   statusLogs       StatusLog[]
