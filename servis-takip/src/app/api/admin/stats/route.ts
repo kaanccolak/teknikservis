@@ -44,7 +44,16 @@ export async function GET() {
 
   const shops = await prisma.shop.findMany({
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      createdAt: true,
+      updatedAt: true,
+      waEnabled: true,
+      waPhoneNumberId: true,
       _count: { select: { orders: true } },
       orders: {
         where: { deletedAt: null, createdAt: { gte: thisMonthStart } },
