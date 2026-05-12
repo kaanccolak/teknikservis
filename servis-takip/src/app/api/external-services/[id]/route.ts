@@ -56,7 +56,7 @@ export async function GET(
     if (!row) {
       return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
     }
-    return NextResponse.json(row);
+    return NextResponse.json({ ...row, totalPaid: row.totalPaid ?? 0 });
   } catch (e) {
     return jsonServerError(
       "GET /api/external-services/[id]",

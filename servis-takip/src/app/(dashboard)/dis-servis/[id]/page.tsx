@@ -43,7 +43,8 @@ type ServiceOrderRow = {
   statusLogs: { createdAt: string }[];
 };
 
-type ExternalDetail = {
+/** Dış servis detay API yanıtı */
+type ExternalServiceData = {
   id: string;
   name: string;
   contactName: string | null;
@@ -51,6 +52,7 @@ type ExternalDetail = {
   address: string | null;
   notes: string | null;
   createdAt: string;
+  totalPaid?: number;
   serviceOrders: ServiceOrderRow[];
 };
 
@@ -86,7 +88,7 @@ export default function DisServisDetayPage() {
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : "";
 
-  const [data, setData] = useState<ExternalDetail | null>(null);
+  const [data, setData] = useState<ExternalServiceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -112,13 +114,13 @@ export default function DisServisDetayPage() {
     setError(null);
     try {
       const res = await fetch(`/api/external-services/${id}`);
-      const json = (await res.json()) as ExternalDetail | { error?: string };
+      const json = (await res.json()) as ExternalServiceData | { error?: string };
       if (!res.ok) {
         setError((json as { error?: string }).error ?? "Kayıt yüklenemedi");
         setData(null);
         return;
       }
-      setData(json as ExternalDetail);
+      setData(json as ExternalServiceData);
     } catch {
       setError("Bağlantı hatası");
       setData(null);
@@ -404,6 +406,25 @@ export default function DisServisDetayPage() {
               <CardDescription>Cihaz istatistikleri</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6 text-sm">
+              <div
+                style={{
+                  padding: "12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  background: "#fafafa",
+                }}
+              >
+                <p style={{ fontSize: "13px", color: "#6b7280" }}>Toplam Ödeme</p>
+                <p
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  {(data.totalPaid ?? 0).toLocaleString("tr-TR")} ₺
+                </p>
+              </div>
               <div className="flex justify-between gap-2 border-b border-slate-100 pb-3">
                 <span className="text-slate-600">Toplam gönderilen</span>
                 <span className="font-semibold text-slate-900">

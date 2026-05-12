@@ -105,6 +105,7 @@ model ExternalService {
   phone         String?
   address       String?
   notes         String?
+  totalPaid     Float          @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   serviceOrders ServiceOrder[]

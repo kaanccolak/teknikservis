@@ -211,22 +211,19 @@ function buildServiceOrderUpdate(
         : String(body.deliveryNote).trim();
   }
 
-  if (body.status !== undefined && body.status !== "sent_to_external") {
-    prismaData.externalService = { disconnect: true };
-    prismaData.externalNote = null;
-  } else {
-    if (body.externalServiceId !== undefined) {
-      const tid = body.externalServiceId?.trim() ?? "";
-      prismaData.externalService = tid
-        ? { connect: { id: tid } }
-        : { disconnect: true };
-    }
-    if (body.externalNote !== undefined) {
-      prismaData.externalNote =
-        body.externalNote === null
-          ? null
-          : emptyToNull(String(body.externalNote));
-    }
+  // Dış servis ilişkisini sadece kullanıcı açıkça disconnect isterse kopar
+  // Durum değişince ilişkiyi silme — tarihsel kayıt olarak kalsın
+  if (body.externalServiceId !== undefined) {
+    const tid = body.externalServiceId?.trim() ?? "";
+    prismaData.externalService = tid
+      ? { connect: { id: tid } }
+      : { disconnect: true };
+  }
+  if (body.externalNote !== undefined) {
+    prismaData.externalNote =
+      body.externalNote === null
+        ? null
+        : emptyToNull(String(body.externalNote));
   }
 
   if (body.externalCost !== undefined) {
@@ -451,6 +448,34 @@ export async function PATCH(
         data: prismaData,
       });
     });
+
+    // externalCost güncellenince dış servisin toplam ödemesini yeniden hesapla
+    if (body.externalCost !== undefined) {
+      const orderRow = await prisma.serviceOrder.findFirst({
+        where: { id, shopId: shop.id, deletedAt: null },
+        select: { externalServiceId: true },
+      });
+      if (orderRow?.externalServiceId) {
+        const allOrders = await prisma.serviceOrder.findMany({
+          where: {
+            externalServiceId: orderRow.externalServiceId,
+            deletedAt: null,
+            shopId: shop.id,
+          },
+          select: { externalCost: true },
+        });
+
+        const totalPaid = allOrders.reduce(
+          (sum, o) => sum + (o.externalCost ?? 0),
+          0,
+        );
+
+        await prisma.externalService.update({
+          where: { id: orderRow.externalServiceId },
+          data: { totalPaid },
+        });
+      }
+    }
 
     if (
       body.totalPrice !== undefined &&

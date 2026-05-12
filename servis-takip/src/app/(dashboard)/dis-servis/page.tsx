@@ -47,6 +47,7 @@ type ExternalRow = {
   notes: string | null;
   totalSentCount: number;
   currentlyThereCount: number;
+  totalPaid?: number;
 };
 
 type ExternalForm = {
@@ -331,19 +332,22 @@ function DisServisContent() {
               <th className="px-3 py-2.5 text-center whitespace-nowrap">
                 Toplam Gönderilen
               </th>
+              <th className="px-3 py-2.5 text-center whitespace-nowrap">
+                Toplam Ödeme
+              </th>
               <th className="px-3 py-2.5">İşlemler</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-3 py-6 text-center text-slate-600" colSpan={7}>
+                <td className="px-3 py-6 text-center text-slate-600" colSpan={8}>
                   Yükleniyor…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td className="px-3 py-6 text-center text-slate-600" colSpan={7}>
+                <td className="px-3 py-6 text-center text-slate-600" colSpan={8}>
                   Kayıt bulunamadı
                 </td>
               </tr>
@@ -365,6 +369,9 @@ function DisServisContent() {
                   </td>
                   <td className="px-3 py-2.5 text-center tabular-nums">
                     {row.totalSentCount ?? 0}
+                  </td>
+                  <td className="px-3 py-2.5 text-center tabular-nums">
+                    {(row.totalPaid ?? 0).toLocaleString("tr-TR")} ₺
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="flex flex-wrap gap-2">
