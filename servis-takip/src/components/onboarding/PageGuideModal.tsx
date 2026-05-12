@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { createClient } from "@/lib/supabase/client";
+
 interface Props {
   pageKey: string;
   title: string;
@@ -18,18 +20,35 @@ export default function PageGuideModal({
   icon,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [storageKey, setStorageKey] = useState("");
 
   useEffect(() => {
-    const key = `onboarding_page_${pageKey}`;
-    const shown = localStorage.getItem(key);
-    if (!shown) {
-      const timer = setTimeout(() => setOpen(true), 500);
-      return () => clearTimeout(timer);
-    }
+    let cancelled = false;
+    const timerRef: { id?: ReturnType<typeof setTimeout> } = {};
+
+    const supabase = createClient();
+    void supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      const userId = data.user?.id ?? "guest";
+      const key = `onboarding_page_${pageKey}_${userId}`;
+      const shown = localStorage.getItem(key);
+      if (!shown) {
+        timerRef.id = setTimeout(() => {
+          if (cancelled) return;
+          setOpen(true);
+          setStorageKey(key);
+        }, 500);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      if (timerRef.id !== undefined) clearTimeout(timerRef.id);
+    };
   }, [pageKey]);
 
   function close() {
-    localStorage.setItem(`onboarding_page_${pageKey}`, "1");
+    if (storageKey) localStorage.setItem(storageKey, "1");
     setOpen(false);
   }
 

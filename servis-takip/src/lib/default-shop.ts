@@ -36,8 +36,14 @@ export async function getOrCreateDefaultShop(): Promise<Shop> {
     }
 
     try {
+      const shopName =
+        typeof user.user_metadata?.shop_name === "string" &&
+        user.user_metadata.shop_name.trim().length >= 2
+          ? user.user_metadata.shop_name.trim()
+          : DEFAULT_SHOP_NAME;
+
       shop = await prisma.shop.create({
-        data: { name: DEFAULT_SHOP_NAME, userId: user.id },
+        data: { name: shopName, userId: user.id },
       });
       setShopCache(shop);
       return shop;

@@ -3,18 +3,25 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "onboarding_welcome_shown";
+import { createClient } from "@/lib/supabase/client";
 
 export default function WelcomeModal() {
   const [open, setOpen] = useState(false);
+  const [storageKey, setStorageKey] = useState("");
 
   useEffect(() => {
-    const shown = localStorage.getItem(STORAGE_KEY);
-    if (!shown) setOpen(true);
+    const supabase = createClient();
+    void supabase.auth.getUser().then(({ data }) => {
+      const userId = data.user?.id ?? "guest";
+      const key = `onboarding_welcome_shown_${userId}`;
+      const shown = localStorage.getItem(key);
+      if (!shown) setOpen(true);
+      setStorageKey(key);
+    });
   }, []);
 
   function close() {
-    localStorage.setItem(STORAGE_KEY, "1");
+    if (storageKey) localStorage.setItem(storageKey, "1");
     setOpen(false);
   }
 
