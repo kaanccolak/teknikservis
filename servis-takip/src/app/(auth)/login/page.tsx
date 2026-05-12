@@ -187,7 +187,7 @@ function LoginPageContent() {
       <div className="w-full max-w-[400px] rounded-xl border border-neutral-200 bg-white p-8 shadow-md">
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            Servis Takip
+            TamirTakip
           </h1>
           <p className="mt-2 text-sm text-neutral-600">
             Teknik Servis Yönetim Sistemi

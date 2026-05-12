@@ -151,8 +151,91 @@ export function Sidebar() {
           <p className="logo-sub text-xs font-medium uppercase tracking-wide text-slate-500">
             Teknik Servis Yönetimi
           </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "4px",
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "28px",
+                height: "28px",
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "6px",
+                  background: "#4f46e5",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "2px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "16px",
+                    height: "4px",
+                    borderRadius: "1px",
+                    background: "white",
+                  }}
+                />
+                <div
+                  style={{
+                    width: "7px",
+                    height: "10px",
+                    borderRadius: "1px",
+                    background: "white",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "-3px",
+                  right: "-3px",
+                  width: "12px",
+                  height: "12px",
+                  borderRadius: "50%",
+                  background: "#22c55e",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="7" height="7" viewBox="0 0 7 7" fill="none">
+                  <path
+                    d="M1 3.5L2.8 5.5L6 1.5"
+                    stroke="white"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+            <span
+              style={{
+                fontSize: "15px",
+                fontWeight: 800,
+                color: "#111827",
+                letterSpacing: "-0.3px",
+              }}
+            >
+              tamir
+              <span style={{ fontWeight: 300, color: "#4f46e5" }}>takip</span>
+            </span>
+          </div>
           <p className="logo-title mt-1 text-lg font-semibold text-slate-900">
-            {shopName || "Servis Takip"}
+            {shopName || "TamirTakip"}
           </p>
         </div>
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">

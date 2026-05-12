@@ -24,12 +24,90 @@ export default function LandingPage() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link
             href="/landing"
-            className="flex shrink-0 items-center gap-2 text-lg font-semibold tracking-tight text-slate-900"
+            className="flex shrink-0 items-center text-slate-900"
           >
-            <span className="text-xl" aria-hidden>
-              🔧
-            </span>
-            ServisTakip
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  width: "36px",
+                  height: "36px",
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "8px",
+                    background: "#4f46e5",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "3px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "22px",
+                      height: "5px",
+                      borderRadius: "1.5px",
+                      background: "white",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "14px",
+                      borderRadius: "1.5px",
+                      background: "white",
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-4px",
+                    right: "-4px",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path
+                      d="M1.5 4.5L3.5 6.5L7.5 2"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontWeight: 800,
+                  color: "#111827",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                tamir
+                <span style={{ fontWeight: 300, color: "#4f46e5" }}>takip</span>
+              </span>
+            </div>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link
@@ -430,12 +508,90 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 sm:flex-row sm:px-6 lg:px-8">
           <Link
             href="/landing"
-            className="flex items-center gap-2 text-base font-semibold text-slate-900"
+            className="flex items-center text-slate-900"
           >
-            <span className="text-lg" aria-hidden>
-              🔧
-            </span>
-            ServisTakip
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  width: "36px",
+                  height: "36px",
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "8px",
+                    background: "#4f46e5",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "3px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "22px",
+                      height: "5px",
+                      borderRadius: "1.5px",
+                      background: "white",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "14px",
+                      borderRadius: "1.5px",
+                      background: "white",
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-4px",
+                    right: "-4px",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path
+                      d="M1.5 4.5L3.5 6.5L7.5 2"
+                      stroke="white"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontWeight: 800,
+                  color: "#111827",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                tamir
+                <span style={{ fontWeight: 300, color: "#4f46e5" }}>takip</span>
+              </span>
+            </div>
           </Link>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-slate-600">
             <Link href="/landing" className="hover:text-indigo-600">
@@ -449,7 +605,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="text-center text-xs text-slate-500 sm:text-right">
-            © {new Date().getFullYear()} ServisTakip · Tüm hakları saklıdır
+            © {new Date().getFullYear()} TamirTakip · Tüm hakları saklıdır
           </p>
         </div>
       </footer>

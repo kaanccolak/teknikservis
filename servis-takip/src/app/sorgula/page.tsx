@@ -128,7 +128,7 @@ export default function SorgulaPage() {
             aria-hidden
           />
           <span style={{ fontSize: "16px", fontWeight: 600, color: "#0f0f0f" }}>
-            Servis Takip
+            TamirTakip
           </span>
         </Link>
 

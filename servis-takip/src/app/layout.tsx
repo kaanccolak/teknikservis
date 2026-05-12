@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Servis Takip",
+  title: "TamirTakip",
   description: "Teknik servis takip uygulaması",
 };
 
