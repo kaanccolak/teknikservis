@@ -57,6 +57,10 @@ export async function GET(request: Request) {
   const searchDigits = normalizePhone(search);
   const isPhoneSearch = searchDigits.length >= 3 && /^\d+$/.test(searchDigits);
   const statusParam = searchParams.get("status")?.trim() ?? "";
+  const statusInRaw = searchParams.get("statusIn")?.trim() ?? "";
+  const statusInList = statusInRaw
+    ? statusInRaw.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
   const hideCompleted = searchParams.get("hideCompleted") === "true";
   const hideDelivered = searchParams.get("hideDelivered") === "true";
   const deviceTypeId = searchParams.get("deviceTypeId")?.trim() ?? "";
@@ -66,7 +70,16 @@ export async function GET(request: Request) {
   const dateTo = searchParams.get("dateTo")?.trim() ?? "";
   const onlyBayi = searchParams.get("onlyBayi") === "true";
 
-  if (
+  if (statusInList.length > 0) {
+    for (const s of statusInList) {
+      if (!SERVICE_ORDER_STATUS_VALUES.has(s)) {
+        return NextResponse.json(
+          { error: "Geçersiz durum filtresi" },
+          { status: 400 },
+        );
+      }
+    }
+  } else if (
     statusParam &&
     statusParam !== "all" &&
     !SERVICE_ORDER_STATUS_VALUES.has(statusParam)
@@ -99,7 +112,9 @@ export async function GET(request: Request) {
     };
   }
 
-  if (statusParam && statusParam !== "all") {
+  if (statusInList.length > 0) {
+    where.status = { in: statusInList };
+  } else if (statusParam && statusParam !== "all") {
     where.status = statusParam;
   } else if (hideCompleted) {
     where.status = { notIn: [...SERVICE_ORDER_HIDE_COMPLETED_STATUSES] };

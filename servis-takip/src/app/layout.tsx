@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { AppThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +29,14 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
+      suppressHydrationWarning
       className={cn(geistSans.variable, geistMono.variable, "font-sans")}
     >
       <body className="antialiased">
-        {children}
-        <Toaster />
+        <AppThemeProvider>
+          {children}
+          <Toaster />
+        </AppThemeProvider>
       </body>
     </html>
   );

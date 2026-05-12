@@ -9,23 +9,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
-import {
-  SERVICE_ORDER_DELIVERED_STATUS_SET,
-  SERVICE_ORDER_STATUS_OPTIONS,
-} from "@/lib/service-order-status";
+import { SERVICE_ORDER_STATUS_OPTIONS } from "@/lib/service-order-status";
 import { getStatusBadge } from "@/lib/statusConfig";
 
 const nativeSelectClassName =
   "h-9 w-full min-w-[9rem] rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30";
 
-/** Bu sayfada teslim edilmiş durumlar filtresi yok */
-const STATUS_FILTER_OPTIONS = SERVICE_ORDER_STATUS_OPTIONS.filter(
-  (o) => !SERVICE_ORDER_DELIVERED_STATUS_SET.has(o.value),
-);
+/** Bekleyen cihazlar: yalnız bu durumlar (in_service / returned_device yok) */
+const BEKLEYEN_STATUSES = [
+  "completed",
+  "waiting_approval",
+  "approval_given",
+  "waiting_part",
+  "repair_failed",
+  "no_problem_found",
+  "customer_return_request",
+  "sent_to_external",
+] as const;
 
-const STATUS_FILTER_VALUES = new Set<string>(
-  STATUS_FILTER_OPTIONS.map((o) => o.value),
-);
+const STATUS_FILTER_VALUES = new Set<string>(BEKLEYEN_STATUSES);
+
+const STATUS_FILTER_OPTIONS = BEKLEYEN_STATUSES.map((value) => {
+  const opt = SERVICE_ORDER_STATUS_OPTIONS.find((o) => o.value === value);
+  if (!opt) throw new Error(`Missing status option: ${value}`);
+  return opt;
+});
 
 type IdName = { id: string; name: string };
 type Customer = { name: string; phone: string | null };
@@ -225,7 +233,9 @@ function BekleyenCihazlarInner() {
           params.set("hideDelivered", "true");
           const q = searchInput.trim();
           if (q) params.set("search", q);
-          if (statusFromUrl && statusFromUrl !== "all") {
+          if (statusFromUrl === "all") {
+            params.set("statusIn", BEKLEYEN_STATUSES.join(","));
+          } else {
             params.set("status", statusFromUrl);
           }
           if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);

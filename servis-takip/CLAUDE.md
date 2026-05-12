@@ -6,6 +6,12 @@ Bu dosya Claude ve Cursor gibi AI araçlarının projeyi doğru anlaması için 
 
 Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-tenant mimari**: oturum açmış kullanıcı kendi **Shop** kaydına (`Shop.userId`) bağlı veriyi görür; `shopId` ile tablo bazında izolasyon.
 
+## Onboarding sistemi
+
+- İlk girişte **WelcomeModal** (`src/components/onboarding/WelcomeModal.tsx`) — uygulama özeti, Tanımlar ve Şirketim yönlendirmesi, güvenlik önerisi.
+- Her sayfada ilk ziyarette **PageGuideModal** (`src/components/onboarding/PageGuideModal.tsx`) — o sayfaya özel kısa rehber.
+- Hangi modal’ların gösterildiği **localStorage** ile saklanır; kapatılanlar bir daha açılmaz.
+
 ## Tech Stack
 
 - **Framework**: Next.js 14 App Router
@@ -39,7 +45,7 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 ### Landing page
 
-- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public**.
+- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public**; **tamamen yeniden tasarlanmış** içerik: hero + dashboard mock-up, sosyal kanıt bandı, özellik kartları, 3 adım, referanslar, fiyatlandırma, CTA, footer. Testimonial başlığı: **“Kullanıcılarımız ne diyor?”**
 - **“Demo İncele”** → **`/login?demo=true`** → e-posta / şifre otomatik doldurulur (`demo@demo.tr` / `demodemo`).
 - **“Kullanmaya Başlayın”** / alt CTA **“Hemen Başlayın”** → **`#fiyatlandirma`** bölümüne `scrollIntoView({ behavior: 'smooth' })`.
 - **“Servis Paneli”** → **`/login`**.
@@ -47,12 +53,27 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 ### Veritabanı
 
 - **`ServiceOrder.repairFailedReason`** (`String?`) — durum **`repair_failed`** iken servis detayda modal ile girilen tamir olmama nedeni; müşteri **`/sorgula`** sonucunda da gösterilir (durum + dolu neden).
+- **`ServiceOrder.deletedAt`** (`DateTime?`) — **soft delete**; silinen kayıtlar **`/sirketim`** → **Silinen Kayıtlar** sekmesinde listelenir (kalıcı silme yok).
+- **`ServiceOrder.repairDetails`** (`String?`) — **Onarım Tamamlandı** (`completed`) seçiminde açılan modal ile girilen onarım özeti; servis detayda **Arıza ve Notlar** bölümünde gösterilir ve düzenlenebilir; **Teslim Fişi** sayfasında kullanılır.
 - Her iş kaydında **`shopId`** — tenant izolasyonu.
-- **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, (veritabanında isteğe bağlı eski Meta alanları `wa*` kalabilir; **giden WhatsApp** artık **Baileys** üzerinden), **Google Contacts OAuth** (`googleAccessToken`, `googleRefreshToken`, `googleTokenExpiry`), `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir; GET yanıtında token’lar dönmez, yalnızca `googleContactsConnected` (boolean).
+- **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, **`settingsPassword`** (`String?` — şirket ayarları / silme için yönetici parolası), **`receiptNotes`** (`String?` — müşteri nüshası / fişlerde servis şartları metni), (veritabanında isteğe bağlı eski Meta alanları `wa*` kalabilir; **giden WhatsApp** artık **Baileys** üzerinden), **Google Contacts OAuth** (`googleAccessToken`, `googleRefreshToken`, `googleTokenExpiry`), `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir; GET yanıtında token’lar dönmez, yalnızca `googleContactsConnected` (boolean).
+- **`WaTemplate`**: `shopId`, `templateName`, `message` — dükkan başına WhatsApp metin özelleştirmesi; gönderimde önce DB şablonu, yoksa kod içi varsayılan kullanılır.
+- **`StatusLog`**: `oldPrice` / `newPrice` (`Float?`, opsiyonel) — ücret güncellemelerinde durum geçmişinde eski → yeni fiyat gösterimi.
 - Shop yoksa **`getOrCreateDefaultShop`** ile oluşturulur (oturumluysa kullanıcıya bağlı; değilse legacy varsayılan).
 - Prisma client: `src/lib/prisma.ts` üzerinden import et, direkt `new PrismaClient()` kullanma
 - DATABASE_URL: Transaction pooler (port 6543) + ?pgbouncer=true&connection_limit=1
 - DIRECT_URL: Session pooler (port 5432)
+
+### Şirketim sayfası
+
+- **Parola koruması**: ilk girişte **şirket ayarları parolası** oluşturma; sonraki girişlerde parola sorulur. **`sessionStorage`** ile aynı tarayıcı oturumunda tekrar sorulmaz.
+- **Sekme çubuğu** yatay kaydırılabilir (mobil uyum); sticky üst şerit.
+- **Tanımlar** (cihaz türü / marka / model) **Şirketim** içinde sekme olarak taşındı; **sidebar’dan Tanımlar linki kaldırıldı** (rota `tanimlar` gerekiyorsa yönlendirme ile korunabilir).
+- **Yazdırma Ayarları** sekmesi kaldırıldı.
+- **Fiş / Nüsha Ayarları** sekmesi — **`receiptNotes`** (müşteri nüshası servis şartları) düzenlenir.
+- **Mesaj Şablonları** sekmesi — her durum için WhatsApp metni; değişkenler: `{isim}`, `{seriNo}`, `{cihaz}`, `{fiyat}`, `{neden}` (şablonda kullanım).
+- **Silinen Kayıtlar** sekmesi — `deletedAt` dolu servis kayıtları listesi.
+- **`/whatsapp-mesajlari`** sayfası ve sidebar **WA Mesajları** linki **kaldırıldı** (özet: bkz. aşağıdaki WA Mesajları bölümü).
 
 ### Google Contacts entegrasyonu
 
@@ -74,6 +95,14 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **`ServiceOrder`** alanları: `deliveryType`, `deliveryPersonName`, `deliveryNote` (Prisma + `PATCH /api/service-orders/[id]`).
 - Servis detayda **Durum geçmişi** altında teslim özeti kutusu (teslim durumları + `deliveryType` doluysa).
 - Onay sonrası ilgili durum için **WhatsApp** şablonu varsa onay modalı (`WA_TEMPLATES[pendingDeliveryStatus]`).
+
+### Servis detay (güncel davranışlar)
+
+- **`completed`** (Onarım Tamamlandı) seçilince **onarım detayı** modalı; metin **`repairDetails`** olarak kaydedilir, **Arıza ve Notlar** alanında gösterilir ve düzenlenebilir.
+- **Teslim Fişi** butonu → **`/teslim-fisi/[id]`** (müşteri/cihaz, onarım detayı, ücret, imza alanları, servis şartları; **kullanılan parçalar bölümü yok**, kasıtlı).
+- **Durum geçmişi** kaydırılabilir kutu içinde; fiyat değişiklikleri **StatusLog** `oldPrice` / `newPrice` ile gösterilir (eski → yeni).
+- **Serbest WhatsApp** mesajı gönderme alanı (düz metin).
+- **Silme**: **soft delete** (`deletedAt`); kritik silmelerde **yönetici parolası** — doğrulama **`src/lib/verify-settings-password.ts`** (merkezi).
 
 ### Servis Durumları
 
@@ -103,6 +132,9 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **"Ücret Bildirilecek"** servis durumu kaldırıldı.
 - **"Servisine Gönderildi"** ve **"Teslim Edilecek"** durumları kaldırıldı.
 - **"Servisteki Cihazlar"** rotası/sidebar metni **"Bekleyen Cihazlar"** (`/bekleyen-cihazlar`) olarak yeniden adlandırıldı.
+- **Sidebar’dan Tanımlar** menü öğesi kaldırıldı (Tanımlar → Şirketim sekmesi).
+- **Şirketim** içinden **Yazdırma Ayarları** sekmesi kaldırıldı.
+- **`/whatsapp-mesajlari`** rotası ve **WA Mesajları** sidebar linki kaldırıldı.
 
 ### Yeni Modeller
 
@@ -135,8 +167,9 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/cari` — Cari yönetimi
 - `/bayiler` — Bayi yönetimi ve detay modalı
 - `/dis-servis` — Dış servis firmaları CRUD (arama, Dialog ile ekle/düzenle, bağlı kayıt varken silme engeli)
-- `/sirketim` — Şirket bilgileri (ünvan, telefon, e-posta, web, adres, vergi; fişlerde kullanılır); sekmeler: **Şirket Bilgileri**, **WhatsApp** (Baileys pairing kodu ile kendi numaranızı bağlama), **Google Contacts**
+- `/sirketim` — Şirket bilgileri + **parola koruması**; sekmeler: **Şirket Bilgileri**, **WhatsApp** (Baileys pairing), **Mesaj Şablonları**, **Silinen Kayıtlar**, **Google Contacts**, **Tanımlar**, **Fiş / Nüsha Ayarları** (`receiptNotes`). (**Yazdırma Ayarları** sekmesi kaldırıldı.)
 - `/kargo-fisi/[id]` — Kargo gönderi fişi (dashboard dışı)
+- `/teslim-fisi/[id]` — Teslim fişi (dashboard dışı; parça listesi yok)
 - `/fis/[id]` — Müşteri Nüshası / Servis giriş fişi (dashboard dışı)
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
@@ -165,13 +198,14 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
 - `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu); **GET** yanıtında `googleContactsConnected`. **PATCH** ile Google token’ları istemciden **ayarlanamaz**; `googleAccessToken: null` gönderilerek bağlantı kesilir (refresh + expiry de temizlenir)
+- `/api/shop/wa-templates` — **GET** / **PATCH** — dükkan WhatsApp mesaj şablonları (**WaTemplate**); gönderim akışında önce DB, yoksa varsayılan metin
 - `/api/baileys/connect` — **POST** (`{ phone }`) — dükkan WhatsApp eşlemesi / pairing (VPS’teki Baileys API)
 - `/api/baileys/status` — **GET** — oturum bağlı mı (`connected`)
 - `/api/baileys/send` — **POST** (`{ to, message }`) — doğrudan düz metin (genelde dahili; müşteri bildirimi `POST /api/whatsapp/send` üzerinden)
 - `/api/baileys/disconnect` — **POST** — oturumu kapat
 - `/api/whatsapp/send` — **POST** (`templateName`, `parameters`) — istemci hâlâ “şablon anahtarı + parametre” gönderir; sunucu **`buildMessage`** ile düz metne çevirip **Baileys** üzerinden iletir (`getSessionStatus` ile bağlantı kontrolü)
 
-**Not:** `DELETE /api/service-orders/[id]` önce parça kullanımları için stok iadesi yapar, sonra `SparePartUsage`, `StatusLog` ve kaydı siler.
+**Not:** Servis kaydı silme **soft delete** (`deletedAt`) ve **yönetici parolası** (`verify-settings-password`) ile yapılır; uygun yerlerde parça stok iadesi korunur. Kalıcı satır silme yerine listelerden düşer, **Silinen Kayıtlar** sekmesinde görünür.
 
 ### Build ve deploy (Vercel)
 
@@ -222,7 +256,8 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 ## Performans Notları
 
-- **`src/components/layout/Sidebar.tsx`** — Tüm **`Link`** bileşenlerine **`prefetch={false}`** verildi; gereksiz prefetch istekleri azaltıldı, dashboard ilk yükleme daha hafif.
+- **`src/components/layout/Sidebar.tsx`** — Tüm **`Link`** bileşenlerine **`prefetch={false}`** verildi; gereksiz prefetch istekleri azaltıldı, dashboard ilk yükleme daha hafif. **Mobilde** hamburger + drawer; masaüstünde sabit genişlik.
+- **Responsive / mobil (özet):** dashboard grid dar ekranda sütun kırılımı; **cihaz sorgula** tablosu yatay kaydırma; **cihaz kayıt** formu sütunları alt alta; **servis detay** üst aksiyonlar sarma + yatay kaydırma; **şirketim** sekme şeridi yatay kaydırma; **WelcomeModal** içerik kaydırılabilir; **şirketim parola** input `fontSize: 16px` (iOS zoom); **silinen kayıtlar** tablosu yatay kaydırma.
 - `src/lib/cache.ts` — bellek içi cache (**device-types**, **brands**, **models**; yaklaşık **5 dk TTL**). Tanımlar / ilgili API’lerde POST/DELETE sonrası **invalidate** edilir.
 - `src/lib/getShop.ts` — Oturumdaki kullanıcının shop'unu döndürür; **TTL önbelleği yok** (`setShopCache` / `invalidateShopCache` uyumluluk için no-op olabilir).
 - Ağır dashboard / listeleme uçlarında mümkün olduğunca **`Promise.all`** ile paralel Prisma sorguları.
@@ -302,7 +337,7 @@ YYYYMM### — örnek: 202605001
 
 ### WhatsApp — mantıksal şablon anahtarları (`WA_TEMPLATES` + `buildMessage`)
 
-Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` ve **`getParams(order)`** (sıra korunur). **Gönderilen metin** Meta şablonu değil **düz metin**; `POST /api/whatsapp/send` içinde **`buildMessage(templateName, parameters)`** ile üretilir, ardından Baileys **`sendBaileysMessage`** çağrılır. `sent_to_external` için kayıt yok — **WA sorusu çıkmaz**. **`buildMessage`** güncellendi: tüm servis durumları için **Türkçe düz metin** mesajlar tanımlandı.
+Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` ve **`getParams(order)`** (sıra korunur). **Gönderilen metin** Meta şablonu değil **düz metin**; `POST /api/whatsapp/send` içinde önce **`WaTemplate`** (Prisma, `shopId` + `templateName`) ile dükkan özelleştirmesi aranır, yoksa **`buildMessage(templateName, parameters)`** varsayılanı kullanılır; ardından Baileys **`sendBaileysMessage`**. Özelleştirme UI: **`/sirketim`** → **Mesaj Şablonları**; API: **`/api/shop/wa-templates`**. `sent_to_external` için kayıt yok — **WA sorusu çıkmaz**. **`buildMessage`** güncellendi: tüm servis durumları için **Türkçe düz metin** mesajlar tanımlandı.
 
 | Uygulama durumu | Anahtar (`templateName`) | Parametreler (sıra, `getParams` ile uyumlu) |
 |-----------------|---------------------------|---------------------------------------------|
@@ -322,9 +357,9 @@ Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` 
 
 İkinci el alım: **`WA_SECOND_HAND_PURCHASE`** → `ikinci_el_satin_alindi`.
 
-### WA Mesajları sayfası
+### WA Mesajları sayfası (kaldırıldı)
 
-- **`/whatsapp-mesajlari`** rotası, sayfa ve **sidebar** içindeki **“WA Mesajları”** menü öğesi **kaldırıldı**.
+- **`/whatsapp-mesajlari`** rotası ve sidebar **“WA Mesajları”** linki yok; mesaj geçmişi bu sayfadan takip edilmez (bildirim gönderimi servis akışı + Baileys üzerinden devam eder).
 
 ### Durum değişince WA bildirimi
 
@@ -387,15 +422,17 @@ Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` 
 8. Cari Yönetimi
 9. Bayiler
 10. Planlarım
-11. Tanımlar
-12. Raporlar
-13. Şirketim
+11. Raporlar
+12. Şirketim — içinde **Tanımlar** sekmesi (ayrı sidebar maddesi yok)
+
+**Not:** **Tanımlar** artık yalnızca **Şirketim** alt sekmesi; **WA Mesajları** sayfası/linki kaldırıldı.
 
 ## Klasör Yapısı
 
 ```
 src/middleware.ts                             # Auth, public rotalar, /landing yönlendirme
-src/app/landing/                            # SaaS landing (public)
+src/app/landing/                            # SaaS landing (public, yeniden tasarlanmış)
+src/components/onboarding/                  # WelcomeModal, PageGuideModal
 src/app/(dashboard)/                          # Korumalı uygulama
 src/app/(dashboard)/stok/
 src/app/(dashboard)/cari/
@@ -409,6 +446,7 @@ src/app/api/whatsapp/send/
 src/app/fis/[id]/
 src/app/dukkan-nushasi/[id]/
 src/app/kargo-fisi/[id]/
+src/app/teslim-fisi/[id]/
 src/app/(auth)/login/
 src/app/sorgula/                         # Müşteri sorgula (public)
 src/app/reset-password/                  # Şifre sıfırlama (public)
@@ -418,6 +456,7 @@ src/app/api/auth/google/callback/             # Google Contacts OAuth callback
 src/scripts/migrate-shop.ts                   # Tek seferlik shop veri taşıma (referans)
 src/components/layout/
 src/lib/prisma.ts
+src/lib/verify-settings-password.ts         # Şirket ayarları / silme parola doğrulama
 src/lib/supabase/
 ```
 
@@ -436,7 +475,7 @@ src/lib/supabase/
 - [x] Müşteri Nüshası ve Cihaz Etiketi
 - [x] Döviz kurları
 - [x] Telefon normalize arama
-- [x] Yazdırma ayarları
+- [x] Fiş / etiket yazdırma (tarayıcı); **Şirketim → Yazdırma Ayarları** sekmesi kaldırıldı
 - [x] Kayıt düzenleme / silme
 - [x] Auth / Login koruması (Supabase Auth)
 - [x] Multi-tenant (shop + `userId`)
@@ -457,6 +496,6 @@ src/lib/supabase/
 - [ ] Google OAuth production doğrulaması (domain alınınca)
 - [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
 - [ ] SMS entegrasyonu
-- [ ] Mobil uyumlu tasarım
+- [x] Mobil uyumlu tasarım (sidebar drawer, grid/form/tablo/şirketim sekmeleri, modallar)
 - [ ] Ödeme linki WhatsApp metni
 - [ ] Domain bağlama
