@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { getCache, invalidateCache, setCache } from "@/lib/cache";
 import { prisma } from "@/lib/prisma";
@@ -33,6 +34,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   let body: unknown;
   try {
     body = await request.json();

@@ -49,6 +49,7 @@ type ShopFull = {
   waTokenConfigured?: boolean;
   googleContactsConnected?: boolean;
   receiptNotes?: string | null;
+  isDemo?: boolean;
 };
 
 function formatPhone(value: string) {
@@ -204,10 +205,29 @@ function toastFromApi(data: ApiErrJson, fallback: string) {
 function DeleteConfirmDialog({
   onConfirm,
   triggerClassName,
+  isDemo,
 }: {
   onConfirm: () => void | Promise<void>;
   triggerClassName?: string;
+  isDemo?: boolean;
 }) {
+  if (isDemo) {
+    return (
+      <button
+        type="button"
+        className={cn(
+          "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-base leading-none opacity-50 cursor-not-allowed",
+          triggerClassName,
+        )}
+        aria-label="Sil"
+        onClick={() =>
+          toast.error("Demo hesapta bu işlem yapılamaz.")
+        }
+      >
+        <span aria-hidden>🗑</span>
+      </button>
+    );
+  }
   return (
     <AlertDialog>
       <AlertDialogTrigger
@@ -247,7 +267,7 @@ type TanimlarSubTabId = "types" | "brands" | "models";
 
 
 
-function SirketimTanimlarPanel() {
+function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
   const [tanimlarSubTab, setTanimlarSubTab] = useState<TanimlarSubTabId>("types");
   const [showDeletePasswordModal, setShowDeletePasswordModal] =
     useState(false);
@@ -339,13 +359,22 @@ function SirketimTanimlarPanel() {
       </div>
 
       {tanimlarSubTab === "types" ? (
-        <DeviceTypesTab openDeletePasswordModal={openDeletePasswordModal} />
+        <DeviceTypesTab
+          openDeletePasswordModal={openDeletePasswordModal}
+          isDemo={isDemo}
+        />
       ) : null}
       {tanimlarSubTab === "brands" ? (
-        <BrandsTab openDeletePasswordModal={openDeletePasswordModal} />
+        <BrandsTab
+          openDeletePasswordModal={openDeletePasswordModal}
+          isDemo={isDemo}
+        />
       ) : null}
       {tanimlarSubTab === "models" ? (
-        <ModelsTab openDeletePasswordModal={openDeletePasswordModal} />
+        <ModelsTab
+          openDeletePasswordModal={openDeletePasswordModal}
+          isDemo={isDemo}
+        />
       ) : null}
 
       {showDeletePasswordModal ? (
@@ -482,8 +511,10 @@ function SirketimTanimlarPanel() {
 
 function DeviceTypesTab({
   openDeletePasswordModal,
+  isDemo,
 }: {
   openDeletePasswordModal: (url: string, onSuccess: () => void) => void;
+  isDemo: boolean;
 }) {
   const [items, setItems] = useState<IdName[]>([]);
   const [name, setName] = useState("");
@@ -552,7 +583,22 @@ function DeviceTypesTab({
               placeholder="Örn. Cep telefonu"
             />
           </div>
-          <Button type="button" onClick={() => void add()} disabled={loading}>
+          <Button
+            type="button"
+            onClick={() => {
+              if (isDemo) {
+                toast.error("Demo hesapta bu işlem yapılamaz.");
+                return;
+              }
+              void add();
+            }}
+            disabled={loading}
+            style={
+              isDemo
+                ? { opacity: 0.5, cursor: "not-allowed" }
+                : undefined
+            }
+          >
             Ekle
           </Button>
         </div>
@@ -571,6 +617,7 @@ function DeviceTypesTab({
                   {row.name}
                 </span>
                 <DeleteConfirmDialog
+                  isDemo={isDemo}
                   onConfirm={() =>
                     openDeletePasswordModal(
                       `/api/device-types/${encodeURIComponent(row.id)}`,
@@ -590,8 +637,10 @@ function DeviceTypesTab({
 
 function BrandsTab({
   openDeletePasswordModal,
+  isDemo,
 }: {
   openDeletePasswordModal: (url: string, onSuccess: () => void) => void;
+  isDemo: boolean;
 }) {
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [deviceTypeId, setDeviceTypeId] = useState("");
@@ -707,8 +756,19 @@ function BrandsTab({
           </div>
           <Button
             type="button"
-            onClick={() => void add()}
+            onClick={() => {
+              if (isDemo) {
+                toast.error("Demo hesapta bu işlem yapılamaz.");
+                return;
+              }
+              void add();
+            }}
             disabled={loading || !deviceTypeId}
+            style={
+              isDemo
+                ? { opacity: 0.5, cursor: "not-allowed" }
+                : undefined
+            }
           >
             Ekle
           </Button>
@@ -732,6 +792,7 @@ function BrandsTab({
                   {row.name}
                 </span>
                 <DeleteConfirmDialog
+                  isDemo={isDemo}
                   onConfirm={() =>
                     openDeletePasswordModal(
                       `/api/brands/${encodeURIComponent(row.id)}`,
@@ -751,8 +812,10 @@ function BrandsTab({
 
 function ModelsTab({
   openDeletePasswordModal,
+  isDemo,
 }: {
   openDeletePasswordModal: (url: string, onSuccess: () => void) => void;
+  isDemo: boolean;
 }) {
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
@@ -912,8 +975,19 @@ function ModelsTab({
           </div>
           <Button
             type="button"
-            onClick={() => void add()}
+            onClick={() => {
+              if (isDemo) {
+                toast.error("Demo hesapta bu işlem yapılamaz.");
+                return;
+              }
+              void add();
+            }}
             disabled={loading || !brandId}
+            style={
+              isDemo
+                ? { opacity: 0.5, cursor: "not-allowed" }
+                : undefined
+            }
           >
             Ekle
           </Button>
@@ -937,6 +1011,7 @@ function ModelsTab({
                   {row.name}
                 </span>
                 <DeleteConfirmDialog
+                  isDemo={isDemo}
                   onConfirm={() =>
                     openDeletePasswordModal(
                       `/api/models?id=${encodeURIComponent(row.id)}`,
@@ -983,6 +1058,7 @@ function SirketimPageInner() {
   const [editing, setEditing] = useState(false);
 
   const [shop, setShop] = useState<ShopFull | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
   const [receiptNotes, setReceiptNotes] = useState("");
   const [savingReceiptNotes, setSavingReceiptNotes] = useState(false);
 
@@ -1036,10 +1112,12 @@ function SirketimPageInner() {
           (data as { error?: string }).error ?? "Bilgiler yüklenemedi",
         );
         setShop(null);
+        setIsDemo(false);
         return;
       }
       const row = data as ShopFull;
       setShop(row);
+      setIsDemo(row.isDemo === true);
       setReceiptNotes(row.receiptNotes ?? "");
 
       // Baileys bağlantı durumunu kontrol et
@@ -1058,6 +1136,7 @@ function SirketimPageInner() {
     } catch {
       setError("Bağlantı hatası");
       setShop(null);
+      setIsDemo(false);
     } finally {
       setLoading(false);
     }
@@ -1077,6 +1156,12 @@ function SirketimPageInner() {
       window.history.replaceState({}, "", "/sirketim");
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (isDemo && settingsLocked) {
+      setPasswordInput("1234");
+    }
+  }, [isDemo, settingsLocked]);
 
   function openEdit() {
     if (!shop) return;
@@ -1490,6 +1575,18 @@ function SirketimPageInner() {
               {passwordError}
             </p>
           ) : null}
+          {isDemo ? (
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#6b7280",
+                marginBottom: "8px",
+                textAlign: "center",
+              }}
+            >
+              Demo şifresi otomatik girildi. Giriş Yap&apos;a basın.
+            </p>
+          ) : null}
           <button
             type="button"
             onClick={() => void handleVerifyPassword()}
@@ -1526,21 +1623,23 @@ function SirketimPageInner() {
       ) : shop ? (
         <>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              onClick={() => setShowCreatePassword(true)}
-              style={{
-                fontSize: "12px",
-                color: "#6b7280",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              🔒 Şirket parolasını{" "}
-              {hasSettingsPassword ? "değiştir" : "oluştur"}
-            </button>
+            {!isDemo ? (
+              <button
+                type="button"
+                onClick={() => setShowCreatePassword(true)}
+                style={{
+                  fontSize: "12px",
+                  color: "#6b7280",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                🔒 Şirket parolasını{" "}
+                {hasSettingsPassword ? "değiştir" : "oluştur"}
+              </button>
+            ) : null}
           </div>
           <div style={{ paddingTop: "16px" }}>
             <div
@@ -2168,12 +2267,18 @@ function SirketimPageInner() {
                         >
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              if (isDemo) {
+                                toast.error(
+                                  "Demo hesapta bu işlem yapılamaz.",
+                                );
+                                return;
+                              }
                               void handleSaveTemplate(
                                 key,
                                 waTemplates[key] ?? def.defaultMessage,
-                              )
-                            }
+                              );
+                            }}
                             disabled={savingTemplate === key}
                             style={{
                               padding: "7px 16px",
@@ -2184,7 +2289,11 @@ function SirketimPageInner() {
                               borderRadius: "8px",
                               fontSize: "13px",
                               fontWeight: 500,
-                              cursor: "pointer",
+                              cursor:
+                                savingTemplate === key || isDemo
+                                  ? "not-allowed"
+                                  : "pointer",
+                              opacity: isDemo ? 0.5 : 1,
                             }}
                           >
                             {savingTemplate === key
@@ -2720,7 +2829,7 @@ function SirketimPageInner() {
             </div>
           ) : activeTab === "tanimlar" ? (
             <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-              <SirketimTanimlarPanel />
+              <SirketimTanimlarPanel isDemo={isDemo} />
             </div>
           ) : (
             <div style={{ maxWidth: "600px", margin: "0 auto" }}>
@@ -2811,16 +2920,24 @@ function SirketimPageInner() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => handleGoogleConnect()}
+                      onClick={
+                        isDemo
+                          ? () =>
+                              toast.error(
+                                "Demo hesapta bu işlem yapılamaz.",
+                              )
+                          : () => handleGoogleConnect()
+                      }
                       style={{
                         padding: "8px 16px",
                         background: "#EA4335",
                         color: "white",
                         border: "none",
                         borderRadius: "8px",
-                        cursor: "pointer",
+                        cursor: isDemo ? "not-allowed" : "pointer",
                         fontSize: "13px",
                         fontWeight: "500",
+                        opacity: isDemo ? 0.5 : 1,
                       }}
                     >
                       Google ile Bağlan
