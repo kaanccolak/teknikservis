@@ -186,12 +186,111 @@ function LoginPageContent() {
     <div className="flex min-h-screen items-center justify-center bg-neutral-100 px-4 py-10">
       <div className="w-full max-w-[400px] rounded-xl border border-neutral-200 bg-white p-8 shadow-md">
         <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            TamirTakip
-          </h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            Teknik Servis Yönetim Sistemi
-          </p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "16px",
+              marginBottom: "8px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  width: "52px",
+                  height: "52px",
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: "52px",
+                    height: "52px",
+                    borderRadius: "12px",
+                    background: "#4f46e5",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "30px",
+                      height: "6px",
+                      borderRadius: "2px",
+                      background: "white",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "13px",
+                      height: "18px",
+                      borderRadius: "2px",
+                      background: "white",
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-5px",
+                    right: "-5px",
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path
+                      d="M2 5.5L4.5 8L9 2.5"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "28px",
+                    fontWeight: 800,
+                    color: "#111827",
+                    letterSpacing: "-0.5px",
+                    lineHeight: 1,
+                  }}
+                >
+                  tamir
+                  <span style={{ fontWeight: 300, color: "#4f46e5" }}>takip</span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#9ca3af",
+                    letterSpacing: "2px",
+                    marginTop: "4px",
+                  }}
+                >
+                  TEKNİK SERVİS YÖNETİMİ
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {showForgotPassword ? (
