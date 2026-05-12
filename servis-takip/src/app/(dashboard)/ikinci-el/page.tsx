@@ -1,10 +1,15 @@
 "use client";
 
 import { Check, Loader2, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+
+const BarcodeScanner = dynamic(() => import("@/components/barcode-scanner"), {
+  ssr: false,
+});
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import {
@@ -76,6 +81,7 @@ function IkinciElInner() {
     soldParamRaw === "stock" || soldParamRaw === "sold" ? soldParamRaw : "all";
 
   const [search, setSearch] = useState(searchParam);
+  const [showScanner, setShowScanner] = useState(false);
   const [items, setItems] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -224,18 +230,73 @@ function IkinciElInner() {
             <label htmlFor="sh-search" className="sr-only">
               Ara
             </label>
-            <Input
-              id="sh-search"
-              type="search"
-              placeholder="Satıcı, telefon, kod, cihaz veya seri no ara..."
-              value={search}
-              onChange={(e) => {
-                const v = e.target.value;
-                setSearch(v);
-                updateURL(v);
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                alignItems: "center",
+                width: "100%",
               }}
-            />
+            >
+              <Input
+                id="sh-search"
+                type="search"
+                placeholder="Satıcı, telefon, kod, cihaz veya seri no ara..."
+                value={search}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSearch(v);
+                  updateURL(v);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowScanner(true)}
+                title="Barkod Okut"
+                style={{
+                  padding: "8px 12px",
+                  flexShrink: 0,
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                  <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                  <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                  <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                  <line x1="7" y1="12" x2="17" y2="12" />
+                  <line x1="12" y1="7" x2="12" y2="17" />
+                </svg>
+              </button>
+            </div>
           </div>
+          {showScanner ? (
+            <BarcodeScanner
+              onScan={(value) => {
+                setSearch(value);
+                updateURL(value);
+                setShowScanner(false);
+              }}
+              onClose={() => setShowScanner(false)}
+            />
+          ) : null}
           <p className="text-sm font-medium text-slate-600">{totalLabel}</p>
         </div>
         <div
