@@ -229,6 +229,16 @@ function buildServiceOrderUpdate(
     }
   }
 
+  if (body.externalCost !== undefined) {
+    prismaData.externalCost =
+      body.externalCost === null ? null : Number(body.externalCost);
+  }
+  if (typeof body.externalReturnNote === "string") {
+    prismaData.externalReturnNote = body.externalReturnNote;
+  } else if (body.externalReturnNote === null) {
+    prismaData.externalReturnNote = null;
+  }
+
   if (statusChanged && newStatus !== undefined && newStatus === existingStatus) {
     delete prismaData.status;
     statusChanged = false;

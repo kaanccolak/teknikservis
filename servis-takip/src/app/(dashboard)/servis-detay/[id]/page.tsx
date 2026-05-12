@@ -116,6 +116,8 @@ type ServiceOrderDetail = {
   status: string;
   externalServiceId?: string | null;
   externalNote?: string | null;
+  externalCost?: number | null;
+  externalReturnNote?: string | null;
   externalService?: ExternalServiceRow | null;
   serialNo: string | null;
   noSerialNo: boolean;
@@ -262,6 +264,13 @@ export default function ServisDetayPage() {
   const [loadingExternalServices, setLoadingExternalServices] = useState(false);
   const [externalSendServiceId, setExternalSendServiceId] = useState("");
   const [externalSendNote, setExternalSendNote] = useState("");
+  const [showExternalReturnModal, setShowExternalReturnModal] = useState(false);
+  const [externalReturnCost, setExternalReturnCost] = useState("");
+  const [externalReturnNote, setExternalReturnNote] = useState("");
+  const [savingExternalReturn, setSavingExternalReturn] = useState(false);
+  const [pendingReturnStatus, setPendingReturnStatus] = useState<string | null>(
+    null,
+  );
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [showDeletePasswordModal, setShowDeletePasswordModal] =
     useState(false);
@@ -635,6 +644,18 @@ export default function ServisDetayPage() {
     next: string | null,
     skipCompletedRepairModal = false,
   ) {
+    if (
+      order?.status === "sent_to_external" &&
+      next != null &&
+      next !== "sent_to_external" &&
+      next !== order.status
+    ) {
+      setPendingReturnStatus(next);
+      setExternalReturnCost("");
+      setExternalReturnNote("");
+      setShowExternalReturnModal(true);
+      return;
+    }
     if (!order || next == null || next === order.status) return;
     if (next === "completed" && !skipCompletedRepairModal) {
       setPendingStatus(next);
@@ -680,6 +701,29 @@ export default function ServisDetayPage() {
       toast.error(e instanceof Error ? e.message : "Durum güncellenemedi");
     } finally {
       setSavingStatus(false);
+    }
+  }
+
+  async function handleSaveExternalReturn() {
+    if (!pendingReturnStatus) return;
+    setSavingExternalReturn(true);
+    try {
+      await patchOrder({
+        status: pendingReturnStatus,
+        externalCost: externalReturnCost
+          ? Number(externalReturnCost.replace(",", "."))
+          : null,
+        externalReturnNote: externalReturnNote.trim() || null,
+      });
+      setShowExternalReturnModal(false);
+      setPendingReturnStatus(null);
+      setExternalReturnCost("");
+      setExternalReturnNote("");
+      await load();
+    } catch {
+      toast.error("Hata oluştu");
+    } finally {
+      setSavingExternalReturn(false);
     }
   }
 
@@ -1124,6 +1168,155 @@ export default function ServisDetayPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {showExternalReturnModal ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "460px",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "18px",
+                fontWeight: 600,
+                marginBottom: "8px",
+              }}
+            >
+              Dış Servis Dönüş Bilgisi
+            </h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                marginBottom: "20px",
+              }}
+            >
+              Dış servisin bu tamirat için uyguladığı ücret ve varsa notunuzu
+              girin.
+            </p>
+
+            <div style={{ display: "grid", gap: "14px" }}>
+              <div>
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Dış Servis Maliyeti (₺)
+                </label>
+                <input
+                  type="number"
+                  value={externalReturnCost}
+                  onChange={(e) => setExternalReturnCost(e.target.value)}
+                  placeholder="0.00"
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Not (isteğe bağlı)
+                </label>
+                <textarea
+                  value={externalReturnNote}
+                  onChange={(e) => setExternalReturnNote(e.target.value)}
+                  placeholder="Dış servisle ilgili notunuzu yazın..."
+                  rows={3}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    fontSize: "13px",
+                    outline: "none",
+                    resize: "vertical",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
+              <button
+                type="button"
+                onClick={() => void handleSaveExternalReturn()}
+                disabled={savingExternalReturn}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  cursor: savingExternalReturn ? "wait" : "pointer",
+                }}
+              >
+                {savingExternalReturn
+                  ? "Kaydediliyor..."
+                  : "Kaydet ve Durumu Güncelle"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExternalReturnModal(false);
+                  setPendingReturnStatus(null);
+                }}
+                style={{
+                  padding: "10px 20px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <Dialog
         open={showRepairFailedModal}
@@ -1943,7 +2136,9 @@ export default function ServisDetayPage() {
             </CardContent>
           </Card>
 
-          {order.status === "sent_to_external" ? (
+          {(order.status === "sent_to_external" ||
+            order.externalServiceId ||
+            order.externalCost != null) ? (
             <div
               style={{
                 border: "1px solid #ddd6fe",
@@ -1984,6 +2179,18 @@ export default function ServisDetayPage() {
                 <div className="mt-2 text-sm text-slate-800">
                   Not: {order.externalNote}
                 </div>
+              ) : null}
+              {order.externalCost != null ? (
+                <p style={{ marginTop: "4px" }}>
+                  <span style={{ fontWeight: 500 }}>Dış Servis Maliyeti: </span>
+                  {order.externalCost.toLocaleString("tr-TR")} ₺
+                </p>
+              ) : null}
+              {order.externalReturnNote ? (
+                <p style={{ marginTop: "4px" }}>
+                  <span style={{ fontWeight: 500 }}>Dönüş Notu: </span>
+                  {order.externalReturnNote}
+                </p>
               ) : null}
             </div>
           ) : null}

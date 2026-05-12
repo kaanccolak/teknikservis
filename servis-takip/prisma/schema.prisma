@@ -254,7 +254,9 @@ model ServiceOrder {
 
   externalServiceId String?
   externalService   ExternalService? @relation(fields: [externalServiceId], references: [id])
-  externalNote      String?
+  externalNote       String?
+  externalCost       Float?
+  externalReturnNote String?
   repairFailedReason String?
 
   /// Teslim: self | other

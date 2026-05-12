@@ -47,6 +47,8 @@ export const patchServiceOrderSchema = z
     repairDetails: z.string().max(20_000).optional(),
     externalServiceId: z.string().nullable().optional(),
     externalNote: z.string().max(20_000).nullable().optional(),
+    externalCost: z.number().nullable().optional(),
+    externalReturnNote: z.string().max(20_000).nullable().optional(),
     repairFailedReason: z.string().max(20_000).nullable().optional(),
     deliveryType: z.enum(["self", "other"]).optional(),
     deliveryPersonName: z.string().max(500).nullable().optional(),
