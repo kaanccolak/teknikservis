@@ -27,12 +27,12 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 - **Supabase Auth** kullanılıyor.
 - **`src/middleware.ts`** — Dashboard rotalarını korur; `/api/*` matcher dışında (API route’lar doğrudan işlenir).
-- **Herkese açık rotalar** (`publicPaths`): **`/login`**, **`/landing`**, **`/sorgula`**, **`/reset-password`** ve bunların alt yolları.
+- **Herkese açık rotalar** (`publicPaths`): **`/login`**, **`/landing`**, **`/sorgula`**, **`/reset-password`**, **`/sitemap.xml`**, **`/robots.txt`**, **`/api/cron`** öneki (ör. cron endpoint’leri) ve bunların alt yolları.
 - **Matcher** içinde **`/`** açıkça tanımlıdır; kök adres için middleware tetiklenir (aksi halde kök korumalı kalıp yönlendirme çalışmayabilirdi).
 - **Giriş yoksa** ve rota korumalıysa → **`/landing`** yönlendirilir (login değil).
-- **Giriş varken `/login`** → **`/`** (panele yönlendirilir).
+- **Giriş varken `/login`** → e-posta **`kaanccolak@gmail.com`** ise **`/admin`**, aksi halde **`/`** (middleware). Başarılı **giriş** ve **kayıt** sonrası istemci tarafında da `supabase.auth.getUser()` ile aynı **`/admin`** yönlendirmesi (`src/app/(auth)/login/page.tsx`).
 - **Çıkış** (`Sidebar`) → **`/landing`**.
-- **Şifre sıfırlama**: Login sayfasında **Şifremi unuttum** → e-posta ile **`resetPasswordForEmail`** (`redirectTo`: `{origin}/reset-password`). Öncesinde **`POST /api/auth/check-email`** ile kayıtlı e-posta kontrolü (Supabase **Admin** `listUsers`; sunucuda **`SUPABASE_SERVICE_ROLE_KEY`** gerekir).
+- **Şifre sıfırlama**: Login sayfasında **Şifremi unuttum** → e-posta ile **`resetPasswordForEmail`**; üretim **`redirectTo`**: **`https://www.tamirtakip.com.tr/reset-password`**. Öncesinde **`POST /api/auth/check-email`** ile kayıtlı e-posta kontrolü (Supabase **Admin** `listUsers`; sunucuda **`SUPABASE_SERVICE_ROLE_KEY`** gerekir). Supabase Dashboard **Site URL**: **`https://www.tamirtakip.com.tr`**.
 - **`src/app/reset-password/page.tsx`** — Kök dizinde, **public**; oturum/hash sonrası **`updateUser({ password })`**. Geçersiz oturumda girişe dönüş butonu (`window.location.href`).
 - Supabase Dashboard → **Authentication → URL Configuration**: **`/reset-password`** redirect URL eklenmeli (prod + localhost).
 
@@ -40,12 +40,12 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 - Her kullanıcının bir **Shop** kaydı olabilir: **`Shop.userId`** (`String? @unique`) ile kullanıcıya bağlanır.
 - **`src/lib/getShop.ts`** — Oturumdaki kullanıcı için `prisma.shop.findUnique({ where: { userId } })`; oturum yoksa `null`. **`prisma.shop.findFirst()` ile “ilk shop” kullanma** (API’lerde veri sızıntısı riski).
-- **`getOrCreateDefaultShop()`** (`src/lib/default-shop.ts`) — Önce oturumlu kullanıcıya göre shop bulur/oluşturur; oturum yoksa legacy davranış (anonim ilk shop / varsayılan dükkan).
+- **`getOrCreateDefaultShop()`** (`src/lib/default-shop.ts`) — Önce oturumlu kullanıcıya göre shop bulur/oluşturur; oturum yoksa legacy davranış (anonim ilk shop / varsayılan dükkan). Oturum **`kaanccolak@gmail.com`** ise **dükkan oluşturma atlanır** (hata fırlatır; admin paneli API’leri bu kullanıcı için dükkan beklenmez).
 - Tüm ilişkili kayıtlar **`shopId`** ile bağlıdır; kayıt sırasında oluşturulan shop ile tutarlı kalınmalıdır.
 
 ### Landing page
 
-- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public**; **tamamen yeniden tasarlanmış** içerik: hero + dashboard mock-up, sosyal kanıt bandı, özellik kartları, 3 adım, referanslar, fiyatlandırma, CTA, footer. Testimonial başlığı: **“Kullanıcılarımız ne diyor?”**
+- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public** (`'use client'`); **metadata** (`title`, `description`, `keywords`, OpenGraph, Twitter card) **`src/app/landing/layout.tsx`** içinde. **tamamen yeniden tasarlanmış** içerik: hero + dashboard mock-up, sosyal kanıt bandı, özellik kartları, 3 adım, referanslar, fiyatlandırma, CTA, footer; **H1** SEO için optimize; **SSS** ve **“Kimler Kullanabilir?”** bölümleri. Testimonial başlığı: **“Kullanıcılarımız ne diyor?”** PageSpeed Insights (referans skorlar): Performans **100**, SEO **100**, En İyi Uygulamalar **100**, Erişilebilirlik **94**.
 - **“Demo İncele”** → **`/login?demo=true`** → e-posta / şifre otomatik doldurulur (`demo@demo.tr` / `demodemo`).
 - **“Kullanmaya Başlayın”** / alt CTA **“Hemen Başlayın”** → **`#fiyatlandirma`** bölümüne `scrollIntoView({ behavior: 'smooth' })`.
 - **“Servis Paneli”** → **`/login`**.
@@ -53,7 +53,7 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 ### Veritabanı
 
 - **`ServiceOrder.repairFailedReason`** (`String?`) — durum **`repair_failed`** iken servis detayda modal ile girilen tamir olmama nedeni; müşteri **`/sorgula`** sonucunda da gösterilir (durum + dolu neden).
-- **`ServiceOrder.deletedAt`** (`DateTime?`) — **soft delete**; silinen kayıtlar **`/sirketim`** → **Silinen Kayıtlar** sekmesinde listelenir (kalıcı silme yok).
+- **`ServiceOrder.reminderSentAt`** (`DateTime?`) — **cron** hatırlatma gönderilince set edilir; **Bekleyen Cihazlar** listesinde gösterilir.
 - **`ServiceOrder.repairDetails`** (`String?`) — **Onarım Tamamlandı** (`completed`) seçiminde açılan modal ile girilen onarım özeti; servis detayda **Arıza ve Notlar** bölümünde gösterilir ve düzenlenebilir; **Teslim Fişi** sayfasında kullanılır.
 - Her iş kaydında **`shopId`** — tenant izolasyonu.
 - **Shop**: `name` (zorunlu), `userId` (opsiyonel, oturumlu kullanıcı başına **unique**), `phone`, `phoneDigits`, `email`, `address`, `taxOrTcNo`, `taxOffice`, `website`, `logoUrl`, **`settingsPassword`** (`String?` — şirket ayarları / silme için yönetici parolası), **`receiptNotes`** (`String?` — müşteri nüshası / fişlerde servis şartları metni), (veritabanında isteğe bağlı eski Meta alanları `wa*` kalabilir; **giden WhatsApp** artık **Baileys** üzerinden), **Google Contacts OAuth** (`googleAccessToken`, `googleRefreshToken`, `googleTokenExpiry`), `createdAt`, `updatedAt`. Fişler ve sidebar **`/api/shop`** ile beslenir; GET yanıtında token’lar dönmez, yalnızca `googleContactsConnected` (boolean).
@@ -174,7 +174,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/dukkan-nushasi/[id]` — Cihaz Etiketi (dashboard dışı)
 - `/servis-detay/[id]/duzenle` — Kayıt düzenleme
 - `/raporlar` — Raporlar (**3 sekme:** Servis, Finansal, İkinci El)
-- `/landing` — Tanıtım / SaaS landing (public, dashboard layout yok)
+- `/admin` — Yönetici paneli (yalnızca `kaanccolak@gmail.com`; bkz. Admin paneli)
 - `/sorgula` — Müşteri cihaz durumu sorgulama (dashboard dışı, public)
 - `/reset-password` — Şifre sıfırlama formu (e-posta bağlantısı sonrası, public)
 
@@ -204,6 +204,50 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/baileys/send` — **POST** (`{ to, message }`) — doğrudan düz metin (genelde dahili; müşteri bildirimi `POST /api/whatsapp/send` üzerinden)
 - `/api/baileys/disconnect` — **POST** — oturumu kapat
 - `/api/whatsapp/send` — **POST** (`templateName`, `parameters`) — istemci hâlâ “şablon anahtarı + parametre” gönderir; sunucu **`buildMessage`** ile düz metne çevirip **Baileys** üzerinden iletir (`getSessionStatus` ile bağlantı kontrolü)
+- `/api/admin/stats` — **GET** — yalnızca **`kaanccolak@gmail.com`** (Supabase `getUser`); dükkan listesi (iletişim, toplam / bu ay sipariş sayısı, `waEnabled` + `waPhoneNumberId`, her dükkan için Baileys **`getSessionStatus`** → `waConnected`), toplam kayıt, bugünkü kayıt, aktif / bu ay yeni dükkan sayıları
+- `/api/admin/shops/[id]` — **DELETE** — aynı admin e-posta kontrolü; dükkan silme
+- `/api/cron/remind-waiting` — **POST** — **`Authorization: Bearer CRON_SECRET`**; **15+ gün** teslim alınmamış kayıtlar için WhatsApp hatırlatması (Baileys). Durumlar: **`customer_return`**, **`repair_failed`**, **`completed`**, **`no_problem_found`**; **`reminderSentAt`** ile en az **15 gün** arayla tekrar; çalıştırma başına en fazla **10** kayıt; mesajlar arası **5 sn** bekleme (spam önlemi). VPS örnek cron: **`0 10 * * * curl -X POST https://www.tamirtakip.com.tr/api/cron/remind-waiting`** (header’da Bearer). Vercel **60 sn** timeout riski için `take: 10`.
+
+### Admin paneli (`/admin`)
+
+- **Erişim:** yalnızca **`kaanccolak@gmail.com`** — **`src/middleware.ts`** (`/admin` öneki: oturumsuz → `/login`, yanlış kullanıcı → `/`).
+- **UI:** **`src/app/admin/page.tsx`** — **client** bileşen; veri **`GET /api/admin/stats`**. Özet kartlar + dükkan listesi (isim, e-posta, telefon, adres, kayıt tarihi, toplam / bu ay servis sayısı, **Baileys bağlı** rozeti, **Sil** → **`DELETE /api/admin/shops/[id]`**). Header’da **Çıkış Yap** (`signOut` → `/login`).
+- **Not:** Bu kullanıcı için **`getOrCreateDefaultShop()`** dükkan oluşturmaz (yukarıda Multi-tenant).
+
+### Barkod tarama
+
+- **`src/components/barcode-scanner.tsx`** — **`@zxing/browser`** ile kamera üzerinden barkod okuma.
+- **Cihaz Sorgula**, **Bekleyen Cihazlar**, **İkinci El** sayfalarında kamera ikonu ile açılır; mobil tarayıcılarda (Chrome, Safari) kullanım hedeflenir.
+
+### QR kod (müşteri nüshası)
+
+- Paket: **`react-qr-code`**.
+- **`src/app/fis/[id]/page.tsx`** — barkodun altında QR; değer: **`https://tamirtakip.com.tr/sorgula?kayitNo=...&telefon=...`** (telefon normalize); müşteri okutunca **cihaz sorgulama** sayfasına gider.
+
+### SEO ve domain
+
+- **Üretim domain:** **`tamirtakip.com.tr`** (İsimtescil → **Vercel**). Google Search Console bağlı; **sitemap** gönderildi.
+- **`src/app/sitemap.ts`**, **`src/app/robots.ts`** — dinamik sitemap / robots.
+- **`src/app/icon.tsx`** — Next.js 14 favicon (indigo kare + **T** + yeşil onay).
+- **Kök `layout` metadata:** `title`, `description`, `keywords`, OpenGraph, Twitter card (uygulama geneli).
+
+### Logo (görsel kimlik)
+
+- Modern / tech: **indigo `#4f46e5`** kare + **T** harfi + **yeşil `#22c55e`** onay rozeti; **“tamir”** kalın koyu, **“takip”** ince indigo — bitişik yazım.
+- **Navbar**, **sidebar**, **login**, **landing** üzerinde kullanılır.
+
+### Bekleyen Cihazlar (liste filtresi + hatırlatma etiketi)
+
+- Liste varsayılanında yalnız şu **`ServiceOrder.status`** değerleri: **`completed`**, **`waiting_approval`**, **`approval_given`**, **`waiting_part`**, **`repair_failed`**, **`no_problem_found`**, **`customer_return_request`**, **`sent_to_external`** (`src/app/(dashboard)/bekleyen-cihazlar/page.tsx` — `in_service` / `returned_device` yok).
+- **`reminderSentAt`** — cron hatırlatması gönderilince set edilir; arayüzde tarih gösterilir.
+
+### Demo hesap (salt okunur)
+
+- **`src/lib/demo-guard.ts`** — **`demo_unlocked`** cookie ile bypass.
+- **`POST /api/demo/unlock`**, **`POST /api/demo/lock`** — şifre doğrulama / cookie silme.
+- **`src/components/demo-banner.tsx`** — sarı / yeşil banner; **“Demo Modundan Çık”** / **“Salt Okunur Moda Geç”**.
+- **Demo şifresi:** `Kaanky316293!` (üretimde dağıtım dikkati).
+- **`/sirketim`** — **`isDemo`** iken parola değiştirme, WA bağlama, şablon kaydetme vb. devre dışı.
 
 **Not:** Servis kaydı silme **soft delete** (`deletedAt`) ve **yönetici parolası** (`verify-settings-password`) ile yapılır; uygun yerlerde parça stok iadesi korunur. Kalıcı satır silme yerine listelerden düşer, **Silinen Kayıtlar** sekmesinde görünür.
 
@@ -227,14 +271,16 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `BAILEYS_API_URL` — Baileys REST tabanı (örn. `https://…`); `BAILEYS_API_KEY` — isteklerde `x-api-key`
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (OAuth token değişimi; istemci kimliği yalnızca public ise `NEXT_PUBLIC_GOOGLE_CLIENT_ID` ile aynı olabilir)
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (OAuth yetkilendirme URL’si)
-- `NEXT_PUBLIC_APP_URL` — örn. `https://teknikservis-seven.vercel.app` (callback `redirect_uri` ile uyumlu kök URL; geliştirmede `http://localhost:3000` tercih edilebilir)
+- `CRON_SECRET` — **`POST /api/cron/remind-waiting`** için Bearer doğrulama (VPS cron)
+- `NEXT_PUBLIC_APP_URL` — OAuth `redirect_uri` / kök URL (üretim: **`https://www.tamirtakip.com.tr`** veya Vercel kökü; geliştirme: `http://localhost:3000`)
 
 ### Production
 
-- URL: [https://teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app)
-- Vercel → GitHub `main` branch'e push ile otomatik deploy
-- Supabase redirect URL: `https://teknikservis-seven.vercel.app/**`
-- **Baileys sunucusu (VPS):** Hetzner **46.62.253.209**, Ubuntu **24.04**, plan **CX23**; oturum dosyaları **`/opt/baileys/sessions/{shopId}/`**; süreç **PM2** (`baileys-api`) — sunucu yeniden başlasa bile otomatik kalkar. SSH: `ssh root@46.62.253.209`; log / yeniden başlatma: `pm2 logs baileys-api`, `pm2 restart baileys-api`
+- **Canlı domain:** **[https://www.tamirtakip.com.tr](https://www.tamirtakip.com.tr)** (apex → www yönlendirmesi; DNS İsimtescil, hosting **Vercel**). Eski / alternatif: [https://teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app).
+- Vercel → GitHub **`main`** push ile otomatik deploy.
+- Supabase **Site URL** ve redirect’ler: **`https://www.tamirtakip.com.tr`** (localhost geliştirme URL’leri eklenmeli).
+- **VPS cron:** `crontab -l` ile görüntülenebilir (ör. günlük **10:00** hatırlatma `curl` — bkz. **`/api/cron/remind-waiting`**).
+- **Baileys sunucusu (VPS):** Hetzner **46.62.253.209**, Ubuntu **24.04**, plan **CX23**; oturum dosyaları **`/opt/baileys/sessions/{shopId}/`**; süreç **PM2** (`baileys-api`). SSH: `ssh root@46.62.253.209`; log / yeniden başlatma: `pm2 logs baileys-api`, `pm2 restart baileys-api`
 
 ### Önemli Notlar
 
@@ -430,15 +476,23 @@ Kaynak parametreleri: **`src/lib/whatsapp.ts`** — `WA_TEMPLATES[status].name` 
 ## Klasör Yapısı
 
 ```
-src/middleware.ts                             # Auth, public rotalar, /landing yönlendirme
-src/app/landing/                            # SaaS landing (public, yeniden tasarlanmış)
-src/components/onboarding/                  # WelcomeModal, PageGuideModal
+src/middleware.ts                             # Auth, public rotalar, /landing, /admin
+src/app/admin/                            # Admin paneli (client + /api/admin/*)
+src/app/sitemap.ts
+src/app/robots.ts
+src/app/icon.tsx
+src/app/landing/                            # SaaS landing (public; metadata: layout.tsx)
+src/components/barcode-scanner.tsx
+src/components/demo-banner.tsx
+src/lib/demo-guard.ts
 src/app/(dashboard)/                          # Korumalı uygulama
 src/app/(dashboard)/stok/
 src/app/(dashboard)/cari/
 src/app/(dashboard)/servis-detay/[id]/duzenle/
 src/app/(dashboard)/raporlar/
-src/app/api/baileys/connect/
+src/app/api/cron/remind-waiting/            # VPS cron — teslim alınmayan cihaz hatırlatması
+src/app/api/admin/stats/
+src/app/api/admin/shops/[id]/
 src/app/api/baileys/status/
 src/app/api/baileys/send/
 src/app/api/baileys/disconnect/
@@ -486,7 +540,13 @@ src/lib/supabase/
 - [x] WhatsApp bildirimleri (Baileys VPS + `POST /api/whatsapp/send` + `buildMessage`)
 - [x] Mantıksal şablon anahtarları / parametreler (`WA_TEMPLATES` + `fiyat_bildirimi`)
 - [x] Durum / kayıt sonrası WA bildirimi (onay modalı)
-- [x] Production deploy (teknikservis-seven.vercel.app)
+- [x] Production deploy (**tamirtakip.com.tr**; eski: teknikservis-seven.vercel.app)
+- [x] Admin paneli (`/admin`, `/api/admin/stats`, `/api/admin/shops/[id]`, Baileys durumu, `getOrCreateDefaultShop` admin istisnası)
+- [x] Otomatik hatırlatma cron (`/api/cron/remind-waiting`, `CRON_SECRET`, `reminderSentAt`)
+- [x] Barkod tarayıcı (`barcode-scanner`, cihaz sorgula / bekleyen / ikinci el)
+- [x] QR kod müşteri nüshu (`react-qr-code`, `/fis/[id]`)
+- [x] SEO (`sitemap.ts`, `robots.ts`, `icon.tsx`, metadata, landing layout)
+- [x] Demo salt okunur (`demo-guard`, demo API, banner, Şirketim `isDemo`)
 - [x] Autocomplete öneriler (cihaz kayıt şikayet / aksesuar / fiziksel hasar)
 - [x] Bayi grup ve iskonto sistemi
 - [x] Planlarım — tamamlandı geri al
@@ -498,4 +558,4 @@ src/lib/supabase/
 - [ ] SMS entegrasyonu
 - [x] Mobil uyumlu tasarım (sidebar drawer, grid/form/tablo/şirketim sekmeleri, modallar)
 - [ ] Ödeme linki WhatsApp metni
-- [ ] Domain bağlama
+- [x] Domain bağlama (**tamirtakip.com.tr**)
