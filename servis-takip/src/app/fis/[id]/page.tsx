@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Barcode from "@/components/Barcode";
 import { formatServiceOrderNo } from "@/lib/service-order-number";
+import QRCode from "react-qr-code";
 
 type ShopProfile = {
   name: string;
@@ -16,6 +17,7 @@ type ShopProfile = {
 type FisOrder = {
   id: string;
   orderNumber: string | null;
+  customerPhone?: string | null;
   serialNo: string | null;
   noSerialNo: boolean;
   warrantyStatus: string | null;
@@ -309,6 +311,41 @@ export default function ServisFisPage() {
                   fontSize={12}
                 />
               </div>
+            </div>
+          ) : null}
+
+          {order.customer?.phone && order.orderNumber ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
+                margin: "20px 0",
+              }}
+            >
+              <QRCode
+                value={`https://tamirtakip.com.tr/sorgula?kayitNo=${order.orderNumber}&telefon=${order.customer.phone.replace(/\D/g, "").replace(/^90/, "")}`}
+                size={100}
+              />
+              <p
+                style={{
+                  fontSize: "10px",
+                  color: "#6b7280",
+                  textAlign: "center",
+                }}
+              >
+                QR kodu okutarak cihazınızın durumunu takip edebilirsiniz
+              </p>
+              <p
+                style={{
+                  fontSize: "10px",
+                  color: "#6b7280",
+                  textAlign: "center",
+                }}
+              >
+                tamirtakip.com.tr/sorgula
+              </p>
             </div>
           ) : null}
 
