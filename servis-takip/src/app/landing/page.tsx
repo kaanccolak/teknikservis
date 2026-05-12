@@ -136,15 +136,11 @@ export default function LandingPage() {
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-[2.75rem] xl:text-5xl">
               Teknik Servis Takip Programı
-              <span style={{ color: "#4f46e5", display: "block" }}>
-                Artık Çok Kolay
-              </span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-slate-600 lg:mx-0 mx-auto">
-              TamirTakip ile cep telefonu, beyaz eşya ve televizyon teknik
-              servislerinizi online yönetin. Cihaz kayıt, servis takip, stok
-              yönetimi ve WhatsApp bildirimleri tek platformda. Kurulum
-              gerektirmez.
+              TamirTakip ile teknik servis işlerinizi online olarak kolayca
+              yönetin. Cihaz kayıt, servis takip, stok yönetimi ve WhatsApp
+              bildirimleri tek platformda. Kurulum gerektirmez.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <button
