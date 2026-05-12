@@ -69,6 +69,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://tamirtakip.com.tr",
   },
+  verification: {
+    google: "acF0jejAxOq2qcKxmXaCisP1QTv9z6we4zw9i0P4aUE",
+  },
 };
 
 export default function RootLayout({
