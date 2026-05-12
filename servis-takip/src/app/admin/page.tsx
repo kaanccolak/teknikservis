@@ -6,6 +6,9 @@ type AdminStatsResponse = {
   shops: Array<{
     id: string;
     name: string;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
     createdAt: string;
     updatedAt: string;
     waEnabled: boolean;
@@ -234,11 +237,11 @@ export default function AdminPage() {
               <div
                 key={shop.id}
                 style={{
-                  padding: "14px 20px",
+                  padding: "16px 20px",
                   borderBottom: "1px solid #f3f4f6",
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                 }}
               >
                 <div style={{ flex: 1 }}>
@@ -247,11 +250,35 @@ export default function AdminPage() {
                       fontSize: "14px",
                       fontWeight: 600,
                       color: "#111827",
-                      marginBottom: "2px",
+                      marginBottom: "4px",
                     }}
                   >
                     {shop.name}
                   </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {shop.email ? (
+                      <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                        ✉️ {shop.email}
+                      </span>
+                    ) : null}
+                    {shop.phone ? (
+                      <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                        📞 {shop.phone}
+                      </span>
+                    ) : null}
+                    {shop.address ? (
+                      <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                        📍 {shop.address}
+                      </span>
+                    ) : null}
+                  </div>
                   <p style={{ fontSize: "11px", color: "#9ca3af" }}>
                     Kayıt:{" "}
                     {new Date(shop.createdAt).toLocaleDateString("tr-TR")} ·
@@ -263,6 +290,7 @@ export default function AdminPage() {
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
+                    flexShrink: 0,
                   }}
                 >
                   <span

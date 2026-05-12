@@ -42,17 +42,18 @@ export async function GET() {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  const [shops, totalOrders, todayOrders] = await Promise.all([
-    prisma.shop.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        _count: { select: { orders: true } },
-        orders: {
-          where: { deletedAt: null, createdAt: { gte: thisMonthStart } },
-          select: { id: true },
-        },
+  const shops = await prisma.shop.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { orders: true } },
+      orders: {
+        where: { deletedAt: null, createdAt: { gte: thisMonthStart } },
+        select: { id: true },
       },
-    }),
+    },
+  });
+
+  const [totalOrders, todayOrders] = await Promise.all([
     prisma.serviceOrder.count({ where: { deletedAt: null } }),
     prisma.serviceOrder.count({
       where: {
