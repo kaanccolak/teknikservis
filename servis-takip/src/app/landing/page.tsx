@@ -16,9 +16,24 @@ export default function LandingPage() {
   }
 
   return (
-    <div
-      className={`${inter.className} min-h-screen bg-white text-slate-900 antialiased`}
-    >
+    <>
+      <a
+        href="#main-content"
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "auto",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+        }}
+      >
+        Ana içeriğe geç
+      </a>
+      <main
+        id="main-content"
+        className={`${inter.className} min-h-screen bg-white text-slate-900 antialiased`}
+      >
       {/* Navbar */}
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -810,6 +825,7 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
-    </div>
+    </main>
+    </>
   );
 }

@@ -67,7 +67,7 @@ export default function DemoBanner() {
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 9999,
+          zIndex: 9990,
           background: isUnlocked ? "#16a34a" : "#f59e0b",
           color: "white",
           padding: "8px 16px",
@@ -122,8 +122,6 @@ export default function DemoBanner() {
           )}
         </div>
       </div>
-
-      <div style={{ height: "40px" }} />
 
       {showUnlock ? (
         <div

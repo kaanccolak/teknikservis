@@ -84,6 +84,15 @@ export default function RootLayout({
       lang="tr"
       className={cn(geistSans.variable, geistMono.variable, "font-sans")}
     >
+      <head>
+        <link
+          rel="preload"
+          href="/_next/static/media/8e9860b6e62d6359-s.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="antialiased">
         {children}
         <Toaster />

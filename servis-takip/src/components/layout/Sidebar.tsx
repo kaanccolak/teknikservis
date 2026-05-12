@@ -102,6 +102,7 @@ export function Sidebar() {
       <button
         type="button"
         className="fixed left-4 top-4 z-50 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-md lg:hidden"
+        style={{ zIndex: 99999 }}
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Menü"
       >
