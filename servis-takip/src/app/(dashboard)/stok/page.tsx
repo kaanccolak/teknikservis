@@ -450,11 +450,7 @@ export default function StokPage() {
     }
   }
 
-  async function runStokDelete(
-    settingsPassword: string,
-    id?: string,
-    _force?: boolean,
-  ) {
+  async function runStokDelete(settingsPassword: string, id?: string) {
     const deleteId = id ?? pendingDeleteId;
     if (!deleteId) return;
     setDeletingWithPassword(true);
@@ -905,14 +901,13 @@ export default function StokPage() {
                 void (async () => {
                   if (!deletePart) return;
                   const idToDelete = deletePart.id;
-                  const forceDelete = false;
                   setDeletePart(null);
                   let hp = hasSettingsPassword;
                   if (hp === null) {
                     hp = await ensureHasSettingsPassword();
                   }
                   if (!hp) {
-                    await runStokDelete("", idToDelete, forceDelete);
+                    await runStokDelete("", idToDelete);
                     return;
                   }
                   setPendingDeleteId(idToDelete);

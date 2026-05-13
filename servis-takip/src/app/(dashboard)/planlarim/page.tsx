@@ -310,11 +310,7 @@ export default function PlanlarimPage() {
     }
   }
 
-  async function runPlanDelete(
-    settingsPassword: string,
-    id?: string,
-    _force?: boolean,
-  ) {
+  async function runPlanDelete(settingsPassword: string, id?: string) {
     const deleteId = id ?? pendingDeleteId;
     if (!deleteId) return;
     setDeletingWithPassword(true);
@@ -724,14 +720,13 @@ export default function PlanlarimPage() {
                 void (async () => {
                   if (!deleteTarget) return;
                   const idToDelete = deleteTarget.id;
-                  const forceDelete = false;
                   setDeleteTarget(null);
                   let hp = hasSettingsPassword;
                   if (hp === null) {
                     hp = await ensureHasSettingsPassword();
                   }
                   if (!hp) {
-                    await runPlanDelete("", idToDelete, forceDelete);
+                    await runPlanDelete("", idToDelete);
                     return;
                   }
                   setPendingDeleteId(idToDelete);

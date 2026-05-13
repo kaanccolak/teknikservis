@@ -271,11 +271,7 @@ function DisServisContent() {
     }
   }
 
-  async function runExternalDelete(
-    settingsPassword: string,
-    id?: string,
-    _force?: boolean,
-  ) {
+  async function runExternalDelete(settingsPassword: string, id?: string) {
     const deleteId = id ?? pendingDeleteId;
     if (!deleteId) return;
     setDeletingWithPassword(true);
@@ -611,14 +607,13 @@ function DisServisContent() {
                         return;
                       deleteRowPendingRef.current = deleteState.row;
                       const idToDelete = deleteState.row.id;
-                      const forceDelete = false;
                       setDeleteState(null);
                       let hp = hasSettingsPassword;
                       if (hp === null) {
                         hp = await ensureHasSettingsPassword();
                       }
                       if (!hp) {
-                        await runExternalDelete("", idToDelete, forceDelete);
+                        await runExternalDelete("", idToDelete);
                         return;
                       }
                       setPendingDeleteId(idToDelete);

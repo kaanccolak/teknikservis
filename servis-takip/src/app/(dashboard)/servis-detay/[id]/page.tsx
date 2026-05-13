@@ -512,7 +512,6 @@ export default function ServisDetayPage() {
   async function runConfirmedDelete(
     settingsPassword: string,
     idOverride?: string,
-    _force?: boolean,
   ) {
     let kind = pendingDeleteKind;
     const delId = idOverride ?? pendingDeleteId;

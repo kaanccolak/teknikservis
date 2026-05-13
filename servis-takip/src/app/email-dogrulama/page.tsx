@@ -18,7 +18,7 @@ function EmailDogrulamaContent() {
         void supabase.auth.signOut();
       }
     });
-  }, []);
+  }, [searchParams]);
 
   return (
     <div
