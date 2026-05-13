@@ -112,11 +112,29 @@ export default function StokPage() {
   const [deletePasswordError, setDeletePasswordError] = useState("");
   const [deletingWithPassword, setDeletingWithPassword] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 300);
     return () => window.clearTimeout(t);
   }, [searchInput]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const loadMeta = useCallback(async () => {
     setMetaError(null);
@@ -407,11 +425,26 @@ export default function StokPage() {
     }
   }
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
     }
+  }
+
+  async function runStokDelete(settingsPassword: string) {
     if (!pendingDeleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
@@ -421,7 +454,7 @@ export default function StokPage() {
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ settingsPassword: deletePassword }),
+          body: JSON.stringify({ settingsPassword }),
         },
       );
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -443,6 +476,14 @@ export default function StokPage() {
     } finally {
       setDeletingWithPassword(false);
     }
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    await runStokDelete(hasSettingsPassword === false ? "" : deletePassword);
   }
 
   return (
@@ -849,10 +890,20 @@ export default function StokPage() {
               variant="destructive"
               onClick={(e) => {
                 e.preventDefault();
-                if (!deletePart) return;
-                setPendingDeleteId(deletePart.id);
-                setDeletePart(null);
-                setShowDeletePasswordModal(true);
+                void (async () => {
+                  if (!deletePart) return;
+                  setPendingDeleteId(deletePart.id);
+                  setDeletePart(null);
+                  let hp = hasSettingsPassword;
+                  if (hp === null) {
+                    hp = await ensureHasSettingsPassword();
+                  }
+                  if (!hp) {
+                    await runStokDelete("");
+                    return;
+                  }
+                  setShowDeletePasswordModal(true);
+                })();
               }}
             >
               Evet, Sil

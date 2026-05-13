@@ -277,27 +277,57 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
   const [pendingDeleteFetchUrl, setPendingDeleteFetchUrl] = useState<
     string | null
   >(null);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
   const pendingDeleteSuccessRef = useRef<(() => void) | null>(null);
 
-  function openDeletePasswordModal(url: string, onSuccess: () => void) {
-    setPendingDeleteFetchUrl(url);
-    pendingDeleteSuccessRef.current = onSuccess;
-    setShowDeletePasswordModal(true);
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
+    }
   }
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
-    }
-    if (!pendingDeleteFetchUrl) return;
-    setDeletingWithPassword(true);
-    setDeletePasswordError("");
+  async function runDeleteCore(
+    url: string,
+    settingsPassword: string,
+  ): Promise<
+    | { ok: true }
+    | { ok: false; status: number; data: ApiErrJson }
+  > {
     try {
-      const res = await fetch(pendingDeleteFetchUrl, {
+      const res = await fetch(url, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settingsPassword: deletePassword }),
+        body: JSON.stringify({ settingsPassword }),
       });
       let data: ApiErrJson = {};
       try {
@@ -306,23 +336,76 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
         /* empty */
       }
       if (!res.ok) {
-        if (res.status === 403) {
-          setDeletePasswordError(
-            typeof data.error === "string" ? data.error : "Parola yanlış",
+        return { ok: false, status: res.status, data };
+      }
+      return { ok: true };
+    } catch {
+      toast.error("Bağlantı hatası");
+      return { ok: false, status: 0, data: {} };
+    }
+  }
+
+  async function openDeletePasswordModal(url: string, onSuccess: () => void) {
+    let hp = hasSettingsPassword;
+    if (hp === null) {
+      hp = await ensureHasSettingsPassword();
+    }
+    if (!hp) {
+      setDeletingWithPassword(true);
+      try {
+        const r = await runDeleteCore(url, "");
+        if (r.ok) {
+          onSuccess();
+          toast.success("Silindi");
+          return;
+        }
+        if (r.status === 403) {
+          toast.error(
+            typeof r.data.error === "string" ? r.data.error : "Parola yanlış",
           );
           return;
         }
-        toastFromApi(data, "Silinemedi");
+        toastFromApi(r.data, "Silinemedi");
+      } finally {
+        setDeletingWithPassword(false);
+      }
+      return;
+    }
+    setPendingDeleteFetchUrl(url);
+    pendingDeleteSuccessRef.current = onSuccess;
+    setShowDeletePasswordModal(true);
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    if (!pendingDeleteFetchUrl) return;
+    setDeletingWithPassword(true);
+    setDeletePasswordError("");
+    try {
+      const r = await runDeleteCore(
+        pendingDeleteFetchUrl,
+        hasSettingsPassword === false ? "" : deletePassword,
+      );
+      if (r.ok) {
+        setShowDeletePasswordModal(false);
+        setDeletePassword("");
+        setPendingDeleteFetchUrl(null);
+        const cb = pendingDeleteSuccessRef.current;
+        pendingDeleteSuccessRef.current = null;
+        cb?.();
+        toast.success("Silindi");
         return;
       }
-      setShowDeletePasswordModal(false);
-      setDeletePassword("");
-      setPendingDeleteFetchUrl(null);
-      pendingDeleteSuccessRef.current?.();
-      pendingDeleteSuccessRef.current = null;
-      toast.success("Silindi");
-    } catch {
-      toast.error("Bağlantı hatası");
+      if (r.status === 403) {
+        setDeletePasswordError(
+          typeof r.data.error === "string" ? r.data.error : "Parola yanlış",
+        );
+        return;
+      }
+      toastFromApi(r.data, "Silinemedi");
     } finally {
       setDeletingWithPassword(false);
     }

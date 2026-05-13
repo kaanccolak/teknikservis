@@ -281,6 +281,9 @@ export default function ServisDetayPage() {
   const [pendingDeleteKind, setPendingDeleteKind] = useState<
     "order" | "spare" | null
   >(null);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
 
   const [spareOptions, setSpareOptions] = useState<EligibleSparePart[]>([]);
   const [sparePartId, setSparePartId] = useState("");
@@ -312,6 +315,21 @@ export default function ServisDetayPage() {
 
   const nativeSelectClassName =
     "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     if (!id) {
@@ -474,17 +492,26 @@ export default function ServisDetayPage() {
     }
   }
 
-  function requestRemoveSpareUsage(usageId: string) {
-    setPendingDeleteKind("spare");
-    setPendingDeleteId(usageId);
-    setShowDeletePasswordModal(true);
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
+    }
   }
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
-    }
+  async function runConfirmedDelete(settingsPassword: string) {
     const kind = pendingDeleteKind;
     const delId = pendingDeleteId;
     if (!kind || (kind === "spare" && (!order || !delId)) || (kind === "order" && !id)) {
@@ -500,7 +527,7 @@ export default function ServisDetayPage() {
       const res = await fetch(url, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settingsPassword: deletePassword }),
+        body: JSON.stringify({ settingsPassword }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -528,6 +555,30 @@ export default function ServisDetayPage() {
     } finally {
       setDeletingWithPassword(false);
     }
+  }
+
+  async function requestRemoveSpareUsage(usageId: string) {
+    setPendingDeleteKind("spare");
+    setPendingDeleteId(usageId);
+    let hp = hasSettingsPassword;
+    if (hp === null) {
+      hp = await ensureHasSettingsPassword();
+    }
+    if (!hp) {
+      await runConfirmedDelete("");
+      return;
+    }
+    setShowDeletePasswordModal(true);
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    await runConfirmedDelete(
+      hasSettingsPassword === false ? "" : deletePassword,
+    );
   }
 
   async function patchOrder(body: Record<string, unknown>) {
@@ -1977,10 +2028,20 @@ export default function ServisDetayPage() {
                   variant="destructive"
                   onClick={(e) => {
                     e.preventDefault();
-                    setDeleteOpen(false);
-                    setPendingDeleteKind("order");
-                    setPendingDeleteId(id);
-                    setShowDeletePasswordModal(true);
+                    void (async () => {
+                      setDeleteOpen(false);
+                      setPendingDeleteKind("order");
+                      setPendingDeleteId(id);
+                      let hp = hasSettingsPassword;
+                      if (hp === null) {
+                        hp = await ensureHasSettingsPassword();
+                      }
+                      if (!hp) {
+                        await runConfirmedDelete("");
+                        return;
+                      }
+                      setShowDeletePasswordModal(true);
+                    })();
                   }}
                 >
                   Evet, Sil

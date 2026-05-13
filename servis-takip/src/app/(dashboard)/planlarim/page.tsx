@@ -86,6 +86,9 @@ export default function PlanlarimPage() {
   const [deletePasswordError, setDeletePasswordError] = useState("");
   const [deletingWithPassword, setDeletingWithPassword] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
 
   const loadPlans = useCallback(async () => {
     setLoading(true);
@@ -113,6 +116,21 @@ export default function PlanlarimPage() {
   useEffect(() => {
     void loadPlans();
   }, [loadPlans]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     if (filter === "pending") return plans.filter((p) => !p.isCompleted);
@@ -275,11 +293,26 @@ export default function PlanlarimPage() {
     }
   }
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
     }
+  }
+
+  async function runPlanDelete(settingsPassword: string) {
     if (!pendingDeleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
@@ -287,7 +320,7 @@ export default function PlanlarimPage() {
       const res = await fetch(`/api/payment-plans/${pendingDeleteId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settingsPassword: deletePassword }),
+        body: JSON.stringify({ settingsPassword }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -309,6 +342,14 @@ export default function PlanlarimPage() {
     } finally {
       setDeletingWithPassword(false);
     }
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    await runPlanDelete(hasSettingsPassword === false ? "" : deletePassword);
   }
 
   return (
@@ -676,10 +717,20 @@ export default function PlanlarimPage() {
               variant="destructive"
               onClick={(e) => {
                 e.preventDefault();
-                if (!deleteTarget) return;
-                setPendingDeleteId(deleteTarget.id);
-                setDeleteTarget(null);
-                setShowDeletePasswordModal(true);
+                void (async () => {
+                  if (!deleteTarget) return;
+                  setPendingDeleteId(deleteTarget.id);
+                  setDeleteTarget(null);
+                  let hp = hasSettingsPassword;
+                  if (hp === null) {
+                    hp = await ensureHasSettingsPassword();
+                  }
+                  if (!hp) {
+                    await runPlanDelete("");
+                    return;
+                  }
+                  setShowDeletePasswordModal(true);
+                })();
               }}
             >
               Sil

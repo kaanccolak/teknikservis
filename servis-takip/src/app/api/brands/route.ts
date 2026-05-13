@@ -13,13 +13,14 @@ export async function GET(request: Request) {
     .get("deviceTypeId")
     ?.trim();
   try {
-    const cacheKey = deviceTypeId ? `brands-${deviceTypeId}` : "brands-all";
+    const shop = await getOrCreateDefaultShop();
+    const cacheKey = deviceTypeId
+      ? `brands-${shop.id}-${deviceTypeId}`
+      : `brands-all-${shop.id}`;
     const cached = getCache<unknown>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
-
-    const shop = await getOrCreateDefaultShop();
 
     if (!deviceTypeId) {
       const items = await prisma.brand.findMany({
@@ -94,8 +95,8 @@ export async function POST(request: Request) {
       },
       select: { id: true, name: true, deviceTypeId: true },
     });
-    invalidateCache(`brands-${deviceTypeId}`);
-    invalidateCache("brands-all");
+    invalidateCache(`brands-${shop.id}-${deviceTypeId}`);
+    invalidateCache(`brands-all-${shop.id}`);
     return NextResponse.json(created);
   } catch (e) {
     return jsonServerError(

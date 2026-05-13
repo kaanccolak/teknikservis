@@ -14,13 +14,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "brandId gerekli" }, { status: 400 });
   }
   try {
-    const cacheKey = `models-${brandId}`;
+    const shop = await getOrCreateDefaultShop();
+    const cacheKey = `models-${shop.id}-${brandId}`;
     const cached = getCache<unknown>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
 
-    const shop = await getOrCreateDefaultShop();
     const brand = await prisma.brand.findFirst({
       where: { id: brandId, shopId: shop.id },
     });
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       },
       select: { id: true, name: true, brandId: true },
     });
-    invalidateCache(`models-${brandId}`);
+    invalidateCache(`models-${shop.id}-${brandId}`);
     return NextResponse.json(created);
   } catch (e) {
     return jsonServerError(
@@ -101,20 +101,17 @@ export async function DELETE(request: Request) {
     const shop = await getOrCreateDefaultShop();
 
     // Parola kontrolü
-    const hasPassword = Boolean(shop.settingsPassword);
-    if (hasPassword) {
-      const body = await request.json().catch(() => ({}));
-      const { settingsPassword } = body as { settingsPassword?: string };
-      if (!settingsPassword) {
-        return NextResponse.json({ error: "Parola gerekli" }, { status: 403 });
-      }
-      const { verifySettingsPassword } = await import(
-        "@/lib/verify-settings-password"
-      );
-      const valid = await verifySettingsPassword(shop.id, settingsPassword);
-      if (!valid) {
-        return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
-      }
+    const body = await request.json().catch(() => ({}));
+    const { settingsPassword } = body as { settingsPassword?: string };
+    const { verifySettingsPassword } = await import(
+      "@/lib/verify-settings-password"
+    );
+    const valid = await verifySettingsPassword(
+      shop.id,
+      settingsPassword ?? "",
+    );
+    if (!valid) {
+      return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
     }
 
     const existing = await prisma.deviceModel.findFirst({
@@ -124,7 +121,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
     }
     await prisma.deviceModel.delete({ where: { id } });
-    invalidateCache(`models-${existing.brandId}`);
+    invalidateCache(`models-${shop.id}-${existing.brandId}`);
     return NextResponse.json({ ok: true });
   } catch (e) {
     return jsonServerError(

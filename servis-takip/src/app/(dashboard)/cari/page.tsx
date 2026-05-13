@@ -98,6 +98,9 @@ export default function CariPage() {
   const [deletingWithPassword, setDeletingWithPassword] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingDeleteForce, setPendingDeleteForce] = useState(false);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -136,6 +139,21 @@ export default function CariPage() {
     const t = window.setTimeout(() => void loadRows(), 250);
     return () => window.clearTimeout(t);
   }, [loadRows]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function openCreate() {
     setEditing(null);
@@ -195,11 +213,26 @@ export default function CariPage() {
     setDeleteLinkedCount(0);
   }
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
     }
+  }
+
+  async function runCariDelete(settingsPassword: string) {
     if (!pendingDeleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
@@ -208,7 +241,7 @@ export default function CariPage() {
       const res = await fetch(`/api/cari/${pendingDeleteId}${suffix}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settingsPassword: deletePassword }),
+        body: JSON.stringify({ settingsPassword }),
       });
       const data = (await res.json()) as {
         error?: string;
@@ -243,6 +276,14 @@ export default function CariPage() {
     } finally {
       setDeletingWithPassword(false);
     }
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    await runCariDelete(hasSettingsPassword === false ? "" : deletePassword);
   }
 
   return (
@@ -536,11 +577,21 @@ export default function CariPage() {
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
-                if (!deleteRow) return;
-                setPendingDeleteId(deleteRow.id);
-                setPendingDeleteForce(deleteLinkedCount > 0);
-                setDeleteRow(null);
-                setShowDeletePasswordModal(true);
+                void (async () => {
+                  if (!deleteRow) return;
+                  setPendingDeleteId(deleteRow.id);
+                  setPendingDeleteForce(deleteLinkedCount > 0);
+                  setDeleteRow(null);
+                  let hp = hasSettingsPassword;
+                  if (hp === null) {
+                    hp = await ensureHasSettingsPassword();
+                  }
+                  if (!hp) {
+                    await runCariDelete("");
+                    return;
+                  }
+                  setShowDeletePasswordModal(true);
+                })();
               }}
             >
               Evet, Sil

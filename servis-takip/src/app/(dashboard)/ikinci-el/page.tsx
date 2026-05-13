@@ -93,10 +93,28 @@ function IkinciElInner() {
   const [deletePasswordError, setDeletePasswordError] = useState("");
   const [deletingWithPassword, setDeletingWithPassword] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     setSearch(searchParam);
   }, [searchParam]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const updateURL = useCallback(
     (q: string) => {
@@ -161,11 +179,26 @@ function IkinciElInner() {
     void fetchSecondHand();
   }, [fetchSecondHand]);
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
     }
+  }
+
+  async function runSecondHandDelete(settingsPassword: string) {
     if (!pendingDeleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
@@ -173,7 +206,7 @@ function IkinciElInner() {
       const res = await fetch(`/api/second-hand/${pendingDeleteId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settingsPassword: deletePassword }),
+        body: JSON.stringify({ settingsPassword }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -195,6 +228,16 @@ function IkinciElInner() {
     } finally {
       setDeletingWithPassword(false);
     }
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    await runSecondHandDelete(
+      hasSettingsPassword === false ? "" : deletePassword,
+    );
   }
 
   const totalLabel = useMemo(
@@ -525,10 +568,20 @@ function IkinciElInner() {
               className="bg-red-600 text-white hover:bg-red-700"
               onClick={(e) => {
                 e.preventDefault();
-                if (!deleteId) return;
-                setPendingDeleteId(deleteId);
-                setDeleteId(null);
-                setShowDeletePasswordModal(true);
+                void (async () => {
+                  if (!deleteId) return;
+                  setPendingDeleteId(deleteId);
+                  setDeleteId(null);
+                  let hp = hasSettingsPassword;
+                  if (hp === null) {
+                    hp = await ensureHasSettingsPassword();
+                  }
+                  if (!hp) {
+                    await runSecondHandDelete("");
+                    return;
+                  }
+                  setShowDeletePasswordModal(true);
+                })();
               }}
             >
               Evet, sil

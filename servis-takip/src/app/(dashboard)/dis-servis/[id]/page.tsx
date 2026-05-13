@@ -102,6 +102,9 @@ export default function DisServisDetayPage() {
   const [deletePasswordError, setDeletePasswordError] = useState("");
   const [deletingWithPassword, setDeletingWithPassword] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [hasSettingsPassword, setHasSettingsPassword] = useState<
+    boolean | null
+  >(null);
 
   const load = useCallback(async () => {
     if (!id.trim()) {
@@ -133,11 +136,41 @@ export default function DisServisDetayPage() {
     void load();
   }, [load]);
 
-  async function confirmDeleteWithPassword() {
-    if (!deletePassword.trim()) {
-      setDeletePasswordError("Parola girin");
-      return;
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/shop/settings-password")
+      .then((r) => r.json())
+      .then((j: { hasPassword?: boolean }) => {
+        if (!cancelled) setHasSettingsPassword(!!j.hasPassword);
+      })
+      .catch(() => {
+        if (!cancelled) setHasSettingsPassword(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function ensureHasSettingsPassword(): Promise<boolean> {
+    try {
+      const r = await fetch("/api/shop/settings-password");
+      const j = (await r.json()) as { hasPassword?: boolean; error?: string };
+      if (!r.ok) {
+        toast.error(j.error ?? "Parola durumu alınamadı");
+        setHasSettingsPassword(true);
+        return true;
+      }
+      const v = !!j.hasPassword;
+      setHasSettingsPassword(v);
+      return v;
+    } catch {
+      toast.error("Bağlantı hatası");
+      setHasSettingsPassword(true);
+      return true;
     }
+  }
+
+  async function runExternalDetailDelete(settingsPassword: string) {
     if (!pendingDeleteId?.trim()) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
@@ -145,7 +178,7 @@ export default function DisServisDetayPage() {
       const res = await fetch(`/api/external-services/${pendingDeleteId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settingsPassword: deletePassword }),
+        body: JSON.stringify({ settingsPassword }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         error?: string;
@@ -180,6 +213,16 @@ export default function DisServisDetayPage() {
     } finally {
       setDeletingWithPassword(false);
     }
+  }
+
+  async function confirmDeleteWithPassword() {
+    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+      setDeletePasswordError("Parola girin");
+      return;
+    }
+    await runExternalDetailDelete(
+      hasSettingsPassword === false ? "" : deletePassword,
+    );
   }
 
   if (loading) {
@@ -481,10 +524,20 @@ export default function DisServisDetayPage() {
                   variant="destructive"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (!id.trim()) return;
-                    setPendingDeleteId(id);
-                    setDeleteOpen(false);
-                    setShowDeletePasswordModal(true);
+                    void (async () => {
+                      if (!id.trim()) return;
+                      setPendingDeleteId(id);
+                      setDeleteOpen(false);
+                      let hp = hasSettingsPassword;
+                      if (hp === null) {
+                        hp = await ensureHasSettingsPassword();
+                      }
+                      if (!hp) {
+                        await runExternalDetailDelete("");
+                        return;
+                      }
+                      setShowDeletePasswordModal(true);
+                    })();
                   }}
                 >
                   Evet, Sil

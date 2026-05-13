@@ -8,21 +8,19 @@ import { jsonServerError } from "@/lib/server-error";
 
 export const dynamic = "force-dynamic";
 
-const CACHE_KEY = "device-types";
-
 export async function GET() {
   try {
-    const cached = getCache<unknown>(CACHE_KEY);
+    const shop = await getOrCreateDefaultShop();
+    const cached = getCache<unknown>(`device-types-${shop.id}`);
     if (cached) {
       return NextResponse.json(cached);
     }
-    const shop = await getOrCreateDefaultShop();
     const items = await prisma.deviceType.findMany({
       where: { shopId: shop.id },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     });
-    setCache(CACHE_KEY, items);
+    setCache(`device-types-${shop.id}`, items);
     return NextResponse.json(items);
   } catch (e) {
     return jsonServerError(
@@ -63,8 +61,8 @@ export async function POST(request: Request) {
       data: { shopId: shop.id, name },
       select: { id: true, name: true },
     });
-    invalidateCache(CACHE_KEY);
-    invalidateCache("brands-all");
+    invalidateCache(`device-types-${shop.id}`);
+    invalidateCache(`brands-all-${shop.id}`);
     return NextResponse.json(created);
   } catch (e) {
     return jsonServerError(

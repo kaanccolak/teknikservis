@@ -48,9 +48,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import SuggestionTextarea from "@/components/SuggestionTextarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import {
   parseDatetimeLocal,
@@ -1191,21 +1191,20 @@ function CihazKayitServiceInner({
                 name="complaint"
                 control={control}
                 render={({ field }) => (
-                  <SuggestionTextarea
-                    field="complaint"
+                  <Textarea
                     id="complaint"
                     name={field.name}
+                    rows={3}
+                    placeholder="Müşterinin bildirdiği arıza veya şikayet..."
+                    autoComplete="off"
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
+                    onKeyDown={(e) => handleEnterKey(e, accessoriesRef)}
                     ref={(el) => {
                       field.ref(el);
                       complaintRef.current = el;
                     }}
-                    deviceTypeId={deviceTypeId || undefined}
-                    rows={3}
-                    placeholder="Müşterinin bildirdiği arıza veya şikayet..."
-                    nextRef={accessoriesRef}
                   />
                 )}
               />
@@ -1216,21 +1215,20 @@ function CihazKayitServiceInner({
                 name="accessories"
                 control={control}
                 render={({ field }) => (
-                  <SuggestionTextarea
-                    field="accessories"
+                  <Textarea
                     id="accessories"
                     name={field.name}
+                    rows={2}
+                    placeholder="Cihazla birlikte gelen aksesuarlar..."
+                    autoComplete="off"
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
+                    onKeyDown={(e) => handleEnterKey(e, physicalDamageRef)}
                     ref={(el) => {
                       field.ref(el);
                       accessoriesRef.current = el;
                     }}
-                    deviceTypeId={deviceTypeId || undefined}
-                    rows={2}
-                    placeholder="Cihazla birlikte gelen aksesuarlar..."
-                    nextRef={physicalDamageRef}
                   />
                 )}
               />
@@ -1243,21 +1241,20 @@ function CihazKayitServiceInner({
                 name="physicalDamage"
                 control={control}
                 render={({ field }) => (
-                  <SuggestionTextarea
-                    field="physicalCondition"
+                  <Textarea
                     id="physicalDamage"
                     name={field.name}
+                    rows={2}
+                    placeholder="Fiziksel hasar veya dış görünüm notları..."
+                    autoComplete="off"
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
+                    onKeyDown={(e) => handleEnterKey(e, submitRef)}
                     ref={(el) => {
                       field.ref(el);
                       physicalDamageRef.current = el;
                     }}
-                    deviceTypeId={deviceTypeId || undefined}
-                    rows={2}
-                    placeholder="Fiziksel hasar veya dış görünüm notları..."
-                    nextRef={submitRef}
                   />
                 )}
               />
