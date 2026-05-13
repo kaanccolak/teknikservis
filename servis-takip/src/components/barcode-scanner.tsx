@@ -23,13 +23,28 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
       try {
         const { BrowserMultiFormatReader } = await import("@zxing/browser");
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
+          video: {
+            facingMode: "environment",
+            zoom: 1,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
         });
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
         }
         streamRef.current = stream;
+
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          const capabilities = videoTrack.getCapabilities() as any;
+          if (capabilities.zoom) {
+            await videoTrack.applyConstraints({
+              advanced: [{ zoom: capabilities.zoom.min } as any],
+            });
+          }
+        }
 
         const reader = new BrowserMultiFormatReader();
         const video = videoRef.current;
@@ -190,8 +205,8 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
               >
                 <div
                   style={{
-                    width: "70%",
-                    height: "70%",
+                    width: "90%",
+                    height: "40%",
                     border: "2px solid #4f46e5",
                     borderRadius: "8px",
                     boxShadow: "0 0 0 9999px rgba(0,0,0,0.4)",

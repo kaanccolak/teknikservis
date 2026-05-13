@@ -600,6 +600,11 @@ function DeviceTypesTab({
   const [items, setItems] = useState<IdName[]>([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingDeviceTypeId, setEditingDeviceTypeId] = useState<string | null>(
+    null,
+  );
+  const [editingDeviceTypeName, setEditingDeviceTypeName] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -644,6 +649,33 @@ function DeviceTypesTab({
       toast.error("Eklenemedi");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleEditDeviceType(id: string) {
+    if (isDemo) {
+      toast.error("Demo hesapta bu işlem yapılamaz.");
+      return;
+    }
+    if (!editingDeviceTypeName.trim()) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/device-types/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingDeviceTypeName.trim() }),
+      });
+      if (res.ok) {
+        toast.success("Güncellendi");
+        setEditingDeviceTypeId(null);
+        await load();
+      } else {
+        toast.error("Güncellenemedi");
+      }
+    } catch {
+      toast.error("Güncellenemedi");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -692,21 +724,80 @@ function DeviceTypesTab({
             items.map((row) => (
               <li
                 key={row.id}
-                className="flex items-center justify-between gap-2 px-4 py-3"
+                className="flex flex-wrap items-center gap-2 px-4 py-3"
               >
-                <span className="text-sm font-medium text-slate-900">
-                  {row.name}
-                </span>
-                <DeleteConfirmDialog
-                  isDemo={isDemo}
-                  onConfirm={() =>
-                    openDeletePasswordModal(
-                      `/api/device-types/${encodeURIComponent(row.id)}`,
-                      () =>
-                        setItems((prev) => prev.filter((x) => x.id !== row.id)),
-                    )
-                  }
-                />
+                {editingDeviceTypeId === row.id ? (
+                  <>
+                    <Input
+                      className="min-w-[8rem] flex-1"
+                      value={editingDeviceTypeName}
+                      onChange={(e) => setEditingDeviceTypeName(e.target.value)}
+                      disabled={editSaving}
+                    />
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={editSaving}
+                        onClick={() => void handleEditDeviceType(row.id)}
+                      >
+                        {editSaving ? "Kaydediliyor..." : "Kaydet"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={editSaving}
+                        onClick={() => {
+                          setEditingDeviceTypeId(null);
+                          setEditingDeviceTypeName("");
+                        }}
+                      >
+                        İptal
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="min-w-0 flex-1 text-sm font-medium text-slate-900">
+                      {row.name}
+                    </span>
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          if (isDemo) {
+                            toast.error("Demo hesapta bu işlem yapılamaz.");
+                            return;
+                          }
+                          setEditingDeviceTypeId(row.id);
+                          setEditingDeviceTypeName(row.name);
+                        }}
+                        style={
+                          isDemo
+                            ? { opacity: 0.5, cursor: "not-allowed" }
+                            : undefined
+                        }
+                      >
+                        Düzenle
+                      </Button>
+                      <DeleteConfirmDialog
+                        isDemo={isDemo}
+                        onConfirm={() =>
+                          openDeletePasswordModal(
+                            `/api/device-types/${encodeURIComponent(row.id)}`,
+                            () =>
+                              setItems((prev) =>
+                                prev.filter((x) => x.id !== row.id),
+                              ),
+                          )
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </li>
             ))
           )}
@@ -728,6 +819,9 @@ function BrandsTab({
   const [items, setItems] = useState<IdName[]>([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingBrandId, setEditingBrandId] = useState<string | null>(null);
+  const [editingBrandName, setEditingBrandName] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   const loadTypes = useCallback(async () => {
     try {
@@ -767,6 +861,11 @@ function BrandsTab({
     void loadBrands(deviceTypeId);
   }, [deviceTypeId, loadBrands]);
 
+  useEffect(() => {
+    setEditingBrandId(null);
+    setEditingBrandName("");
+  }, [deviceTypeId]);
+
   async function add() {
     const t = name.trim();
     if (!deviceTypeId) {
@@ -796,6 +895,33 @@ function BrandsTab({
       toast.error("Eklenemedi");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleEditBrand(id: string) {
+    if (isDemo) {
+      toast.error("Demo hesapta bu işlem yapılamaz.");
+      return;
+    }
+    if (!editingBrandName.trim()) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/brands/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingBrandName.trim() }),
+      });
+      if (res.ok) {
+        toast.success("Güncellendi");
+        setEditingBrandId(null);
+        if (deviceTypeId) await loadBrands(deviceTypeId);
+      } else {
+        toast.error("Güncellenemedi");
+      }
+    } catch {
+      toast.error("Güncellenemedi");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -867,21 +993,80 @@ function BrandsTab({
             items.map((row) => (
               <li
                 key={row.id}
-                className="flex items-center justify-between gap-2 px-4 py-3"
+                className="flex flex-wrap items-center gap-2 px-4 py-3"
               >
-                <span className="text-sm font-medium text-slate-900">
-                  {row.name}
-                </span>
-                <DeleteConfirmDialog
-                  isDemo={isDemo}
-                  onConfirm={() =>
-                    openDeletePasswordModal(
-                      `/api/brands/${encodeURIComponent(row.id)}`,
-                      () =>
-                        setItems((prev) => prev.filter((x) => x.id !== row.id)),
-                    )
-                  }
-                />
+                {editingBrandId === row.id ? (
+                  <>
+                    <Input
+                      className="min-w-[8rem] flex-1"
+                      value={editingBrandName}
+                      onChange={(e) => setEditingBrandName(e.target.value)}
+                      disabled={editSaving}
+                    />
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={editSaving}
+                        onClick={() => void handleEditBrand(row.id)}
+                      >
+                        {editSaving ? "Kaydediliyor..." : "Kaydet"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={editSaving}
+                        onClick={() => {
+                          setEditingBrandId(null);
+                          setEditingBrandName("");
+                        }}
+                      >
+                        İptal
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="min-w-0 flex-1 text-sm font-medium text-slate-900">
+                      {row.name}
+                    </span>
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          if (isDemo) {
+                            toast.error("Demo hesapta bu işlem yapılamaz.");
+                            return;
+                          }
+                          setEditingBrandId(row.id);
+                          setEditingBrandName(row.name);
+                        }}
+                        style={
+                          isDemo
+                            ? { opacity: 0.5, cursor: "not-allowed" }
+                            : undefined
+                        }
+                      >
+                        Düzenle
+                      </Button>
+                      <DeleteConfirmDialog
+                        isDemo={isDemo}
+                        onConfirm={() =>
+                          openDeletePasswordModal(
+                            `/api/brands/${encodeURIComponent(row.id)}`,
+                            () =>
+                              setItems((prev) =>
+                                prev.filter((x) => x.id !== row.id),
+                              ),
+                          )
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </li>
             ))
           )}
@@ -905,6 +1090,9 @@ function ModelsTab({
   const [items, setItems] = useState<IdName[]>([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingModelId, setEditingModelId] = useState<string | null>(null);
+  const [editingModelName, setEditingModelName] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   const loadTypes = useCallback(async () => {
     try {
@@ -961,6 +1149,11 @@ function ModelsTab({
     void loadModels(brandId);
   }, [brandId, loadModels]);
 
+  useEffect(() => {
+    setEditingModelId(null);
+    setEditingModelName("");
+  }, [brandId]);
+
   async function add() {
     const t = name.trim();
     if (!brandId) {
@@ -990,6 +1183,33 @@ function ModelsTab({
       toast.error("Eklenemedi");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleEditModel(id: string) {
+    if (isDemo) {
+      toast.error("Demo hesapta bu işlem yapılamaz.");
+      return;
+    }
+    if (!editingModelName.trim()) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/models/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingModelName.trim() }),
+      });
+      if (res.ok) {
+        toast.success("Güncellendi");
+        setEditingModelId(null);
+        if (brandId) await loadModels(brandId);
+      } else {
+        toast.error("Güncellenemedi");
+      }
+    } catch {
+      toast.error("Güncellenemedi");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -1086,21 +1306,80 @@ function ModelsTab({
             items.map((row) => (
               <li
                 key={row.id}
-                className="flex items-center justify-between gap-2 px-4 py-3"
+                className="flex flex-wrap items-center gap-2 px-4 py-3"
               >
-                <span className="text-sm font-medium text-slate-900">
-                  {row.name}
-                </span>
-                <DeleteConfirmDialog
-                  isDemo={isDemo}
-                  onConfirm={() =>
-                    openDeletePasswordModal(
-                      `/api/models?id=${encodeURIComponent(row.id)}`,
-                      () =>
-                        setItems((prev) => prev.filter((x) => x.id !== row.id)),
-                    )
-                  }
-                />
+                {editingModelId === row.id ? (
+                  <>
+                    <Input
+                      className="min-w-[8rem] flex-1"
+                      value={editingModelName}
+                      onChange={(e) => setEditingModelName(e.target.value)}
+                      disabled={editSaving}
+                    />
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={editSaving}
+                        onClick={() => void handleEditModel(row.id)}
+                      >
+                        {editSaving ? "Kaydediliyor..." : "Kaydet"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={editSaving}
+                        onClick={() => {
+                          setEditingModelId(null);
+                          setEditingModelName("");
+                        }}
+                      >
+                        İptal
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="min-w-0 flex-1 text-sm font-medium text-slate-900">
+                      {row.name}
+                    </span>
+                    <div className="ml-auto flex shrink-0 items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          if (isDemo) {
+                            toast.error("Demo hesapta bu işlem yapılamaz.");
+                            return;
+                          }
+                          setEditingModelId(row.id);
+                          setEditingModelName(row.name);
+                        }}
+                        style={
+                          isDemo
+                            ? { opacity: 0.5, cursor: "not-allowed" }
+                            : undefined
+                        }
+                      >
+                        Düzenle
+                      </Button>
+                      <DeleteConfirmDialog
+                        isDemo={isDemo}
+                        onConfirm={() =>
+                          openDeletePasswordModal(
+                            `/api/models?id=${encodeURIComponent(row.id)}`,
+                            () =>
+                              setItems((prev) =>
+                                prev.filter((x) => x.id !== row.id),
+                              ),
+                          )
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </li>
             ))
           )}
