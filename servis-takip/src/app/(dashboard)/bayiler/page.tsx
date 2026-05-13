@@ -271,17 +271,15 @@ export default function BayilerPage() {
       const r = await fetch("/api/shop/settings-password");
       const j = (await r.json()) as { hasPassword?: boolean; error?: string };
       if (!r.ok) {
-        toast.error(j.error ?? "Parola durumu alınamadı");
-        setHasSettingsPassword(true);
-        return true;
+        setHasSettingsPassword(false);
+        return false;
       }
       const v = !!j.hasPassword;
       setHasSettingsPassword(v);
       return v;
     } catch {
-      toast.error("Bağlantı hatası");
-      setHasSettingsPassword(true);
-      return true;
+      setHasSettingsPassword(false);
+      return false;
     }
   }
 
@@ -332,11 +330,11 @@ export default function BayilerPage() {
   }
 
   async function confirmDeleteWithPassword() {
-    if (hasSettingsPassword !== false && !deletePassword.trim()) {
+    if (hasSettingsPassword === true && !deletePassword.trim()) {
       setDeletePasswordError("Parola girin");
       return;
     }
-    await runBayiDelete(hasSettingsPassword === false ? "" : deletePassword);
+    await runBayiDelete(deletePassword.trim());
   }
 
   return (

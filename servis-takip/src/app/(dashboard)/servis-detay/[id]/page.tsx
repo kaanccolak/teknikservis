@@ -497,17 +497,15 @@ export default function ServisDetayPage() {
       const r = await fetch("/api/shop/settings-password");
       const j = (await r.json()) as { hasPassword?: boolean; error?: string };
       if (!r.ok) {
-        toast.error(j.error ?? "Parola durumu alınamadı");
-        setHasSettingsPassword(true);
-        return true;
+        setHasSettingsPassword(false);
+        return false;
       }
       const v = !!j.hasPassword;
       setHasSettingsPassword(v);
       return v;
     } catch {
-      toast.error("Bağlantı hatası");
-      setHasSettingsPassword(true);
-      return true;
+      setHasSettingsPassword(false);
+      return false;
     }
   }
 
