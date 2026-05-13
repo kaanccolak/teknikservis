@@ -256,7 +256,7 @@ export async function POST(request: Request) {
     for (let attempt = 0; attempt < 8; attempt++) {
       try {
         order = await prisma.$transaction(async (tx) => {
-          const orderNumber = await allocateServiceOrderNumber(tx);
+          const orderNumber = await allocateServiceOrderNumber(tx, shop.id);
 
           const deviceType = await tx.deviceType.findFirst({
             where: { id: body.deviceTypeId, shopId: shop.id },

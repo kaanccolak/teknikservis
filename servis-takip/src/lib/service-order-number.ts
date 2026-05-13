@@ -15,11 +15,16 @@ export function serviceOrderMonthPrefix(ref = new Date()): string {
  */
 export async function allocateServiceOrderNumber(
   tx: Tx,
+  shopId: string,
   ref = new Date(),
 ): Promise<string> {
   const prefix = serviceOrderMonthPrefix(ref);
   const rows = await tx.serviceOrder.findMany({
-    where: { orderNumber: { startsWith: prefix } },
+    where: {
+      orderNumber: { startsWith: prefix },
+      shopId,
+      deletedAt: null,
+    },
     select: { orderNumber: true },
   });
   let maxSeq = 0;
