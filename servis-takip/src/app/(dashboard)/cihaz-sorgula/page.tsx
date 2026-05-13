@@ -145,7 +145,7 @@ function CihazSorgulaInner() {
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/device-types")
+    void fetch("/api/device-types", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -167,6 +167,7 @@ function CihazSorgulaInner() {
     let cancelled = false;
     void fetch(
       `/api/brands?deviceTypeId=${encodeURIComponent(deviceTypeFilter)}`,
+      { cache: "no-store" },
     )
       .then((r) => r.json())
       .then((data) => {
@@ -187,7 +188,9 @@ function CihazSorgulaInner() {
       return;
     }
     let cancelled = false;
-    void fetch(`/api/models?brandId=${encodeURIComponent(brandFilter)}`)
+    void fetch(`/api/models?brandId=${encodeURIComponent(brandFilter)}`, {
+      cache: "no-store",
+    })
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -231,6 +234,7 @@ function CihazSorgulaInner() {
           if (onlyBayi) params.set("onlyBayi", "true");
           const res = await fetch(`/api/service-orders?${params.toString()}`, {
             signal: ac.signal,
+            cache: "no-store",
           });
           const data = (await res.json()) as
             | ServiceOrderListResponse

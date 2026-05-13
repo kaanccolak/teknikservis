@@ -146,7 +146,7 @@ function IkinciElInner() {
       const q = search.trim();
       if (q) params.set("search", q);
       if (statusFilter !== "all") params.set("sold", statusFilter);
-      const res = await fetch(`/api/second-hand?${params}`);
+      const res = await fetch(`/api/second-hand?${params}`, { cache: "no-store" });
       const data = (await res.json()) as
         | { items?: Row[]; total?: number; error?: string; details?: string }
         | { error: string; details?: string };
@@ -220,7 +220,8 @@ function IkinciElInner() {
       setPendingDeleteId(null);
       setDeleteId(null);
       toast.success("Silindi");
-      void fetchSecondHand();
+      await new Promise((r) => setTimeout(r, 500));
+      await fetchSecondHand();
     } catch {
       toast.error("Bağlantı hatası");
     } finally {

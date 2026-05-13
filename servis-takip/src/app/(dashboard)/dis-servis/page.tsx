@@ -129,7 +129,7 @@ function DisServisContent() {
       const qs = search.trim()
         ? `?search=${encodeURIComponent(search.trim())}`
         : "";
-      const res = await fetch(`/api/external-services${qs}`);
+      const res = await fetch(`/api/external-services${qs}`, { cache: "no-store" });
       const data = (await res.json()) as ExternalRow[] | { error?: string };
       if (!res.ok) {
         setError(
@@ -312,6 +312,7 @@ function DisServisContent() {
       deleteRowPendingRef.current = null;
       setDeleteState(null);
       toast.success("Silindi");
+      await new Promise((r) => setTimeout(r, 500));
       await loadRows();
     } catch {
       toast.error("Bağlantı hatası");

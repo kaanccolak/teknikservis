@@ -94,7 +94,7 @@ export default function PlanlarimPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/payment-plans");
+      const res = await fetch("/api/payment-plans", { cache: "no-store" });
       const data = (await res.json()) as {
         plans?: PaymentPlanRow[];
         error?: string;
@@ -334,6 +334,7 @@ export default function PlanlarimPage() {
       setPendingDeleteId(null);
       setDeleteTarget(null);
       toast.success("Silindi");
+      await new Promise((r) => setTimeout(r, 500));
       await loadPlans();
     } catch {
       toast.error("Bağlantı hatası");

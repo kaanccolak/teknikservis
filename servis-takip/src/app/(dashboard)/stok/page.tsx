@@ -139,7 +139,7 @@ export default function StokPage() {
   const loadMeta = useCallback(async () => {
     setMetaError(null);
     try {
-      const res = await fetch("/api/device-types");
+      const res = await fetch("/api/device-types", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) {
         setMetaError(
@@ -178,6 +178,7 @@ export default function StokPage() {
       try {
         const res = await fetch(
           `/api/brands?deviceTypeId=${encodeURIComponent(deviceTypeId)}`,
+          { cache: "no-store" },
         );
         const data = await res.json();
         if (!res.ok) {
@@ -205,7 +206,9 @@ export default function StokPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/models?brandId=${encodeURIComponent(brandId)}`);
+        const res = await fetch(`/api/models?brandId=${encodeURIComponent(brandId)}`, {
+          cache: "no-store",
+        });
         const data = await res.json();
         if (!res.ok) {
           if (!cancelled) toast.error(data.error ?? "Modeller yüklenemedi");
@@ -234,6 +237,7 @@ export default function StokPage() {
       try {
         const res = await fetch(
           `/api/brands?deviceTypeId=${encodeURIComponent(formDt)}`,
+          { cache: "no-store" },
         );
         const data = await res.json();
         if (!cancelled && res.ok) setFormBrands(data as IdName[]);
@@ -255,7 +259,9 @@ export default function StokPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/models?brandId=${encodeURIComponent(formBr)}`);
+        const res = await fetch(`/api/models?brandId=${encodeURIComponent(formBr)}`, {
+          cache: "no-store",
+        });
         const data = await res.json();
         if (!cancelled && res.ok) setFormModels(data as IdName[]);
       } catch {
@@ -277,7 +283,9 @@ export default function StokPage() {
       if (brandId) params.set("brandId", brandId);
       if (deviceModelId) params.set("deviceModelId", deviceModelId);
       if (stockStatus !== "all") params.set("stockStatus", stockStatus);
-      const res = await fetch(`/api/spare-parts?${params.toString()}`);
+      const res = await fetch(`/api/spare-parts?${params.toString()}`, {
+        cache: "no-store",
+      });
       const data = (await res.json()) as SparePartRow[] | { error?: string };
       if (!res.ok) {
         setListError(
@@ -468,7 +476,8 @@ export default function StokPage() {
       setDeletePassword("");
       setPendingDeleteId(null);
       toast.success("Silindi");
-      void loadParts();
+      await new Promise((r) => setTimeout(r, 500));
+      await loadParts();
     } catch {
       toast.error("Bağlantı hatası");
     } finally {
