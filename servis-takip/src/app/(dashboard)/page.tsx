@@ -791,7 +791,7 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/dashboard", {
-        next: { revalidate: 30 },
+        cache: "no-store", // revalidate: 30 yerine her seferinde taze veri
       });
       const json = (await res.json()) as DashboardPayload | { error?: string };
       if (!res.ok) {

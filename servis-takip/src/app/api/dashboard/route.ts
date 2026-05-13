@@ -1,11 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from "next/server";
 
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
 import { SERVICE_ORDER_DELIVERED_STATUSES } from "@/lib/service-order-status";
-
-export const dynamic = "force-dynamic";
 
 /** Takvim günü (sunucu yerel saati) */
 function localDayBounds(d = new Date()): { start: Date; end: Date } {
