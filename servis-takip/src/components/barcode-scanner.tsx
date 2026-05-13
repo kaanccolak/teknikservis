@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Props {
   onScan: (value: string) => void;
@@ -22,6 +22,27 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
   const handledRef = useRef(false);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
+
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [minZoom, setMinZoom] = useState(1);
+  const [maxZoom, setMaxZoom] = useState(3);
+  const [zoomSupported, setZoomSupported] = useState(false);
+
+  const changeZoom = useCallback(
+    async (delta: number) => {
+      if (!streamRef.current) return;
+      const videoTrack = streamRef.current.getVideoTracks()[0];
+      if (!videoTrack) return;
+      const newZoom = Math.min(maxZoom, Math.max(minZoom, zoomLevel + delta));
+      setZoomLevel(newZoom);
+      await videoTrack.applyConstraints({
+        advanced: [
+          { zoom: newZoom } as MediaTrackConstraintSetExtended,
+        ],
+      });
+    },
+    [zoomLevel, minZoom, maxZoom],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -48,6 +69,10 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
           const capabilities =
             videoTrack.getCapabilities() as MediaTrackCapabilitiesExtended;
           if (capabilities.zoom) {
+            setMinZoom(capabilities.zoom.min);
+            setMaxZoom(capabilities.zoom.max);
+            setZoomLevel(capabilities.zoom.min);
+            setZoomSupported(true);
             await videoTrack.applyConstraints({
               advanced: [
                 { zoom: capabilities.zoom.min } as MediaTrackConstraintSetExtended,
@@ -224,6 +249,68 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
                 />
               </div>
             </div>
+            {zoomSupported && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "16px",
+                  marginTop: "12px",
+                }}
+              >
+                <button
+                  onClick={() => void changeZoom(-0.5)}
+                  disabled={zoomLevel <= minZoom}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.2)",
+                    border: "none",
+                    color: "white",
+                    fontSize: "22px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: zoomLevel <= minZoom ? 0.4 : 1,
+                  }}
+                >
+                  −
+                </button>
+                <span
+                  style={{
+                    color: "white",
+                    fontSize: "13px",
+                    minWidth: "50px",
+                    textAlign: "center",
+                  }}
+                >
+                  {zoomLevel.toFixed(1)}x
+                </span>
+                <button
+                  onClick={() => void changeZoom(0.5)}
+                  disabled={zoomLevel >= maxZoom}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.2)",
+                    border: "none",
+                    color: "white",
+                    fontSize: "22px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: zoomLevel >= maxZoom ? 0.4 : 1,
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            )}
             <p
               style={{
                 color: "rgba(255,255,255,0.7)",
