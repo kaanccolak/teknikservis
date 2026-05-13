@@ -25,7 +25,10 @@ async function allocateBayiCode(shopId: string) {
   const now = new Date();
   const year = String(now.getFullYear());
   const month = String(now.getMonth() + 1).padStart(2, "0");
-  const prefix = `B${year}${month}`;
+  // shopId'nin son 4 karakterini prefix'e ekle — global unique için
+  const shopSuffix = shopId.slice(-4).toUpperCase();
+  const prefix = `B${year}${month}${shopSuffix}`;
+
   const lastBayi = await prisma.bayi.findFirst({
     where: {
       shopId,
@@ -34,9 +37,14 @@ async function allocateBayiCode(shopId: string) {
     orderBy: { bayiCode: "desc" },
     select: { bayiCode: true },
   });
+
   const seq = lastBayi?.bayiCode
-    ? String(Number.parseInt(lastBayi.bayiCode.slice(-3), 10) + 1).padStart(3, "0")
+    ? String(Number.parseInt(lastBayi.bayiCode.slice(-3), 10) + 1).padStart(
+        3,
+        "0",
+      )
     : "001";
+
   return `${prefix}${seq}`;
 }
 
