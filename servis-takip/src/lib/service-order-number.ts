@@ -23,7 +23,6 @@ export async function allocateServiceOrderNumber(
     where: {
       orderNumber: { startsWith: prefix },
       shopId,
-      deletedAt: null,
     },
     select: { orderNumber: true },
   });
