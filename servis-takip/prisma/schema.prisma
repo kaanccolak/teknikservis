@@ -208,7 +208,7 @@ model SecondHandDevice {
 model ServiceOrder {
   id          String   @id @default(cuid())
   /// YYYYMM001; eski satırlar null olabilir (tamamlanınca NOT NULL’a çekilebilir).
-  orderNumber String?  @unique
+  orderNumber String?
   shopId     String
   shop       Shop     @relation(fields: [shopId], references: [id])
   customerId String
@@ -272,6 +272,8 @@ model ServiceOrder {
   statusLogs       StatusLog[]
   sparePartUsages  SparePartUsage[]
   whatsAppMessages WhatsAppMessage[]
+
+  @@unique([shopId, orderNumber])
 }
 
 model Bayi {
