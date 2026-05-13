@@ -7,6 +7,13 @@ interface Props {
   onClose: () => void;
 }
 
+interface MediaTrackCapabilitiesExtended extends MediaTrackCapabilities {
+  zoom?: { min: number; max: number; step: number };
+}
+interface MediaTrackConstraintSetExtended extends MediaTrackConstraintSet {
+  zoom?: number;
+}
+
 export default function BarcodeScanner({ onScan, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +35,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
             zoom: 1,
             width: { ideal: 1920 },
             height: { ideal: 1080 },
-          },
+          } as MediaTrackConstraints & { zoom?: number },
         });
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
@@ -38,10 +45,13 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
 
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
-          const capabilities = videoTrack.getCapabilities() as any;
+          const capabilities =
+            videoTrack.getCapabilities() as MediaTrackCapabilitiesExtended;
           if (capabilities.zoom) {
             await videoTrack.applyConstraints({
-              advanced: [{ zoom: capabilities.zoom.min } as any],
+              advanced: [
+                { zoom: capabilities.zoom.min } as MediaTrackConstraintSetExtended,
+              ],
             });
           }
         }
