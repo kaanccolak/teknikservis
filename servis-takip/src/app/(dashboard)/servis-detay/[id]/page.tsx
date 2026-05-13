@@ -549,28 +549,14 @@ export default function ServisDetayPage() {
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/shop")
+    void fetch("/api/baileys/status")
       .then((r) => r.json())
-      .then(
-        (j: {
-          waEnabled?: boolean;
-          waPhoneNumberId?: string | null;
-          waTokenConfigured?: boolean;
-        }) => {
-          if (cancelled) return;
-          setWaShopReady(
-            Boolean(
-              j.waEnabled &&
-                j.waPhoneNumberId?.trim() &&
-                j.waTokenConfigured,
-            ),
-          );
-        },
-      )
+      .then((j: { connected?: boolean }) => {
+        if (cancelled) return;
+        setWaShopReady(j.connected === true);
+      })
       .catch(() => {
-        if (!cancelled) {
-          setWaShopReady(false);
-        }
+        if (!cancelled) setWaShopReady(false);
       });
     return () => {
       cancelled = true;
