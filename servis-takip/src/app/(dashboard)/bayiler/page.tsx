@@ -144,8 +144,12 @@ export default function BayilerPage() {
     setLoading(true);
     setError(null);
     try {
-      const qs = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
-      const res = await fetch(`/api/bayiler${qs}`, { cache: "no-store" });
+      const searchPart = search.trim()
+        ? `&search=${encodeURIComponent(search.trim())}`
+        : "";
+      const res = await fetch(`/api/bayiler?t=${Date.now()}${searchPart}`, {
+        cache: "no-store",
+      });
       const data = (await res.json()) as Bayi[] | { error?: string };
       if (!res.ok) {
         setError((data as { error?: string }).error ?? "Bayiler yüklenemedi");
