@@ -1662,22 +1662,17 @@ function CihazKayitRoot() {
     let cancelled = false;
     void fetch("/api/shop")
       .then((r) => r.json())
-      .then(
-        (j: {
-          waEnabled?: boolean;
-          waPhoneNumberId?: string | null;
-          waTokenConfigured?: boolean;
-        }) => {
-          if (cancelled) return;
-          setWaShopReady(
-            Boolean(
-              j.waEnabled &&
-                j.waPhoneNumberId?.trim() &&
-                j.waTokenConfigured,
-            ),
-          );
-        },
-      )
+      .then(() => {
+        if (cancelled) return;
+      })
+      .catch(() => {});
+    // Baileys session durumunu kontrol et
+    void fetch("/api/baileys/status")
+      .then((r) => r.json())
+      .then((b: { connected?: boolean }) => {
+        if (cancelled) return;
+        setWaShopReady(b.connected === true);
+      })
       .catch(() => {
         if (!cancelled) setWaShopReady(false);
       });
