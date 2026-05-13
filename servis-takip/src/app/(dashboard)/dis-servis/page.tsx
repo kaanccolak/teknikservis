@@ -271,12 +271,17 @@ function DisServisContent() {
     }
   }
 
-  async function runExternalDelete(settingsPassword: string) {
-    if (!pendingDeleteId) return;
+  async function runExternalDelete(
+    settingsPassword: string,
+    id?: string,
+    _force?: boolean,
+  ) {
+    const deleteId = id ?? pendingDeleteId;
+    if (!deleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
     try {
-      const res = await fetch(`/api/external-services/${pendingDeleteId}`, {
+      const res = await fetch(`/api/external-services/${deleteId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settingsPassword }),
@@ -605,16 +610,18 @@ function DisServisContent() {
                       if (!deleteState || deleteState.phase !== "confirm")
                         return;
                       deleteRowPendingRef.current = deleteState.row;
-                      setPendingDeleteId(deleteState.row.id);
+                      const idToDelete = deleteState.row.id;
+                      const forceDelete = false;
                       setDeleteState(null);
                       let hp = hasSettingsPassword;
                       if (hp === null) {
                         hp = await ensureHasSettingsPassword();
                       }
                       if (!hp) {
-                        await runExternalDelete("");
+                        await runExternalDelete("", idToDelete, forceDelete);
                         return;
                       }
+                      setPendingDeleteId(idToDelete);
                       setShowDeletePasswordModal(true);
                     })();
                   }}

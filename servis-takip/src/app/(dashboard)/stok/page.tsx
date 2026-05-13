@@ -450,13 +450,18 @@ export default function StokPage() {
     }
   }
 
-  async function runStokDelete(settingsPassword: string) {
-    if (!pendingDeleteId) return;
+  async function runStokDelete(
+    settingsPassword: string,
+    id?: string,
+    _force?: boolean,
+  ) {
+    const deleteId = id ?? pendingDeleteId;
+    if (!deleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
     try {
       const res = await fetch(
-        `/api/spare-parts/${encodeURIComponent(pendingDeleteId)}`,
+        `/api/spare-parts/${encodeURIComponent(deleteId)}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -899,16 +904,18 @@ export default function StokPage() {
                 e.preventDefault();
                 void (async () => {
                   if (!deletePart) return;
-                  setPendingDeleteId(deletePart.id);
+                  const idToDelete = deletePart.id;
+                  const forceDelete = false;
                   setDeletePart(null);
                   let hp = hasSettingsPassword;
                   if (hp === null) {
                     hp = await ensureHasSettingsPassword();
                   }
                   if (!hp) {
-                    await runStokDelete("");
+                    await runStokDelete("", idToDelete, forceDelete);
                     return;
                   }
+                  setPendingDeleteId(idToDelete);
                   setShowDeletePasswordModal(true);
                 })();
               }}

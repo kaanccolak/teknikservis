@@ -196,12 +196,18 @@ function IkinciElInner() {
     }
   }
 
-  async function runSecondHandDelete(settingsPassword: string) {
-    if (!pendingDeleteId) return;
+  async function runSecondHandDelete(
+    settingsPassword: string,
+    id?: string,
+    _force?: boolean,
+  ) {
+    const deleteId = id ?? pendingDeleteId;
+    void _force;
+    if (!deleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
     try {
-      const res = await fetch(`/api/second-hand/${pendingDeleteId}`, {
+      const res = await fetch(`/api/second-hand/${deleteId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settingsPassword }),
@@ -569,16 +575,18 @@ function IkinciElInner() {
                 e.preventDefault();
                 void (async () => {
                   if (!deleteId) return;
-                  setPendingDeleteId(deleteId);
+                  const idToDelete = deleteId;
+                  const forceDelete = false;
                   setDeleteId(null);
                   let hp = hasSettingsPassword;
                   if (hp === null) {
                     hp = await ensureHasSettingsPassword();
                   }
                   if (!hp) {
-                    await runSecondHandDelete("");
+                    await runSecondHandDelete("", idToDelete, forceDelete);
                     return;
                   }
+                  setPendingDeleteId(idToDelete);
                   setShowDeletePasswordModal(true);
                 })();
               }}

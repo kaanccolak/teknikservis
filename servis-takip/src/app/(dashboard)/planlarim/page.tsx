@@ -310,12 +310,17 @@ export default function PlanlarimPage() {
     }
   }
 
-  async function runPlanDelete(settingsPassword: string) {
-    if (!pendingDeleteId) return;
+  async function runPlanDelete(
+    settingsPassword: string,
+    id?: string,
+    _force?: boolean,
+  ) {
+    const deleteId = id ?? pendingDeleteId;
+    if (!deleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
     try {
-      const res = await fetch(`/api/payment-plans/${pendingDeleteId}`, {
+      const res = await fetch(`/api/payment-plans/${deleteId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settingsPassword }),
@@ -718,16 +723,18 @@ export default function PlanlarimPage() {
                 e.preventDefault();
                 void (async () => {
                   if (!deleteTarget) return;
-                  setPendingDeleteId(deleteTarget.id);
+                  const idToDelete = deleteTarget.id;
+                  const forceDelete = false;
                   setDeleteTarget(null);
                   let hp = hasSettingsPassword;
                   if (hp === null) {
                     hp = await ensureHasSettingsPassword();
                   }
                   if (!hp) {
-                    await runPlanDelete("");
+                    await runPlanDelete("", idToDelete, forceDelete);
                     return;
                   }
+                  setPendingDeleteId(idToDelete);
                   setShowDeletePasswordModal(true);
                 })();
               }}

@@ -509,9 +509,16 @@ export default function ServisDetayPage() {
     }
   }
 
-  async function runConfirmedDelete(settingsPassword: string) {
-    const kind = pendingDeleteKind;
-    const delId = pendingDeleteId;
+  async function runConfirmedDelete(
+    settingsPassword: string,
+    idOverride?: string,
+    _force?: boolean,
+  ) {
+    let kind = pendingDeleteKind;
+    const delId = idOverride ?? pendingDeleteId;
+    if (!kind && idOverride != null && id) {
+      kind = idOverride === id ? "order" : "spare";
+    }
     if (!kind || (kind === "spare" && (!order || !delId)) || (kind === "order" && !id)) {
       return;
     }
@@ -556,16 +563,16 @@ export default function ServisDetayPage() {
   }
 
   async function requestRemoveSpareUsage(usageId: string) {
-    setPendingDeleteKind("spare");
-    setPendingDeleteId(usageId);
     let hp = hasSettingsPassword;
     if (hp === null) {
       hp = await ensureHasSettingsPassword();
     }
     if (!hp) {
-      await runConfirmedDelete("");
+      await runConfirmedDelete("", usageId);
       return;
     }
+    setPendingDeleteKind("spare");
+    setPendingDeleteId(usageId);
     setShowDeletePasswordModal(true);
   }
 
@@ -2028,16 +2035,17 @@ export default function ServisDetayPage() {
                     e.preventDefault();
                     void (async () => {
                       setDeleteOpen(false);
-                      setPendingDeleteKind("order");
-                      setPendingDeleteId(id);
+                      const idToDelete = id;
                       let hp = hasSettingsPassword;
                       if (hp === null) {
                         hp = await ensureHasSettingsPassword();
                       }
                       if (!hp) {
-                        await runConfirmedDelete("");
+                        await runConfirmedDelete("", idToDelete);
                         return;
                       }
+                      setPendingDeleteKind("order");
+                      setPendingDeleteId(idToDelete);
                       setShowDeletePasswordModal(true);
                     })();
                   }}
