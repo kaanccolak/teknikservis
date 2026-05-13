@@ -278,7 +278,7 @@ model Bayi {
   id            String         @id @default(cuid())
   shopId         String
   shop           Shop           @relation(fields: [shopId], references: [id])
-  bayiCode       String         @unique
+  bayiCode       String
   firmaAdi       String
   yetkiliKisi    String
   phone          String
@@ -290,6 +290,8 @@ model Bayi {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   serviceOrders  ServiceOrder[]
+
+  @@unique([shopId, bayiCode])
 }
 
 model Cari {
