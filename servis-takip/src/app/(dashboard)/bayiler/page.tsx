@@ -287,13 +287,19 @@ export default function BayilerPage() {
     }
   }
 
-  async function runBayiDelete(settingsPassword: string) {
-    if (!pendingDeleteId) return;
+  async function runBayiDelete(
+    settingsPassword: string,
+    id?: string,
+    force?: boolean,
+  ) {
+    const deleteId = id ?? pendingDeleteId;
+    const isForce = force ?? pendingDeleteForce;
+    if (!deleteId) return;
     setDeletingWithPassword(true);
     setDeletePasswordError("");
     try {
-      const suffix = pendingDeleteForce ? "?force=true" : "";
-      const res = await fetch(`/api/bayiler/${pendingDeleteId}${suffix}`, {
+      const suffix = isForce ? "?force=true" : "";
+      const res = await fetch(`/api/bayiler/${deleteId}${suffix}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settingsPassword }),
@@ -307,7 +313,7 @@ export default function BayilerPage() {
           setDeletePasswordError(data.error ?? "Parola yanlış");
           return;
         }
-        if ((data.linkedCount ?? 0) > 0 && !pendingDeleteForce) {
+        if ((data.linkedCount ?? 0) > 0 && !isForce) {
           setDeleteLinkedCount(data.linkedCount ?? 0);
           setPendingDeleteForce(true);
           setDeletePasswordError(
@@ -786,17 +792,22 @@ export default function BayilerPage() {
                 e.preventDefault();
                 void (async () => {
                   if (!deleteRow) return;
-                  setPendingDeleteId(deleteRow.id);
-                  setPendingDeleteForce(deleteLinkedCount > 0);
+                  const idToDelete = deleteRow.id;
+                  const forceDelete = deleteLinkedCount > 0;
                   setDeleteRow(null);
+
                   let hp = hasSettingsPassword;
                   if (hp === null) {
                     hp = await ensureHasSettingsPassword();
                   }
+
                   if (!hp) {
-                    await runBayiDelete("");
+                    await runBayiDelete("", idToDelete, forceDelete);
                     return;
                   }
+
+                  setPendingDeleteId(idToDelete);
+                  setPendingDeleteForce(forceDelete);
                   setShowDeletePasswordModal(true);
                 })();
               }}
