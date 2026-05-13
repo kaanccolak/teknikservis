@@ -9,6 +9,8 @@ export async function verifySettingsPassword(
     where: { id: shopId },
     select: { settingsPassword: true },
   });
-  if (!shop?.settingsPassword) return true; // parola yoksa geç
+  // Parola tanımlanmamışsa her zaman geç
+  if (!shop?.settingsPassword) return true;
+  // Parola tanımlanmışsa doğrula
   return bcrypt.compare(password, shop.settingsPassword);
 }

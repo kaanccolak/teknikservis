@@ -167,18 +167,21 @@ export async function DELETE(
     );
   }
 
-  // Parola doğrulama
-  const body = await request.json().catch(() => ({}));
-  const { settingsPassword } = body as { settingsPassword?: string };
-  const { verifySettingsPassword } = await import(
-    "@/lib/verify-settings-password"
-  );
-  const valid = await verifySettingsPassword(
-    shop.id,
-    settingsPassword ?? "",
-  );
-  if (!valid) {
-    return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
+  // Parola kontrolü
+  const hasPassword = Boolean(shop.settingsPassword);
+  if (hasPassword) {
+    const body = await request.json().catch(() => ({}));
+    const { settingsPassword } = body as { settingsPassword?: string };
+    if (!settingsPassword) {
+      return NextResponse.json({ error: "Parola gerekli" }, { status: 403 });
+    }
+    const { verifySettingsPassword } = await import(
+      "@/lib/verify-settings-password"
+    );
+    const valid = await verifySettingsPassword(shop.id, settingsPassword);
+    if (!valid) {
+      return NextResponse.json({ error: "Parola yanlış" }, { status: 403 });
+    }
   }
 
   const existing = await prisma.externalService.findFirst({
