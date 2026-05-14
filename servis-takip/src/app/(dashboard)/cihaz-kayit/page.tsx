@@ -230,6 +230,8 @@ function CihazKayitServiceInner({
   const [showAddModel, setShowAddModel] = useState(false);
   const [newDefinitionName, setNewDefinitionName] = useState("");
   const [savingDefinition, setSavingDefinition] = useState(false);
+  const [teshisLoading, setTeshisLoading] = useState(false);
+  const [teshisSonuc, setTeshisSonuc] = useState<string | null>(null);
 
   const customerNameRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
@@ -757,6 +759,48 @@ function CihazKayitServiceInner({
       toast.success("Model eklendi");
     } finally {
       setSavingDefinition(false);
+    }
+  }
+
+  async function handleArizaTeshis() {
+    const complaint = watch("complaint");
+    const deviceTypeVal =
+      deviceTypes.find((t) => t.id === deviceTypeId)?.name ?? "";
+    const brandVal = brands.find((b) => b.id === brandId)?.name ?? "";
+    const modelVal =
+      models.find((m) => m.id === watch("deviceModelId"))?.name ?? "";
+
+    if (!complaint?.trim() && !deviceTypeVal) {
+      toast.error("Önce şikayet bilgisi veya cihaz türü girin");
+      return;
+    }
+
+    setTeshisLoading(true);
+    setTeshisSonuc(null);
+
+    try {
+      const prompt = `Bir teknik servis teknisyenisin. Aşağıdaki cihaz ve şikayet bilgilerine göre kısa ve pratik bir arıza teşhisi yap. Olası nedenleri ve kontrol edilmesi gereken noktaları maddeler halinde listele. Türkçe yaz, 150 kelimeyi geçme.
+
+Cihaz: ${[deviceTypeVal, brandVal, modelVal].filter(Boolean).join(" / ") || "Belirtilmemiş"}
+Şikayet: ${complaint?.trim() || "Belirtilmemiş"}`;
+
+      const res = await fetch("/api/ai-assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", parts: [{ text: prompt }] }],
+        }),
+      });
+      const data = (await res.json()) as { text?: string; error?: string };
+      if (!res.ok || !data.text) {
+        toast.error(data.error ?? "Teşhis yapılamadı");
+        return;
+      }
+      setTeshisSonuc(data.text);
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setTeshisLoading(false);
     }
   }
 
@@ -1407,6 +1451,104 @@ function CihazKayitServiceInner({
                   />
                 )}
               />
+              <button
+                type="button"
+                onClick={() => void handleArizaTeshis()}
+                disabled={teshisLoading}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 14px",
+                  background: teshisLoading
+                    ? "#e5e7eb"
+                    : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                  color: teshisLoading ? "#9ca3af" : "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: teshisLoading ? "wait" : "pointer",
+                }}
+              >
+                {teshisLoading ? (
+                  <>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="animate-spin"
+                    >
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    Teşhis yapılıyor...
+                  </>
+                ) : (
+                  <>🔍 AI ile Arıza Teşhisi Yap</>
+                )}
+              </button>
+
+              {teshisSonuc ? (
+                <div
+                  style={{
+                    marginTop: "8px",
+                    background: "linear-gradient(135deg, #eff6ff, #f5f3ff)",
+                    border: "1px solid #c7d2fe",
+                    borderRadius: "10px",
+                    padding: "14px 16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px" }}>🤖</span>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        color: "#4f46e5",
+                        margin: 0,
+                      }}
+                    >
+                      AI Arıza Teşhisi
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setTeshisSonuc(null)}
+                      style={{
+                        marginLeft: "auto",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#9ca3af",
+                        fontSize: "16px",
+                        lineHeight: 1,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#374151",
+                      lineHeight: "1.6",
+                      whiteSpace: "pre-wrap",
+                      margin: 0,
+                    }}
+                  >
+                    {teshisSonuc}
+                  </p>
+                </div>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="accessories">Cihazla gelen aksesuarlar</Label>
