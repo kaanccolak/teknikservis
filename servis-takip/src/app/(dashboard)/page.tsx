@@ -27,6 +27,75 @@ import {
 } from "@/lib/payment-plan-helpers";
 import { cn } from "@/lib/utils";
 
+function InfoTooltip({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        marginLeft: "5px",
+      }}
+    >
+      <span
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        style={{
+          width: "14px",
+          height: "14px",
+          borderRadius: "50%",
+          background: "#e5e7eb",
+          color: "#6b7280",
+          fontSize: "10px",
+          fontWeight: 700,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "default",
+          userSelect: "none",
+          flexShrink: 0,
+        }}
+      >
+        ?
+      </span>
+      {visible ? (
+        <span
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 6px)",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#1f2937",
+            color: "white",
+            fontSize: "11px",
+            lineHeight: "1.5",
+            padding: "7px 10px",
+            borderRadius: "7px",
+            whiteSpace: "pre-line",
+            width: "220px",
+            zIndex: 9999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            pointerEvents: "none",
+          }}
+        >
+          {text}
+          <span
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              border: "5px solid transparent",
+              borderTopColor: "#1f2937",
+            }}
+          />
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 type RecentCustomer = { name: string };
 type RecentNamed = { name: string };
 type RecentOrder = {
@@ -142,6 +211,7 @@ type StatCardDef = {
   href: string;
   accentColor: string;
   icon: LucideIcon;
+  tooltip?: string;
 };
 
 const statCardsRow1: StatCardDef[] = [
@@ -151,6 +221,8 @@ const statCardsRow1: StatCardDef[] = [
     href: "/cihaz-sorgula?hideCompleted=true",
     accentColor: "#3b82f6",
     icon: ClipboardList,
+    tooltip:
+      "Teslim edilmemiş ve tamamlanmamış tüm aktif servis kayıtlarının sayısı.",
   },
   {
     title: "Teknik Serviste",
@@ -158,6 +230,7 @@ const statCardsRow1: StatCardDef[] = [
     href: "/cihaz-sorgula?status=in_service&hideCompleted=true",
     accentColor: "#6366f1",
     icon: Wrench,
+    tooltip: "Durumu 'Teknik Serviste' olan kayıtların sayısı.",
   },
   {
     title: "Onay Bekliyor",
@@ -165,6 +238,7 @@ const statCardsRow1: StatCardDef[] = [
     href: "/cihaz-sorgula?status=waiting_approval&hideCompleted=true",
     accentColor: "#f59e0b",
     icon: Clock,
+    tooltip: "Müşteriden onay bekleyen kayıtların sayısı.",
   },
   {
     title: "Parça Bekliyor",
@@ -172,6 +246,7 @@ const statCardsRow1: StatCardDef[] = [
     href: "/cihaz-sorgula?status=waiting_part&hideCompleted=true",
     accentColor: "#f97316",
     icon: Package,
+    tooltip: "Yedek parça beklenen kayıtların sayısı.",
   },
 ];
 
@@ -181,6 +256,8 @@ const statCardCompletedToday: StatCardDef = {
   href: "/cihaz-sorgula?status=completed&hideCompleted=false",
   accentColor: "#10b981",
   icon: Check,
+  tooltip:
+    "Bugün durumu 'Tamamlandı' veya 'Teslim Edildi' olarak güncellenen kayıtların sayısı.",
 };
 
 const statCardExternal: StatCardDef = {
@@ -189,6 +266,8 @@ const statCardExternal: StatCardDef = {
   href: "/cihaz-sorgula?status=sent_to_external",
   accentColor: "#7c3aed",
   icon: Send,
+  tooltip:
+    "Dış servise gönderilmiş ve henüz geri dönmemiş kayıtların sayısı.",
 };
 
 const CIRO_PERIOD_LABELS: { id: RevenuePeriod; label: string }[] = [
@@ -232,9 +311,12 @@ function StatCard({
               fontSize: "12px",
               color: "#9ca3af",
               marginBottom: "6px",
+              display: "flex",
+              alignItems: "center",
             }}
           >
             {def.title}
+            {def.tooltip ? <InfoTooltip text={def.tooltip} /> : null}
           </div>
           <div
             className="tabular-nums tracking-tight"
@@ -399,9 +481,16 @@ function RevenueCiroCard({
               fontSize: "12px",
               color: "#9ca3af",
               marginBottom: "6px",
+              display: "flex",
+              alignItems: "center",
             }}
           >
             Ciro
+            <InfoTooltip
+              text={
+                "Seçili dönemde 'Teslim Edildi' durumuna geçen\nkayıtların toplam ücretleri.\n\nÜcreti 0 olan kayıtlar dahil edilmez."
+              }
+            />
           </div>
           <div
             style={{
