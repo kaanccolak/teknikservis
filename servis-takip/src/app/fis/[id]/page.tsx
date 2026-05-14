@@ -188,14 +188,30 @@ export default function ServisFisPage() {
           className="fis-card mx-auto max-w-[580px] rounded-lg bg-white p-10 text-black shadow-[0_2px_12px_rgba(0,0,0,0.1)]"
           style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
         >
-          <div className="mb-6 flex items-start justify-between border-b-2 border-slate-900 pb-5">
-            <div>
+          <div className="mb-6 flex items-center justify-between border-b-2 border-slate-900 pb-5">
+            <div style={{ minWidth: "120px" }}>
               <p className="text-[22px] font-bold leading-tight">
                 {shopProfile?.name ?? order.shop.name}
               </p>
               <p className="mt-1 text-xs text-slate-500">SERVİS GİRİŞ FİŞİ</p>
             </div>
-            <div className="text-right">
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              {order.orderNumber?.trim() ? (
+                <Barcode
+                  value={order.orderNumber.trim()}
+                  width={1.5}
+                  height={40}
+                  fontSize={11}
+                />
+              ) : null}
+            </div>
+            <div className="text-right" style={{ minWidth: "120px" }}>
               <p className="font-mono text-[20px] font-bold">
                 #{formatServiceOrderNo(order)}
               </p>
@@ -288,31 +304,6 @@ export default function ServisFisPage() {
               </p>
             </div>
           </div>
-
-          {order.orderNumber?.trim() ? (
-            <div
-              style={{
-                textAlign: "center",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  margin: "20px 0",
-                }}
-              >
-                <Barcode
-                  value={order.orderNumber.trim()}
-                  width={2}
-                  height={50}
-                  fontSize={12}
-                />
-              </div>
-            </div>
-          ) : null}
 
           {order.customer?.phone && order.orderNumber ? (
             <div
