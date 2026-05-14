@@ -44,7 +44,7 @@ KONUŞMA TARZI:
 - Türkçe konuş.
 - Kısa ve net cevaplar ver.
 - Teknik detaylara girmeden pratik yönlendirme yap.
-- Eğer bir şeyi bilmiyorsan "Bu konuda emin değilim, destek ekibine ulaşabilirsiniz" de.
+- Eğer bir şeyi bilmiyorsan veya kullanıcı bir sorun/hata yaşadığını belirtiyorsa şunu söyle: "Bu konuda destek ekibimize ulaşabilirsiniz: +90 537 766 42 48 (WhatsApp/Telefon)"
 - Sadece TamirTakip ile ilgili sorulara cevap ver. Başka konularda "Ben sadece TamirTakip konularında yardımcı olabilirim" de.`;
 
 export async function POST(req: Request) {

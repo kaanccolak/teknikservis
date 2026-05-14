@@ -85,46 +85,55 @@ export default function AiAssistant() {
           position: "fixed",
           bottom: "24px",
           right: "24px",
-          width: "52px",
-          height: "52px",
-          borderRadius: "50%",
+          height: "46px",
+          borderRadius: "23px",
           background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
           color: "white",
           border: "none",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(79,70,229,0.4)",
+          gap: "8px",
+          padding: open ? "0 16px" : "0 16px",
+          boxShadow: "0 4px 16px rgba(79,70,229,0.45)",
           zIndex: 9998,
-          transition: "transform 0.2s",
+          transition: "all 0.2s",
+          whiteSpace: "nowrap",
         }}
         title="AI Asistan"
       >
         {open ? (
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+            <span style={{ fontSize: "13px", fontWeight: 600 }}>Kapat</span>
+          </>
         ) : (
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.06L2 22l4.94-1.37A9.96 9.96 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
-            <path d="M8 10h8M8 14h5" strokeLinecap="round" />
-          </svg>
+          <>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.06L2 22l4.94-1.37A9.96 9.96 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
+              <path d="M8 10h8M8 14h5" strokeLinecap="round" />
+            </svg>
+            <span style={{ fontSize: "13px", fontWeight: 600 }}>
+              Yardım & Destek
+            </span>
+          </>
         )}
       </button>
 
@@ -180,7 +189,7 @@ export default function AiAssistant() {
                 TamirTakip Asistanı
               </p>
               <p style={{ fontSize: "11px", opacity: 0.8, margin: 0 }}>
-                Powered by Gemini
+                TamirTakip Destek Asistanı
               </p>
             </div>
           </div>
