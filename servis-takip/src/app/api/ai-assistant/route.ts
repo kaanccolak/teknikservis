@@ -60,41 +60,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Mesaj gerekli" }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "API key bulunamadı" }, { status: 500 });
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: messages,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024,
-          },
-        }),
+    // Groq mesaj formatına çevir (role: "user" | "assistant")
+    const groqMessages = messages.map((m) => ({
+      role: m.role === "model" ? "assistant" : "user",
+      content: m.parts[0].text,
+    }));
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...groqMessages,
+        ],
+        temperature: 0.7,
+        max_tokens: 1024,
+      }),
+    });
 
     const data = (await response.json()) as {
-      candidates?: { content: { parts: { text: string }[] } }[];
+      choices?: { message: { content: string } }[];
       error?: { message: string };
     };
 
     if (!response.ok || data.error) {
-      console.error("Gemini error:", data.error);
+      console.error("Groq error:", data.error);
       return NextResponse.json(
         { error: data.error?.message ?? "Yapay zeka hatası" },
         { status: 500 },
       );
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const text = data.choices?.[0]?.message?.content ?? "";
     return NextResponse.json({ text });
   } catch (error) {
     console.error("AI assistant error:", error);
