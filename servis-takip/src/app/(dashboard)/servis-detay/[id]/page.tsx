@@ -1572,6 +1572,46 @@ export default function ServisDetayPage() {
               }}
               autoFocus
             />
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                alignItems: "center",
+                marginTop: "8px",
+                marginBottom: "4px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => sesliNoteBasla("repair")}
+                disabled={dinleniyor !== null || sesliNotLoading}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "6px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background:
+                    dinleniyor === "repair"
+                      ? "#dc2626"
+                      : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {dinleniyor === "repair"
+                  ? "🔴 Dinleniyor..."
+                  : sesliNotLoading
+                    ? "⏳ Düzenleniyor..."
+                    : "🎤 Sesli Yaz"}
+              </button>
+              <p style={{ fontSize: "11px", color: "#9ca3af" }}>
+                Konuş, AI metni düzenlesin
+              </p>
+            </div>
             <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
               <button
                 type="button"

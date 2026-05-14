@@ -243,6 +243,19 @@ function CihazKayitServiceInner({
   const [savingDefinition, setSavingDefinition] = useState(false);
   const [teshisLoading, setTeshisLoading] = useState(false);
   const [teshisSonuc, setTeshisSonuc] = useState<string | null>(null);
+  const [dinleniyorKayit, setDinleniyorKayit] = useState<
+    "complaint" | "accessories" | "physicalDamage" | "cargoInfo" | null
+  >(null);
+  const [sesliKayitLoading, setSesliKayitLoading] = useState(false);
+  const [fiyatOnerisiLoading, setFiyatOnerisiLoading] = useState(false);
+  const [fiyatOnerisi, setFiyatOnerisi] = useState<{
+    text: string;
+    minFiyat: number | null;
+    maxFiyat: number | null;
+    ortFiyat: number | null;
+    gecmisKayitSayisi: number;
+    benzerlikTuru: string | null;
+  } | null>(null);
 
   const customerNameRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
@@ -812,6 +825,117 @@ function CihazKayitServiceInner({
     }
   }
 
+  function sesliYazBasla(
+    hedef: "complaint" | "accessories" | "physicalDamage" | "cargoInfo",
+  ) {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      toast.error("Tarayıcınız ses tanımayı desteklemiyor. Chrome veya Edge kullanın.");
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Web Speech API
+    const w = window as any;
+    const SpeechRecognition = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "tr-TR";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    setDinleniyorKayit(hedef);
+    recognition.onresult = (event: { results: { 0: { 0: { transcript: string } } } }) => {
+      const transcript = event.results[0][0].transcript as string;
+      setDinleniyorKayit(null);
+      void aiKayitNotDuzenle(transcript, hedef);
+    };
+    recognition.onerror = () => {
+      setDinleniyorKayit(null);
+      toast.error("Ses tanıma başarısız, tekrar deneyin");
+    };
+    recognition.onend = () => setDinleniyorKayit(null);
+    recognition.start();
+  }
+
+  async function aiKayitNotDuzenle(
+    hamMetin: string,
+    hedef: "complaint" | "accessories" | "physicalDamage" | "cargoInfo",
+  ) {
+    setSesliKayitLoading(true);
+    try {
+      const res = await fetch("/api/ai-servis-notu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hamMetin, hedef: "note" }),
+      });
+      const data = (await res.json()) as { text?: string; error?: string };
+      if (!res.ok || !data.text) {
+        toast.error(data.error ?? "Düzenleme başarısız");
+        return;
+      }
+      setValue(hedef, data.text, { shouldDirty: true });
+      toast.success("AI metni düzenledi");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSesliKayitLoading(false);
+    }
+  }
+
+  async function handleFiyatOnerisi() {
+    const complaint = watch("complaint");
+    const deviceTypeVal =
+      deviceTypes.find((t) => t.id === deviceTypeId)?.name ?? "";
+    const brandVal = brands.find((b) => b.id === brandId)?.name ?? "";
+    const modelVal =
+      models.find((m) => m.id === watch("deviceModelId"))?.name ?? "";
+    const cihaz = [deviceTypeVal, brandVal, modelVal].filter(Boolean).join(" / ");
+
+    if (!cihaz && !complaint?.trim()) {
+      toast.error("Önce cihaz bilgisi veya şikayet girin");
+      return;
+    }
+
+    setFiyatOnerisiLoading(true);
+    setFiyatOnerisi(null);
+
+    try {
+      const res = await fetch("/api/ai-fiyat-onerisi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cihaz: cihaz || "Belirtilmemiş",
+          sikayet: complaint?.trim() || "Belirtilmemiş",
+        }),
+      });
+      const raw = (await res.json()) as {
+        text?: string;
+        minFiyat?: number | null;
+        maxFiyat?: number | null;
+        ortFiyat?: number | null;
+        gecmisKayitSayisi?: number;
+        benzerlikTuru?: string | null;
+        error?: string;
+      };
+      if (!res.ok) {
+        toast.error(raw.error ?? "Öneri yapılamadı");
+        return;
+      }
+      if (!raw.text) {
+        toast.error(raw.error ?? "Öneri yapılamadı");
+        return;
+      }
+      setFiyatOnerisi({
+        text: raw.text,
+        minFiyat: raw.minFiyat ?? null,
+        maxFiyat: raw.maxFiyat ?? null,
+        ortFiyat: raw.ortFiyat ?? null,
+        gecmisKayitSayisi: raw.gecmisKayitSayisi ?? 0,
+        benzerlikTuru: raw.benzerlikTuru ?? null,
+      });
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setFiyatOnerisiLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -1020,7 +1144,40 @@ function CihazKayitServiceInner({
             </div>
             <div className={cn("space-y-2", !arrivedByCargo && "hidden")}>
               <Label htmlFor="cargoInfo">Kargo bilgisi</Label>
-              <Input id="cargoInfo" autoComplete="off" {...register("cargoInfo")} />
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <Input
+                  id="cargoInfo"
+                  autoComplete="off"
+                  placeholder="MNG Kargo ile geldi kargo ücreti 300TL tuttu"
+                  {...register("cargoInfo")}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => sesliYazBasla("cargoInfo")}
+                  disabled={dinleniyorKayit !== null || sesliKayitLoading}
+                  style={{
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background:
+                      dinleniyorKayit === "cargoInfo"
+                        ? "#dc2626"
+                        : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                    color: "white",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {dinleniyorKayit === "cargoInfo" ? "🔴 Dinleniyor..." : "🎤"}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 border-t border-slate-100 pt-4">
@@ -1459,6 +1616,33 @@ function CihazKayitServiceInner({
                   />
                 )}
               />
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <button
+                  type="button"
+                  onClick={() => sesliYazBasla("complaint")}
+                  disabled={dinleniyorKayit !== null || sesliKayitLoading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background:
+                      dinleniyorKayit === "complaint" ? "#dc2626" : "#6b7280",
+                    color: "white",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {dinleniyorKayit === "complaint"
+                    ? "🔴 Dinleniyor..."
+                    : sesliKayitLoading
+                      ? "⏳"
+                      : "🎤 Sesli Yaz"}
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => void handleArizaTeshis()}
@@ -1613,11 +1797,34 @@ function CihazKayitServiceInner({
                   />
                 )}
               />
+              <button
+                type="button"
+                onClick={() => sesliYazBasla("accessories")}
+                disabled={dinleniyorKayit !== null || sesliKayitLoading}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "6px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background:
+                    dinleniyorKayit === "accessories" ? "#dc2626" : "#6b7280",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {dinleniyorKayit === "accessories"
+                  ? "🔴 Dinleniyor..."
+                  : sesliKayitLoading
+                    ? "⏳"
+                    : "🎤 Sesli Yaz"}
+              </button>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="physicalDamage">
-                Fiziksel hasar / dış görünüm
-              </Label>
+              <Label htmlFor="physicalDamage">Fiziksel hasar / dış görünüm</Label>
               <Controller
                 name="physicalDamage"
                 control={control}
@@ -1639,6 +1846,31 @@ function CihazKayitServiceInner({
                   />
                 )}
               />
+              <button
+                type="button"
+                onClick={() => sesliYazBasla("physicalDamage")}
+                disabled={dinleniyorKayit !== null || sesliKayitLoading}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "6px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background:
+                    dinleniyorKayit === "physicalDamage" ? "#dc2626" : "#6b7280",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {dinleniyorKayit === "physicalDamage"
+                  ? "🔴 Dinleniyor..."
+                  : sesliKayitLoading
+                    ? "⏳"
+                    : "🎤 Sesli Yaz"}
+              </button>
             </div>
           </CardContent>
             </Card>
@@ -1650,7 +1882,7 @@ function CihazKayitServiceInner({
                   Müşteriye bildirilen tahmini tutar
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-3">
                 <Label htmlFor="estimatedPrice">Tahmini fiyat</Label>
                 <div className="relative">
                   <span
@@ -1675,6 +1907,261 @@ function CihazKayitServiceInner({
                   <p className="text-sm text-destructive" role="alert">
                     {errors.estimatedPrice.message}
                   </p>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={() => void handleFiyatOnerisi()}
+                  disabled={fiyatOnerisiLoading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "7px 14px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: fiyatOnerisiLoading
+                      ? "#e5e7eb"
+                      : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                    color: fiyatOnerisiLoading ? "#9ca3af" : "white",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: fiyatOnerisiLoading ? "wait" : "pointer",
+                  }}
+                >
+                  {fiyatOnerisiLoading
+                    ? "⏳ Hesaplanıyor..."
+                    : "💰 AI Fiyat Önerisi Al"}
+                </button>
+
+                <p style={{ fontSize: "11px", color: "#9ca3af", lineHeight: "1.5" }}>
+                  💡 Fiyat önerisi yalnızca bu dükkanın geçmiş servis kayıtlarına dayanır.
+                  Ne kadar çok kayıt girilirse tahminler o kadar isabetli olur. Kesin fiyat
+                  olarak değil, başlangıç noktası olarak kullanın.
+                </p>
+
+                {fiyatOnerisi ? (
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #f0fdf4, #f5f3ff)",
+                      border: "1px solid #86efac",
+                      borderRadius: "10px",
+                      padding: "14px 16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <span style={{ fontSize: "14px" }}>🤖</span>
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          color: "#4f46e5",
+                          margin: 0,
+                        }}
+                      >
+                        AI Fiyat Önerisi
+                      </p>
+                      {fiyatOnerisi.gecmisKayitSayisi > 0 ? (
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            background: "#dcfce7",
+                            color: "#16a34a",
+                            padding: "2px 6px",
+                            borderRadius: "10px",
+                            marginLeft: "auto",
+                          }}
+                        >
+                          {fiyatOnerisi.gecmisKayitSayisi} geçmiş kayıt
+                        </span>
+                      ) : null}
+                      {fiyatOnerisi.benzerlikTuru ? (
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            background:
+                              fiyatOnerisi.benzerlikTuru === "arıza"
+                                ? "#eff6ff"
+                                : "#fef9c3",
+                            color:
+                              fiyatOnerisi.benzerlikTuru === "arıza"
+                                ? "#1d4ed8"
+                                : "#854d0e",
+                            padding: "2px 6px",
+                            borderRadius: "10px",
+                          }}
+                        >
+                          {fiyatOnerisi.benzerlikTuru === "arıza"
+                            ? "🎯 Arıza bazlı"
+                            : "📱 Cihaz bazlı"}
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => setFiyatOnerisi(null)}
+                        style={{
+                          marginLeft:
+                            fiyatOnerisi.gecmisKayitSayisi > 0 ? "0" : "auto",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#9ca3af",
+                          fontSize: "16px",
+                          lineHeight: 1,
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    {fiyatOnerisi.minFiyat != null &&
+                    fiyatOnerisi.maxFiyat != null ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            flex: 1,
+                            textAlign: "center",
+                            background: "white",
+                            borderRadius: "8px",
+                            padding: "8px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: "10px",
+                              color: "#6b7280",
+                              margin: "0 0 2px 0",
+                            }}
+                          >
+                            Min
+                          </p>
+                          <p
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 700,
+                              color: "#111827",
+                              margin: 0,
+                            }}
+                          >
+                            {fiyatOnerisi.minFiyat}₺
+                          </p>
+                        </div>
+                        <div
+                          style={{
+                            flex: 1,
+                            textAlign: "center",
+                            background: "#4f46e5",
+                            borderRadius: "8px",
+                            padding: "8px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: "10px",
+                              color: "rgba(255,255,255,0.8)",
+                              margin: "0 0 2px 0",
+                            }}
+                          >
+                            Ortalama
+                          </p>
+                          <p
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 700,
+                              color: "white",
+                              margin: 0,
+                            }}
+                          >
+                            {fiyatOnerisi.ortFiyat}₺
+                          </p>
+                        </div>
+                        <div
+                          style={{
+                            flex: 1,
+                            textAlign: "center",
+                            background: "white",
+                            borderRadius: "8px",
+                            padding: "8px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: "10px",
+                              color: "#6b7280",
+                              margin: "0 0 2px 0",
+                            }}
+                          >
+                            Max
+                          </p>
+                          <p
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: 700,
+                              color: "#111827",
+                              margin: 0,
+                            }}
+                          >
+                            {fiyatOnerisi.maxFiyat}₺
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        color: "#6b7280",
+                        lineHeight: "1.5",
+                        margin: "0 0 10px 0",
+                      }}
+                    >
+                      {fiyatOnerisi.text
+                        .replace(/TAHMİNİ FİYAT:.*?\n?/i, "")
+                        .replace(/GEREKÇE:\s*/i, "")
+                        .trim()}
+                    </p>
+
+                    {fiyatOnerisi.ortFiyat != null ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValue(
+                            "estimatedPrice",
+                            String(fiyatOnerisi.ortFiyat),
+                            { shouldDirty: true },
+                          );
+                          setFiyatOnerisi(null);
+                          toast.success("Tahmini fiyat güncellendi");
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "7px",
+                          background: "#16a34a",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Ortalama Fiyatı Uygula ({fiyatOnerisi.ortFiyat}₺)
+                      </button>
+                    ) : null}
+                  </div>
                 ) : null}
               </CardContent>
             </Card>
