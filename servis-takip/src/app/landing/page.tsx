@@ -819,6 +819,18 @@ export default function LandingPage() {
             <Link href="/login" className="hover:text-indigo-600">
               Giriş yap
             </Link>
+            <a
+              href="/gizlilik-politikasi"
+              style={{ color: "#6b7280", fontSize: "13px", textDecoration: "none" }}
+            >
+              Gizlilik Politikası
+            </a>
+            <a
+              href="/hizmet-sartlari"
+              style={{ color: "#6b7280", fontSize: "13px", textDecoration: "none" }}
+            >
+              Hizmet Şartları
+            </a>
           </div>
           <p className="text-center text-xs text-slate-500 sm:text-right">
             © {new Date().getFullYear()} TamirTakip · Tüm hakları saklıdır
