@@ -1,3 +1,4 @@
+import AiAssistant from "@/components/AiAssistant";
 import DemoBanner from "@/components/demo-banner";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
@@ -15,6 +16,7 @@ export default function DashboardLayout({
         <DemoBanner />
         <main className="flex-1 overflow-auto p-6 pt-20 lg:pt-6">{children}</main>
       </div>
+      <AiAssistant />
     </div>
   );
 }
