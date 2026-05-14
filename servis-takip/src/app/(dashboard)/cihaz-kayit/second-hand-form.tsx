@@ -135,6 +135,11 @@ export function SecondHandDeviceForm(props: {
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
   const [metaError, setMetaError] = useState<string | null>(null);
+  const [showAddDeviceType, setShowAddDeviceType] = useState(false);
+  const [showAddBrand, setShowAddBrand] = useState(false);
+  const [showAddModel, setShowAddModel] = useState(false);
+  const [newDefinitionName, setNewDefinitionName] = useState("");
+  const [savingDefinition, setSavingDefinition] = useState(false);
 
   const sellerNameRef = useRef<HTMLInputElement>(null);
   const sellerPhoneRef = useRef<HTMLInputElement>(null);
@@ -246,6 +251,105 @@ export function SecondHandDeviceForm(props: {
       cancelled = true;
     };
   }, [brandId, setValue]);
+
+  async function handleAddDeviceType() {
+    const name = newDefinitionName.trim();
+    if (!name) return;
+    setSavingDefinition(true);
+    try {
+      const res = await fetch("/api/device-types", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = (await res.json()) as {
+        id?: string;
+        name?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      if (data.id && data.name) {
+        setDeviceTypes((prev) => [...prev, { id: data.id!, name: data.name! }]);
+        setValue("deviceTypeId", data.id!);
+        toast.success(`"${data.name}" eklendi`);
+      }
+      setShowAddDeviceType(false);
+      setNewDefinitionName("");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingDefinition(false);
+    }
+  }
+
+  async function handleAddBrand() {
+    const name = newDefinitionName.trim();
+    if (!name || !deviceTypeId) return;
+    setSavingDefinition(true);
+    try {
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, deviceTypeId }),
+      });
+      const data = (await res.json()) as {
+        id?: string;
+        name?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      if (data.id && data.name) {
+        setBrands((prev) => [...prev, { id: data.id!, name: data.name! }]);
+        setValue("brandId", data.id!);
+        toast.success(`"${data.name}" eklendi`);
+      }
+      setShowAddBrand(false);
+      setNewDefinitionName("");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingDefinition(false);
+    }
+  }
+
+  async function handleAddModel() {
+    const name = newDefinitionName.trim();
+    if (!name || !brandId) return;
+    setSavingDefinition(true);
+    try {
+      const res = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, brandId }),
+      });
+      const data = (await res.json()) as {
+        id?: string;
+        name?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      if (data.id && data.name) {
+        setModels((prev) => [...prev, { id: data.id!, name: data.name! }]);
+        setValue("deviceModelId", data.id!);
+        toast.success(`"${data.name}" eklendi`);
+      }
+      setShowAddModel(false);
+      setNewDefinitionName("");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingDefinition(false);
+    }
+  }
 
   const onSubmit = useCallback(
     async (data: SecondHandFormValues) => {
@@ -476,56 +580,148 @@ export function SecondHandDeviceForm(props: {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="sh-dt">Cihaz türü</Label>
-              <select
-                id="sh-dt"
-                className={nativeSelectClassName}
-                {...regDeviceTypeId}
-                ref={deviceTypeRefCallback}
-                onKeyDown={(e) => handleEnterKey(e, brandRef)}
+              <div
+                style={{ display: "flex", gap: "8px", alignItems: "center" }}
               >
-                <option value="">Seçiniz</option>
-                {deviceTypes.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <select
+                    id="sh-dt"
+                    className={nativeSelectClassName}
+                    {...regDeviceTypeId}
+                    ref={deviceTypeRefCallback}
+                    onKeyDown={(e) => handleEnterKey(e, brandRef)}
+                  >
+                    <option value="">Seçiniz</option>
+                    {deviceTypes.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewDefinitionName("");
+                    setShowAddDeviceType(true);
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    width: "32px",
+                    height: "32px",
+                    background: "#4f46e5",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "18px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title="Yeni cihaz türü ekle"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="sh-brand">Marka</Label>
-              <select
-                id="sh-brand"
-                className={nativeSelectClassName}
-                disabled={!deviceTypeId}
-                {...regBrandId}
-                ref={brandRefCallback}
-                onKeyDown={(e) => handleEnterKey(e, modelRef)}
+              <div
+                style={{ display: "flex", gap: "8px", alignItems: "center" }}
               >
-                <option value="">Seçiniz</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <select
+                    id="sh-brand"
+                    className={nativeSelectClassName}
+                    disabled={!deviceTypeId}
+                    {...regBrandId}
+                    ref={brandRefCallback}
+                    onKeyDown={(e) => handleEnterKey(e, modelRef)}
+                  >
+                    <option value="">Seçiniz</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewDefinitionName("");
+                    setShowAddBrand(true);
+                  }}
+                  disabled={!deviceTypeId}
+                  style={{
+                    flexShrink: 0,
+                    width: "32px",
+                    height: "32px",
+                    background: deviceTypeId ? "#4f46e5" : "#e5e7eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "18px",
+                    cursor: deviceTypeId ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title="Yeni marka ekle"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="sh-model">Model</Label>
-              <select
-                id="sh-model"
-                className={nativeSelectClassName}
-                disabled={!brandId}
-                {...regDeviceModelId}
-                ref={modelRefCallback}
-                onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
+              <div
+                style={{ display: "flex", gap: "8px", alignItems: "center" }}
               >
-                <option value="">Seçiniz</option>
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <select
+                    id="sh-model"
+                    className={nativeSelectClassName}
+                    disabled={!brandId}
+                    {...regDeviceModelId}
+                    ref={modelRefCallback}
+                    onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
+                  >
+                    <option value="">Seçiniz</option>
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewDefinitionName("");
+                    setShowAddModel(true);
+                  }}
+                  disabled={!brandId}
+                  style={{
+                    flexShrink: 0,
+                    width: "32px",
+                    height: "32px",
+                    background: brandId ? "#4f46e5" : "#e5e7eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontSize: "18px",
+                    cursor: brandId ? "pointer" : "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title="Yeni model ekle"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="sh-serial">Seri no</Label>
@@ -651,6 +847,273 @@ export function SecondHandDeviceForm(props: {
           )}
         </button>
       </form>
+
+      {/* Yeni Cihaz Türü Modalı */}
+      {showAddDeviceType ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "24px",
+              width: "100%",
+              maxWidth: "380px",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                marginBottom: "12px",
+              }}
+            >
+              Yeni Cihaz Türü
+            </h3>
+            <input
+              type="text"
+              autoFocus
+              value={newDefinitionName}
+              onChange={(e) => setNewDefinitionName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void handleAddDeviceType()}
+              placeholder="Cihaz türü adı"
+              style={{
+                width: "100%",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "12px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => void handleAddDeviceType()}
+                disabled={savingDefinition}
+                style={{
+                  flex: 1,
+                  padding: "9px",
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                {savingDefinition ? "Ekleniyor..." : "Ekle"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddDeviceType(false)}
+                style={{
+                  flex: 1,
+                  padding: "9px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Yeni Marka Modalı */}
+      {showAddBrand ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "24px",
+              width: "100%",
+              maxWidth: "380px",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                marginBottom: "12px",
+              }}
+            >
+              Yeni Marka
+            </h3>
+            <input
+              type="text"
+              autoFocus
+              value={newDefinitionName}
+              onChange={(e) => setNewDefinitionName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void handleAddBrand()}
+              placeholder="Marka adı"
+              style={{
+                width: "100%",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "12px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => void handleAddBrand()}
+                disabled={savingDefinition}
+                style={{
+                  flex: 1,
+                  padding: "9px",
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                {savingDefinition ? "Ekleniyor..." : "Ekle"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddBrand(false)}
+                style={{
+                  flex: 1,
+                  padding: "9px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Yeni Model Modalı */}
+      {showAddModel ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "24px",
+              width: "100%",
+              maxWidth: "380px",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                marginBottom: "12px",
+              }}
+            >
+              Yeni Model
+            </h3>
+            <input
+              type="text"
+              autoFocus
+              value={newDefinitionName}
+              onChange={(e) => setNewDefinitionName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void handleAddModel()}
+              placeholder="Model adı"
+              style={{
+                width: "100%",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "12px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => void handleAddModel()}
+                disabled={savingDefinition}
+                style={{
+                  flex: 1,
+                  padding: "9px",
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                {savingDefinition ? "Ekleniyor..." : "Ekle"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddModel(false)}
+                style={{
+                  flex: 1,
+                  padding: "9px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
