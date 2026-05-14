@@ -24,7 +24,7 @@ function gecenHaftaBounds(): { start: Date; end: Date } {
   return { start, end };
 }
 
-export async function POST(_req: Request) {
+export async function POST() {
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
