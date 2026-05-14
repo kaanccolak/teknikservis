@@ -257,7 +257,7 @@ const statCardCompletedToday: StatCardDef = {
   accentColor: "#10b981",
   icon: Check,
   tooltip:
-    "Bugün durumu 'Tamamlandı' veya 'Teslim Edildi' olarak güncellenen kayıtların sayısı.",
+    "Bugün durumu 'Onarım Tamamlandı' olarak güncellenen kayıtların sayısı. Teslim edilenler dahil değildir.",
 };
 
 const statCardExternal: StatCardDef = {

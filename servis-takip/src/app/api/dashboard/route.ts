@@ -160,7 +160,6 @@ const TERMINAL_STATUSES = [
 
 const COMPLETED_TODAY_STATUSES = [
   "completed",
-  ...SERVICE_ORDER_DELIVERED_STATUSES,
 ] as const;
 
 export async function GET(request: Request) {
