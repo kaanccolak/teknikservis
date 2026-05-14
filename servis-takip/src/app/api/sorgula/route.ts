@@ -33,7 +33,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });
     }
 
-    const order = await prisma.serviceOrder.findFirst({
+    const orders = await prisma.serviceOrder.findMany({
       where: { orderNumber },
       include: {
         customer: { select: { name: true, phoneDigits: true } },
@@ -43,12 +43,15 @@ export async function GET(req: Request) {
       },
     });
 
-    if (!order) {
+    if (!orders.length) {
       return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
     }
 
-    const customerPhone = order.customer?.phoneDigits ?? "";
-    if (!phonesMatch(customerPhone, phone)) {
+    const order = orders.find((o) =>
+      phonesMatch(o.customer?.phoneDigits ?? "", phone)
+    );
+
+    if (!order) {
       return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
     }
 
