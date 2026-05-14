@@ -25,7 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import OneriModal from "@/components/OneriModal";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +47,7 @@ const navItems: {
   { href: "/sirketim", label: "Şirketim", icon: Landmark },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -269,7 +268,27 @@ export function Sidebar() {
           })}
         </nav>
         <div className="border-t border-slate-200/80 p-3">
-          <OneriModal />
+          <button
+            type="button"
+            onClick={() => onOneriOpen()}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              width: "100%",
+              padding: "10px 16px",
+              background: "none",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "14px",
+              color: "#6b7280",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ fontSize: "16px" }}>💡</span>
+            Öneri Gönder
+          </button>
           <button
             type="button"
             onClick={() => void handleSignOut()}

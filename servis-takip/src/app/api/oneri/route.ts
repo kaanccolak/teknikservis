@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { demoGuard } from "@/lib/demo-guard";
 import { getShop } from "@/lib/getShop";
 import { createClient } from "@/lib/supabase/server";
 
@@ -7,6 +8,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const shop = await getShop();
+    const guard = await demoGuard();
+    if (guard) return guard;
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
     const supabase = await createClient();
