@@ -300,9 +300,8 @@ export default function CariPage() {
         description="Müşteri ve tedarikçilerle olan borç/alacak takibini yapın. Tüm finansal hareketler kayıt altında."
         tips={[
           "Her müşteri veya tedarikçi için cari hesap açın",
-          "Ödeme ve tahsilat işlemlerini kaydedin, bakiye anlık güncellenir",
-          "Servis kaydını cariye bağlayarak borç takibi otomatik yapılır",
-          "Vadesi geçmiş alacaklarınızı takip edin",
+          "Fatura ve diğer işlemler için bilgilere hızlıca erişin",
+          "Kargo Fişi özelliği ile kargolarınızı hızlıca hazırlayın",
         ]}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">

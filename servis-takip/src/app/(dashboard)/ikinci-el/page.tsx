@@ -740,7 +740,7 @@ export default function IkinciElPage() {
           "Alış fiyatı ve cihaz bilgilerini kaydedin",
           "Satıldığında satış fiyatını girerek anlık kar/zarar görün",
           "Raporlar sayfasında ikinci el ciro ve karlılık takibi yapın",
-          "Cihaz fotoğrafı ekleyerek stok görselleştirme yapabilirsiniz",
+          "Alış ve satış nüshaları çıkartarak müşterilere teslim edebilirsiniz",
         ]}
       />
       <Suspense

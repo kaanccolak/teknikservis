@@ -762,9 +762,8 @@ export default function BekleyenCihazlarPage() {
         title="Bekleyen Cihazlar"
         description="Teslim alınmayı bekleyen veya uzun süredir serviste kalan cihazları takip edin. Otomatik hatırlatma sistemi her gün saat 10:00'da çalışır."
         tips={[
-          "Belirlediğiniz gün sayısını aşan cihazlar burada listelenir",
-          "Müşteriye tek tıkla hatırlatma WhatsApp mesajı gönderin",
-          "Her gün saat 10:00'da bekleyen cihazlar için otomatik hatırlatma gönderilir",
+          "Onay gelen, onay bekleyen, onarımı tamamlanan, müşterinin iade istediği, sorun görülmeyen, tamiri olmayan, parça bekleyen cihazlar burada gösterilir",
+          "15 günden fazla serviste bekleyen cihazlar için her 15 günde bir müşteriye WhatsApp'tan hatırlatma mesajı gönderilir",
           "Uzun süredir teslim alınmayan cihazlar için aksiyon alın",
         ]}
       />
