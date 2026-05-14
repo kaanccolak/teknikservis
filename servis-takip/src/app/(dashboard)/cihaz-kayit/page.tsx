@@ -769,9 +769,10 @@ function CihazKayitServiceInner({
     const brandVal = brands.find((b) => b.id === brandId)?.name ?? "";
     const modelVal =
       models.find((m) => m.id === watch("deviceModelId"))?.name ?? "";
+    const cihaz = [deviceTypeVal, brandVal, modelVal].filter(Boolean).join(" / ");
 
-    if (!complaint?.trim() && !deviceTypeVal) {
-      toast.error("Önce şikayet bilgisi veya cihaz türü girin");
+    if (!complaint?.trim() && !cihaz) {
+      toast.error("Önce şikayet bilgisi veya cihaz bilgisi girin");
       return;
     }
 
@@ -779,16 +780,12 @@ function CihazKayitServiceInner({
     setTeshisSonuc(null);
 
     try {
-      const prompt = `Bir teknik servis teknisyenisin. Aşağıdaki cihaz ve şikayet bilgilerine göre kısa ve pratik bir arıza teşhisi yap. Olası nedenleri ve kontrol edilmesi gereken noktaları maddeler halinde listele. Türkçe yaz, 150 kelimeyi geçme.
-
-Cihaz: ${[deviceTypeVal, brandVal, modelVal].filter(Boolean).join(" / ") || "Belirtilmemiş"}
-Şikayet: ${complaint?.trim() || "Belirtilmemiş"}`;
-
-      const res = await fetch("/api/ai-assistant", {
+      const res = await fetch("/api/ai-teshis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [{ role: "user", parts: [{ text: prompt }] }],
+          cihaz: cihaz || "Belirtilmemiş",
+          sikayet: complaint?.trim() || "Belirtilmemiş",
         }),
       });
       const data = (await res.json()) as { text?: string; error?: string };
