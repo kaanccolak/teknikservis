@@ -121,6 +121,17 @@ function handleEnterKey(
   nextRef.current?.focus();
 }
 
+/** `**kalın**` parçalarını `<strong>` ile gösterir. */
+function renderAiTeshisInline(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, j) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={j}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={j}>{part}</span>;
+  });
+}
+
 function formatArrivedAtDisplay(datetimeLocal: string) {
   const d = parseDatetimeLocal(datetimeLocal);
   if (!d) return datetimeLocal;
@@ -1533,17 +1544,49 @@ function CihazKayitServiceInner({
                       ×
                     </button>
                   </div>
-                  <p
+                  <div
                     style={{
                       fontSize: "12px",
                       color: "#374151",
-                      lineHeight: "1.6",
-                      whiteSpace: "pre-wrap",
-                      margin: 0,
+                      lineHeight: "1.7",
                     }}
                   >
-                    {teshisSonuc}
-                  </p>
+                    {teshisSonuc.split("\n").map((line, i) => {
+                      const trimmed = line.trim();
+                      if (!trimmed) return null;
+                      const inner = trimmed.replace(/^[\*\-]\s*/, "");
+                      const isBullet = /^[\*\-]/.test(trimmed);
+                      const isHeader = trimmed.endsWith(":") && !isBullet;
+                      return (
+                        <p
+                          key={i}
+                          style={{
+                            margin: isHeader ? "8px 0 2px 0" : "2px 0 2px 12px",
+                            fontWeight: isHeader ? 700 : 400,
+                            color: isHeader ? "#4f46e5" : "#374151",
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "6px",
+                          }}
+                        >
+                          {isBullet ? (
+                            <span
+                              style={{
+                                color: "#4f46e5",
+                                flexShrink: 0,
+                                marginTop: "1px",
+                              }}
+                            >
+                              •
+                            </span>
+                          ) : null}
+                          <span style={{ minWidth: 0 }}>
+                            {renderAiTeshisInline(inner)}
+                          </span>
+                        </p>
+                      );
+                    })}
+                  </div>
                 </div>
               ) : null}
             </div>

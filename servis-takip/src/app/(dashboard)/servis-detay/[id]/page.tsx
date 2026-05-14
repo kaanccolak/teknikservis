@@ -110,6 +110,22 @@ type WaInboundMsg = {
   timestamp: string;
 };
 
+/** Chrome/Edge Web Speech API (prefix'li veya standart ctor) */
+type WebSpeechRecognitionInstance = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start(): void;
+  onresult:
+    | ((event: {
+        results: { 0: { 0: { transcript: string } } };
+      }) => void)
+    | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+type WebSpeechRecognitionCtor = new () => WebSpeechRecognitionInstance;
+
 type ServiceOrderDetail = {
   id: string;
   orderNumber: string | null;
@@ -306,12 +322,80 @@ export default function ServisDetayPage() {
   const [editingRepairDetails, setEditingRepairDetails] = useState(false);
   const [savingRepairDetails, setSavingRepairDetails] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [sesliNotLoading, setSesliNotLoading] = useState(false);
+  const [dinleniyor, setDinleniyor] = useState<"repair" | "note" | null>(null);
 
   const [customWaMessage, setCustomWaMessage] = useState("");
   const [sendingCustomWa, setSendingCustomWa] = useState(false);
 
   const [, setWaInboundMessages] = useState<WaInboundMsg[]>([]);
   const [, setWaInboundLoading] = useState(false);
+
+  async function aiNotDuzenle(hamMetin: string, hedef: "repair" | "note") {
+    setSesliNotLoading(true);
+    try {
+      const res = await fetch("/api/ai-servis-notu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hamMetin, hedef }),
+      });
+      const data = (await res.json()) as { text?: string; error?: string };
+      if (!res.ok || !data.text) {
+        toast.error(data.error ?? "Düzenleme başarısız");
+        return;
+      }
+      if (hedef === "repair") {
+        setRepairDetailsInput(data.text);
+        setEditingRepairDetails(true);
+      } else {
+        setNoteDraft(data.text);
+      }
+      toast.success("AI metni düzenledi, kontrol edip kaydedin");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSesliNotLoading(false);
+    }
+  }
+
+  function sesliNoteBasla(hedef: "repair" | "note") {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      toast.error("Tarayıcınız ses tanımayı desteklemiyor. Chrome veya Edge kullanın.");
+      return;
+    }
+    const w = window as unknown as {
+      SpeechRecognition?: WebSpeechRecognitionCtor;
+      webkitSpeechRecognition?: WebSpeechRecognitionCtor;
+    };
+    const SpeechRecognition = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Tarayıcınız ses tanımayı desteklemiyor. Chrome veya Edge kullanın.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "tr-TR";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    setDinleniyor(hedef);
+
+    recognition.onresult = (event: { results: { 0: { 0: { transcript: string } } } }) => {
+      const transcript = event.results[0][0].transcript as string;
+      setDinleniyor(null);
+      void aiNotDuzenle(transcript, hedef);
+    };
+
+    recognition.onerror = () => {
+      setDinleniyor(null);
+      toast.error("Ses tanıma başarısız, tekrar deneyin");
+    };
+
+    recognition.onend = () => {
+      setDinleniyor(null);
+    };
+
+    recognition.start();
+  }
 
   const nativeSelectClassName =
     "h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
@@ -2298,23 +2382,55 @@ export default function ServisDetayPage() {
                   >
                     🔧 Yapılan Onarım
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRepairDetailsInput(order.repairDetails ?? "");
-                      setEditingRepairDetails(true);
-                    }}
-                    style={{
-                      fontSize: "11px",
-                      color: "#16a34a",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                    }}
+                  <div
+                    style={{ display: "flex", gap: "8px", alignItems: "center" }}
                   >
-                    Düzenle
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRepairDetailsInput(order.repairDetails ?? "");
+                        setEditingRepairDetails(true);
+                      }}
+                      style={{
+                        fontSize: "11px",
+                        color: "#16a34a",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Düzenle
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => sesliNoteBasla("repair")}
+                      disabled={dinleniyor !== null || sesliNotLoading}
+                      title="Sesli onarım notu"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                        border: "none",
+                        background:
+                          dinleniyor === "repair"
+                            ? "#dc2626"
+                            : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                        color: "white",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {dinleniyor === "repair"
+                        ? "🔴 Dinleniyor..."
+                        : sesliNotLoading
+                          ? "⏳"
+                          : "🎤 Sesli Yaz"}
+                    </button>
+                  </div>
                 </div>
                 {editingRepairDetails ? (
                   <div>
@@ -2584,6 +2700,44 @@ export default function ServisDetayPage() {
                 rows={5}
                 className="min-h-[120px] resize-y"
               />
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "center",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => sesliNoteBasla("note")}
+                  disabled={dinleniyor !== null || sesliNotLoading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "7px 14px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background:
+                      dinleniyor === "note"
+                        ? "#dc2626"
+                        : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                    color: "white",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {dinleniyor === "note"
+                    ? "🔴 Dinleniyor..."
+                    : sesliNotLoading
+                      ? "⏳ Düzenleniyor..."
+                      : "🎤 Sesli Not Al"}
+                </button>
+                <p style={{ fontSize: "11px", color: "#9ca3af" }}>
+                  AI metni düzenler
+                </p>
+              </div>
               <Button
                 type="button"
                 onClick={() => void handleSaveNote()}
