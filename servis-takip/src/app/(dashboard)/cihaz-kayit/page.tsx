@@ -2232,11 +2232,13 @@ export default function CihazKayitPage() {
         pageKey="cihaz_kayit"
         icon="📋"
         title="Cihaz Kayıt"
-        description="Müşteri cihazlarını buradan sisteme kaydedin. Her kayıt için otomatik bir takip numarası oluşturulur."
+        description="Müşteri cihazlarını sisteme kaydedin. Her kayıt için otomatik sıralı kayıt numarası oluşturulur, servis giriş fişi ve müşteri nüshası otomatik hazırlanır."
         tips={[
-          "Müşteri bilgilerini ve cihaz detaylarını eksiksiz doldurun",
-          "Seri numarası varsa mutlaka girin — arama ve takipte kolaylık sağlar",
-          "Şikayet/arıza alanını doldurursanız müşteri nüshasında görünür",
+          "Müşteri telefon numarasını girin — WhatsApp bildirimleri ve Google Contacts entegrasyonu için gerekli",
+          "Seri numarası varsa mutlaka girin — ileride arama ve garanti takibinde kolaylık sağlar",
+          "Şikayet/arıza alanını doldurun — müşteri nüshasında ve otomatik WhatsApp mesajında görünür",
+          "Kayıt tamamlandığında müşteriye otomatik WhatsApp mesajı gönderebilirsiniz",
+          "Cihaz etiketi çıkartarak cihazın üzerine yapıştırabilirsiniz",
         ]}
       />
       <Suspense

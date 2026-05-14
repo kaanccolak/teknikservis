@@ -247,11 +247,12 @@ export default function RaporlarPage() {
         pageKey="raporlar"
         icon="📊"
         title="Raporlar"
-        description="İşletmenizin finansal ve operasyonel performansını buradan analiz edin."
+        description="İşletmenizin finansal ve operasyonel performansını analiz edin. Günlük işlemlerden yıllık ciroya kadar tüm veriler burada."
         tips={[
-          "Günlük, haftalık, aylık ve yıllık ciro görün",
-          "En çok gelen cihaz türlerini analiz edin",
-          "İkinci el alım/satım kar/zarar raporunu inceleyin",
+          "Günlük, haftalık, aylık ve yıllık ciro takibi yapın",
+          "En çok gelen cihaz türlerini ve markaları analiz edin",
+          "İkinci el alım/satım kar ve zarar raporunu inceleyin",
+          "Döviz kurlarını takip edin — TCMB verileri otomatik güncellenir",
         ]}
       />
       <div

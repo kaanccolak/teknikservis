@@ -358,11 +358,11 @@ export default function PlanlarimPage() {
         pageKey="planlarim"
         icon="📅"
         title="Planlarım"
-        description="Kira, fatura, personel maaşı gibi düzenli giderlerinizi ve hatırlatmalarınızı buradan takip edin."
+        description="Kira, fatura, personel maaşı gibi düzenli giderlerinizi ve önemli hatırlatmalarınızı takip edin."
         tips={[
-          "Ödeme planı ekleyin, vade tarihi yaklaşınca dashboard'da uyarı görün",
-          "Tamamlanan ödemeleri işaretleyin",
-          "Aylık gider takibi için düzenli kullanın",
+          "Düzenli giderlerinizi ekleyin, vade tarihi yaklaşınca gösterge panelinde uyarı görün",
+          "Tamamlanan ödemeleri işaretleyin, geçmiş ödemeleri görüntüleyin",
+          "Aylık toplam gider takibi için düzenli kullanın",
         ]}
       />
       <div className="flex flex-wrap items-start justify-between gap-3">

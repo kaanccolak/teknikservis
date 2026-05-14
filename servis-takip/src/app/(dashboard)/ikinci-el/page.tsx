@@ -735,11 +735,12 @@ export default function IkinciElPage() {
         pageKey="ikinci_el"
         icon="♻️"
         title="İkinci El Cihazlar"
-        description="Müşterilerden satın aldığınız veya elinizde bulunan ikinci el cihazları buradan yönetin."
+        description="Müşterilerden satın aldığınız veya elinizde bulunan ikinci el cihazları yönetin. Alım/satım kar zarar takibi otomatik yapılır."
         tips={[
           "Alış fiyatı ve cihaz bilgilerini kaydedin",
-          "Satıldığında satış fiyatını girerek kar/zarar görün",
-          "Raporlar sayfasında ikinci el ciro takibi yapabilirsiniz",
+          "Satıldığında satış fiyatını girerek anlık kar/zarar görün",
+          "Raporlar sayfasında ikinci el ciro ve karlılık takibi yapın",
+          "Cihaz fotoğrafı ekleyerek stok görselleştirme yapabilirsiniz",
         ]}
       />
       <Suspense

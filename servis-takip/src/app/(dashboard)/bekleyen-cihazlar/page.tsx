@@ -760,10 +760,12 @@ export default function BekleyenCihazlarPage() {
         pageKey="bekleyen_cihazlar"
         icon="⏳"
         title="Bekleyen Cihazlar"
-        description="Teslim alınmayı bekleyen, uzun süredir serviste kalan cihazları buradan takip edin."
+        description="Teslim alınmayı bekleyen veya uzun süredir serviste kalan cihazları takip edin. Otomatik hatırlatma sistemi her gün saat 10:00'da çalışır."
         tips={[
-          "Uzun süredir teslim alınmayan cihazları buradan görün",
-          "Müşteriyi hatırlatma için WhatsApp mesajı gönderin",
+          "Belirlediğiniz gün sayısını aşan cihazlar burada listelenir",
+          "Müşteriye tek tıkla hatırlatma WhatsApp mesajı gönderin",
+          "Her gün saat 10:00'da bekleyen cihazlar için otomatik hatırlatma gönderilir",
+          "Uzun süredir teslim alınmayan cihazlar için aksiyon alın",
         ]}
       />
       <Suspense

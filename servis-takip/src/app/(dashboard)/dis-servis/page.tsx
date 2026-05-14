@@ -768,11 +768,11 @@ export default function DisServisPage() {
         pageKey="dis_servis"
         icon="🔧"
         title="Dış Servisler"
-        description="Çözemediğiniz cihazları dış servise gönderdiğinizde buradan takip edin."
+        description="Çözemediğiniz veya yetkili servise göndermek istediğiniz cihazları buradan takip edin."
         tips={[
-          "Dış servise gönderilen cihazın durumunu güncelleyin",
-          "Dış servis maliyetini kaydedin",
-          "Cihaz geri geldiğinde durumu güncelleyerek süreç tamamlanır",
+          "Dış servise gönderilen cihazın durumunu ve tahmini dönüş tarihini kaydedin",
+          "Dış servis maliyetini girerek toplam maliyet takibi yapın",
+          "Cihaz geri geldiğinde durumu güncelleyin, müşteriye otomatik bildirim gönderin",
         ]}
       />
       <Suspense fallback={<div>Yükleniyor...</div>}>

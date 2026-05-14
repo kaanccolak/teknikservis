@@ -297,11 +297,12 @@ export default function CariPage() {
         pageKey="cari"
         icon="💰"
         title="Cari Yönetimi"
-        description="Müşteri ve tedarikçilerle olan borç/alacak takibini buradan yapın."
+        description="Müşteri ve tedarikçilerle olan borç/alacak takibini yapın. Tüm finansal hareketler kayıt altında."
         tips={[
           "Her müşteri veya tedarikçi için cari hesap açın",
-          "Ödeme ve tahsilat işlemlerini kaydedin",
-          "Bakiye durumunu anlık görün",
+          "Ödeme ve tahsilat işlemlerini kaydedin, bakiye anlık güncellenir",
+          "Servis kaydını cariye bağlayarak borç takibi otomatik yapılır",
+          "Vadesi geçmiş alacaklarınızı takip edin",
         ]}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">

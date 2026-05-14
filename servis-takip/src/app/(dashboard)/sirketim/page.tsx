@@ -4177,11 +4177,13 @@ export default function SirketimPage() {
         pageKey="sirketim"
         icon="🏪"
         title="Şirketim"
-        description="Şirket bilgilerinizi, WhatsApp entegrasyonunuzu ve uygulama ayarlarınızı buradan yönetin."
+        description="Şirket bilgilerinizi, entegrasyonları ve uygulama ayarlarını buradan yönetin."
         tips={[
-          "Tanımlar sekmesinden cihaz türü, marka ve model ekleyin — bunlar olmadan cihaz kaydı yapamazsınız",
-          "WhatsApp sekmesinden numaranızı bağlayın — müşterilere otomatik mesaj gönderebilirsiniz",
-          "Mesaj Şablonları sekmesinden gönderilecek mesaj metinlerini özelleştirin",
+          "Tanımlar → Hızlı Kurulum ile servis türünüzü seçin, cihaz türleri ve markalar otomatik yüklensin",
+          "WhatsApp sekmesinden numaranızı bağlayın — müşterilere otomatik mesaj gönderin",
+          "Google Contacts bağlayın — yeni müşteriler telefonunuzun rehberine otomatik eklensin",
+          "Mesaj Şablonları sekmesinden WhatsApp mesaj metinlerini özelleştirin",
+          "Fiş / Nüsha Ayarları sekmesinden termal yazıcı kağıt boyutunu ve servis şartlarınızı ayarlayın",
           "Sağ üstteki 'Şirket parolası oluştur' ile ayarlarınızı yetkisiz erişime karşı koruyun",
         ]}
       />

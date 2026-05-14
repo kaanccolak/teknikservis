@@ -500,11 +500,12 @@ export default function StokPage() {
         pageKey="stok"
         icon="📦"
         title="Stok Yönetimi"
-        description="Yedek parça stoğunuzu buradan yönetin. Servis kaydına parça eklenince stok otomatik düşer."
+        description="Yedek parça stoğunuzu yönetin. Servis kaydına parça eklendiğinde stok miktarı otomatik düşer."
         tips={[
-          "Parça eklerken alış fiyatını girin, karlılık takibi yapın",
-          "Stok miktarı azaldığında uyarı alın",
-          "Servis detayından parça ekleyince stok otomatik güncellenir",
+          "Parça eklerken alış ve satış fiyatını girin — karlılık takibi otomatik yapılır",
+          "Minimum stok seviyesi belirleyin, azaldığında uyarı alın",
+          "Servis detay sayfasından parça ekleyince stok otomatik güncellenir",
+          "Barkod ile parça arayabilir, hızlıca bulabilirsiniz",
         ]}
       />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

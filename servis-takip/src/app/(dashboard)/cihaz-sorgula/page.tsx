@@ -918,11 +918,12 @@ export default function CihazSorgulaPage() {
         pageKey="cihaz_sorgula"
         icon="🔍"
         title="Cihaz Sorgula"
-        description="Tüm servis kayıtlarını buradan görüntüleyin, filtreleyin ve yönetin."
+        description="Tüm servis kayıtlarınızı görüntüleyin, filtreleyin ve yönetin. Kayıt durumlarını buradan güncelleyin."
         tips={[
-          "Durum butonlarıyla kayıtları filtreleyin",
-          "Kayıt numarası veya müşteri adıyla arama yapın",
-          "Bir kayda tıklayarak detayına gidin, durum güncelleyin",
+          "Durum butonlarıyla kayıtları filtreleyin — Bekliyor, Tamirde, Teslime Hazır ve daha fazlası",
+          "Kayıt numarası veya müşteri adıyla anlık arama yapın",
+          "Bir kayda tıklayarak detayına girin — durum güncelleyin, WhatsApp gönderin, fiş çıkartın",
+          "Teslim edilecek cihazlar için teslim fişi oluşturun",
         ]}
       />
       <Suspense

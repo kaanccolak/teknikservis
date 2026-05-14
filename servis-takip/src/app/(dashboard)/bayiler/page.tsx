@@ -354,10 +354,11 @@ export default function BayilerPage() {
         pageKey="bayiler"
         icon="🤝"
         title="Bayiler"
-        description="Sisteminizi kullanan bayi veya şubeleri buradan yönetin."
+        description="Sisteminizi kullanan bayi veya şubelerinizi yönetin. Her bayi için ayrı servis takibi yapılır."
         tips={[
           "Her bayi için ayrı hesap tanımlayın",
-          "Bayi bazında servis kayıtlarını takip edin",
+          "Bayi bazında servis kayıtlarını ve ciroyu takip edin",
+          "Cihaz kaydında bayi seçerek kayıtları ilgili bayiye atayın",
         ]}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
