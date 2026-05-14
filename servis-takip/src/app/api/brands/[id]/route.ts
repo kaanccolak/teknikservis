@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { invalidateCache } from "@/lib/cache";
+import { invalidateCache, invalidateCachePrefix } from "@/lib/cache";
 import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
@@ -115,9 +115,11 @@ export async function DELETE(
     // Cascade: önce modelleri sil, sonra markayı
     await prisma.deviceModel.deleteMany({ where: { brandId: id } });
     await prisma.brand.delete({ where: { id } });
-    invalidateCache(`brands-${existing.deviceTypeId}`);
     invalidateCache("brands-all");
-    invalidateCache(`models-${id}`);
+    invalidateCache(`brands-all-${shop.id}`);
+    invalidateCache(`brands-${shop.id}-${existing.deviceTypeId}`);
+    invalidateCache(`brands-${existing.deviceTypeId}`);
+    invalidateCachePrefix("models-");
     return NextResponse.json({ ok: true });
   } catch (e) {
     return jsonServerError("DELETE /api/brands/[id]", e, "Silinemedi", 500);

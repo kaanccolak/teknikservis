@@ -129,8 +129,11 @@ export async function DELETE(
     }
     await prisma.deviceType.delete({ where: { id } });
     invalidateCache("device-types");
-    invalidateCache(`brands-${id}`);
+    invalidateCache(`device-types-${shop.id}`);
     invalidateCache("brands-all");
+    invalidateCache(`brands-all-${shop.id}`);
+    invalidateCache(`brands-${id}`);
+    invalidateCachePrefix("brands-");
     invalidateCachePrefix("models-");
     return NextResponse.json({ ok: true });
   } catch (e) {
