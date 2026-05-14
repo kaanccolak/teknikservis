@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { KURULUM_TURLERI } from "@/lib/hizli-kurulum-data";
 
 type ShopFull = {
   id: string;
@@ -690,24 +691,185 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
                 </button>
               ))}
             </div>
+            {seciliTur
+              ? (() => {
+                  const tur = KURULUM_TURLERI.find((t) => t.id === seciliTur);
+                  if (!tur) return null;
+                  return (
+                    <div
+                      style={{
+                        marginBottom: "16px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "10px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: "#f3f4f6",
+                          padding: "10px 16px",
+                          borderBottom: "1px solid #e5e7eb",
+                          display: "flex",
+                          gap: "24px",
+                        }}
+                      >
+                        <span
+                          style={{ fontSize: "12px", color: "#6b7280" }}
+                        >
+                          <strong style={{ color: "#111827" }}>
+                            {tur.tanimlar.length}
+                          </strong>{" "}
+                          tanım
+                        </span>
+                        <span
+                          style={{ fontSize: "12px", color: "#6b7280" }}
+                        >
+                          <strong style={{ color: "#111827" }}>
+                            {tur.markalar.length}
+                          </strong>{" "}
+                          marka
+                        </span>
+                        <span
+                          style={{ fontSize: "12px", color: "#6b7280" }}
+                        >
+                          <strong style={{ color: "#111827" }}>
+                            {tur.markalar.reduce(
+                              (acc, m) => acc + m.modeller.length,
+                              0,
+                            )}
+                          </strong>{" "}
+                          model
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          padding: "12px 16px",
+                          display: "flex",
+                          gap: "32px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div style={{ minWidth: "120px" }}>
+                          <p
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "#6b7280",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            Tanımlar
+                          </p>
+                          {tur.tanimlar.map((t) => (
+                            <p
+                              key={t.ad}
+                              style={{
+                                fontSize: "12px",
+                                color: "#374151",
+                                margin: "2px 0",
+                              }}
+                            >
+                              • {t.ad}
+                            </p>
+                          ))}
+                        </div>
+                        <div style={{ flex: 1, minWidth: "200px" }}>
+                          <p
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "#6b7280",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            Markalar ve Modeller
+                          </p>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "12px",
+                            }}
+                          >
+                            {tur.markalar.map((m) => (
+                              <div key={m.ad} style={{ minWidth: "140px" }}>
+                                <p
+                                  style={{
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    color: "#111827",
+                                    margin: "0 0 3px 0",
+                                  }}
+                                >
+                                  {m.ad}
+                                </p>
+                                {m.modeller.slice(0, 5).map((mo) => (
+                                  <p
+                                    key={mo.ad}
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#6b7280",
+                                      margin: "1px 0",
+                                    }}
+                                  >
+                                    · {mo.ad}
+                                  </p>
+                                ))}
+                                {m.modeller.length > 5 && (
+                                  <p
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#9ca3af",
+                                      margin: "1px 0",
+                                    }}
+                                  >
+                                    +{m.modeller.length - 5} daha
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()
+              : null}
             {seciliTur ? (
-              <button
-                type="button"
-                onClick={() => void handleHizliKurulum()}
-                disabled={yukleniyor}
-                style={{
-                  padding: "10px 24px",
-                  background: yukleniyor ? "#d1d5db" : "#111827",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  cursor: yukleniyor ? "wait" : "pointer",
-                }}
-              >
-                {yukleniyor ? "Yükleniyor..." : "✨ Seçili Türü Yükle"}
-              </button>
+              <>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "10px",
+                  }}
+                >
+                  💡 Bu listeler başlangıç içeriğidir. Yükledikten sonra Tanımlar,
+                  Markalar ve Modeller sekmelerinden istediğiniz gibi
+                  düzenleyebilirsiniz.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void handleHizliKurulum()}
+                  disabled={yukleniyor}
+                  style={{
+                    padding: "10px 24px",
+                    background: yukleniyor ? "#d1d5db" : "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: yukleniyor ? "wait" : "pointer",
+                  }}
+                >
+                  {yukleniyor ? "Yükleniyor..." : "✨ Seçili Türü Yükle"}
+                </button>
+              </>
             ) : null}
           </div>
         ) : null}
