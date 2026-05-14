@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     const mevcutMarkalar = await prisma.brand.findMany({
-      where: { shopId: shop.id },
+      where: { shopId: shop.id, deviceTypeId: ilkTanimId },
       select: { name: true, id: true },
     });
     const mevcutMarkaMap = new Map(mevcutMarkalar.map((m) => [m.name.toLowerCase(), m.id]));

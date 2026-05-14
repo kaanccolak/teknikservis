@@ -81,7 +81,10 @@ export async function DELETE(
 
     // Parola kontrolü
     const body = await request.json().catch(() => ({}));
-    const { settingsPassword } = body as { settingsPassword?: string };
+    const { settingsPassword, force } = body as {
+      settingsPassword?: string;
+      force?: boolean;
+    };
     const { verifySettingsPassword } = await import(
       "@/lib/verify-settings-password"
     );
@@ -100,19 +103,30 @@ export async function DELETE(
       return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
     }
 
-    const brandCount = await prisma.brand.count({
-      where: { deviceTypeId: id, shopId: shop.id },
-    });
-    if (brandCount > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Bu cihaz türüne bağlı markalar var. Önce markaları silin.",
-        },
-        { status: 400 },
-      );
+    if (!force) {
+      const brandCount = await prisma.brand.count({
+        where: { deviceTypeId: id, shopId: shop.id },
+      });
+      if (brandCount > 0) {
+        return NextResponse.json(
+          {
+            error:
+              "Bu cihaz türüne bağlı markalar var. Önce markaları silin.",
+          },
+          { status: 400 },
+        );
+      }
     }
 
+    // Cascade: önce modelleri, sonra markaları, sonra türü sil
+    const markalar = await prisma.brand.findMany({
+      where: { deviceTypeId: id, shopId: shop.id },
+      select: { id: true },
+    });
+    for (const marka of markalar) {
+      await prisma.deviceModel.deleteMany({ where: { brandId: marka.id } });
+      await prisma.brand.delete({ where: { id: marka.id } });
+    }
     await prisma.deviceType.delete({ where: { id } });
     invalidateCache("device-types");
     invalidateCache(`brands-${id}`);

@@ -76,7 +76,10 @@ export async function DELETE(
 
     // Parola kontrolü
     const body = await request.json().catch(() => ({}));
-    const { settingsPassword } = body as { settingsPassword?: string };
+    const { settingsPassword, force } = body as {
+      settingsPassword?: string;
+      force?: boolean;
+    };
     const { verifySettingsPassword } = await import(
       "@/lib/verify-settings-password"
     );
@@ -95,18 +98,22 @@ export async function DELETE(
       return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
     }
 
-    const modelCount = await prisma.deviceModel.count({
-      where: { brandId: id, shopId: shop.id },
-    });
-    if (modelCount > 0) {
-      return NextResponse.json(
-        {
-          error: "Bu markaya bağlı modeller var. Önce modelleri silin.",
-        },
-        { status: 400 },
-      );
+    if (!force) {
+      const modelCount = await prisma.deviceModel.count({
+        where: { brandId: id, shopId: shop.id },
+      });
+      if (modelCount > 0) {
+        return NextResponse.json(
+          {
+            error: "Bu markaya bağlı modeller var. Önce modelleri silin.",
+          },
+          { status: 400 },
+        );
+      }
     }
 
+    // Cascade: önce modelleri sil, sonra markayı
+    await prisma.deviceModel.deleteMany({ where: { brandId: id } });
     await prisma.brand.delete({ where: { id } });
     invalidateCache(`brands-${existing.deviceTypeId}`);
     invalidateCache("brands-all");

@@ -68,7 +68,7 @@ export const KURULUM_TURLERI: KurulumTur[] = [
         ],
       },
       {
-        ad: "Microsoft",
+        ad: "XBOX",
         modeller: [
           { ad: "Xbox 360" },
           { ad: "Xbox One" },

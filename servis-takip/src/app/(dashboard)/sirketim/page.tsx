@@ -286,6 +286,18 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
     boolean | null
   >(null);
   const pendingDeleteSuccessRef = useRef<(() => void) | null>(null);
+  const [cascadeConfirm1, setCascadeConfirm1] = useState<{
+    url: string;
+    isim: string;
+    tip: "tur" | "marka";
+    onSuccess: () => void;
+  } | null>(null);
+  const [cascadeConfirm2, setCascadeConfirm2] = useState<{
+    url: string;
+    isim: string;
+    tip: "tur" | "marka";
+    onSuccess: () => void;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -348,6 +360,39 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
     }
   }
 
+  async function handleCascadeDelete() {
+    if (!cascadeConfirm2) return;
+    const { url, onSuccess } = cascadeConfirm2;
+    setCascadeConfirm2(null);
+    setDeletingWithPassword(true);
+    try {
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settingsPassword: deletePassword, force: true }),
+      });
+      let data: ApiErrJson = {};
+      try {
+        data = (await res.json()) as ApiErrJson;
+      } catch {
+        /* empty */
+      }
+      if (!res.ok) {
+        toastFromApi(data, "Silinemedi");
+        return;
+      }
+      onSuccess();
+      toast.success("Silindi");
+      setDeletePassword("");
+      setPendingDeleteFetchUrl(null);
+      pendingDeleteSuccessRef.current = null;
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setDeletingWithPassword(false);
+    }
+  }
+
   async function openDeletePasswordModal(url: string, onSuccess: () => void) {
     let hp = hasSettingsPassword;
     if (hp === null) {
@@ -366,6 +411,20 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
           toast.error(
             typeof r.data.error === "string" ? r.data.error : "Parola yanlış",
           );
+          return;
+        }
+        if (
+          r.status === 400 &&
+          typeof r.data.error === "string" &&
+          r.data.error.includes("bağlı")
+        ) {
+          setCascadeConfirm1({
+            url,
+            isim: "",
+            tip: url.includes("device-types") ? "tur" : "marka",
+            onSuccess,
+          });
+          setShowDeletePasswordModal(false);
           return;
         }
         toastFromApi(r.data, "Silinemedi");
@@ -406,6 +465,25 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
         setDeletePasswordError(
           typeof r.data.error === "string" ? r.data.error : "Parola yanlış",
         );
+        return;
+      }
+      if (
+        r.status === 400 &&
+        typeof r.data.error === "string" &&
+        r.data.error.includes("bağlı")
+      ) {
+        const cb = pendingDeleteSuccessRef.current;
+        if (pendingDeleteFetchUrl && cb) {
+          setCascadeConfirm1({
+            url: pendingDeleteFetchUrl,
+            isim: "",
+            tip: pendingDeleteFetchUrl.includes("device-types")
+              ? "tur"
+              : "marka",
+            onSuccess: cb,
+          });
+          setShowDeletePasswordModal(false);
+        }
         return;
       }
       toastFromApi(r.data, "Silinemedi");
@@ -771,6 +849,198 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
                   setPendingDeleteFetchUrl(null);
                   pendingDeleteSuccessRef.current = null;
                 }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Cascade Onay 1 */}
+      {cascadeConfirm1 ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "400px",
+              margin: "0 16px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "32px",
+                textAlign: "center",
+                marginBottom: "12px",
+              }}
+            >
+              ⚠️
+            </div>
+            <h2
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                textAlign: "center",
+                marginBottom: "8px",
+              }}
+            >
+              {cascadeConfirm1.tip === "tur"
+                ? "Cihaz türünü sil?"
+                : "Markayı sil?"}
+            </h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                textAlign: "center",
+                marginBottom: "20px",
+              }}
+            >
+              {cascadeConfirm1.tip === "tur"
+                ? "Bu cihaz türüne bağlı tüm markalar ve modeller de silinecek."
+                : "Bu markaya bağlı tüm modeller de silinecek."}{" "}
+              Silmek istediğinize emin misiniz?
+            </p>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setCascadeConfirm2(cascadeConfirm1);
+                  setCascadeConfirm1(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                Evet, devam et
+              </button>
+              <button
+                type="button"
+                onClick={() => setCascadeConfirm1(null)}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Cascade Onay 2 */}
+      {cascadeConfirm2 ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "100%",
+              maxWidth: "400px",
+              margin: "0 16px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "32px",
+                textAlign: "center",
+                marginBottom: "12px",
+              }}
+            >
+              🗑️
+            </div>
+            <h2
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                textAlign: "center",
+                marginBottom: "8px",
+              }}
+            >
+              Bu işlem geri alınamaz
+            </h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                textAlign: "center",
+                marginBottom: "20px",
+              }}
+            >
+              {cascadeConfirm2.tip === "tur"
+                ? "Cihaz türü ve bağlı tüm markalar ile modeller kalıcı olarak silinecek."
+                : "Marka ve bağlı tüm modeller kalıcı olarak silinecek."}{" "}
+              Onaylıyor musunuz?
+            </p>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => void handleCascadeDelete()}
+                disabled={deletingWithPassword}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: deletingWithPassword ? "#d1d5db" : "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: deletingWithPassword ? "wait" : "pointer",
+                }}
+              >
+                {deletingWithPassword ? "Siliniyor..." : "Kalıcı Olarak Sil"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCascadeConfirm2(null)}
                 style={{
                   flex: 1,
                   padding: "10px",
