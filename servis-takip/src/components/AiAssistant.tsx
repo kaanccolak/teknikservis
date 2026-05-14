@@ -27,15 +27,12 @@ export default function AiAssistant() {
       setMessages([
         {
           role: "model",
-          parts: [
-            {
-              text: "Merhaba! 👋 TamirTakip hakkında aklınıza takılan her şeyi sorabilirsiniz.",
-            },
-          ],
+          parts: [{ text: "Merhaba! 👋 TamirTakip hakkında aklınıza takılan her şeyi sorabilirsiniz." }],
         },
       ]);
     }
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {

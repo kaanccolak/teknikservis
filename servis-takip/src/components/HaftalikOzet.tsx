@@ -40,6 +40,7 @@ export default function HaftalikOzet() {
 
   useEffect(() => {
     if (open && !data) void fetchOzet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (
