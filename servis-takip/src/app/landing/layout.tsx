@@ -1,9 +1,25 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "TamirTakip — Online Teknik Servis Takip Programı | Ücretsiz Dene",
+  title: "TamirTakip — Yapay Zeka Destekli Teknik Servis Takip Programı",
   description:
-    "Türkiye'nin teknik servisleri için geliştirilmiş online servis takip programı. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok ve ciro yönetimi. Cep telefonu, beyaz eşya, televizyon servisleri için idealdir.",
+    "TamirTakip ile teknik servis işlerinizi yapay zeka destekli olarak yönetin. AI arıza teşhisi, sesli servis notu, akıllı fiyat önerisi. Cihaz kayıt, WhatsApp bildirimi, stok yönetimi tek platformda. Kurulum gerektirmez.",
+  keywords: [
+    "teknik servis takip programı",
+    "servis yönetim yazılımı",
+    "yapay zeka teknik servis",
+    "tamir servisi programı",
+    "cep telefonu servis programı",
+    "beyaz eşya servis takip",
+    "WhatsApp servis bildirimi",
+  ],
+  openGraph: {
+    title: "TamirTakip — Yapay Zeka Destekli Teknik Servis Takip Programı",
+    description:
+      "AI arıza teşhisi, sesli servis notu ve akıllı fiyat önerisi ile Türkiye'nin en gelişmiş teknik servis yönetim programı.",
+    url: "https://tamirtakip.com.tr",
+    type: "website",
+  },
 };
 
 export default function LandingLayout({

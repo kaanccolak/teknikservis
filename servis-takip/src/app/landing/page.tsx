@@ -275,18 +275,16 @@ export default function LandingPage() {
       <section className="border-b border-slate-100 bg-slate-50 py-8">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 text-center sm:px-6 lg:px-8">
           <p className="text-sm font-medium text-slate-700">
-            <span className="text-2xl font-bold text-indigo-600">100+</span>{" "}
-            teknik servis kullanıyor
+            <span className="text-2xl font-bold text-indigo-600">Beta</span>{" "}
+            sürecinde — ilk kullananlardan olun
           </p>
           <span className="hidden h-4 w-px bg-slate-300 sm:block" aria-hidden />
           <p className="text-sm text-slate-600">
-            <span className="font-semibold text-slate-800">50.000+</span> cihaz
-            kaydı işlendi
+            <span className="font-semibold text-slate-800">Kurulum yok</span> · Tarayıcıdan anında kullanın
           </p>
           <span className="hidden h-4 w-px bg-slate-300 sm:block" aria-hidden />
           <p className="text-sm text-slate-600">
-            <span className="font-semibold text-slate-800">%99</span> müşteri
-            memnuniyeti
+            <span className="font-semibold text-slate-800">Yapay zeka</span> destekli tek teknik servis programı
           </p>
         </div>
       </section>
@@ -298,7 +296,7 @@ export default function LandingPage() {
             Özellikler
           </p>
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Online Servis Takip Programının Tüm Özellikleri
+            Yapay Zeka Destekli Teknik Servis Programı
           </h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
@@ -354,6 +352,47 @@ export default function LandingPage() {
                 <p className="mt-3 flex-1 text-base leading-relaxed text-slate-600">
                   {f.desc}
                 </p>
+              </article>
+            ))}
+            {[
+              {
+                emoji: "🤖",
+                title: "AI Arıza Teşhisi",
+                desc: "Cihaz ve şikayet bilgisini girin, yapay zeka olası arızaları ve kontrol adımlarını anında listelesin. Deneyimsiz teknisyenleri bile yönlendirir.",
+                bg: "bg-purple-50",
+                isNew: true,
+              },
+              {
+                emoji: "🎤",
+                title: "Sesli Servis Notu",
+                desc: "Mikrofona konuşun, yapay zeka sözlü notunuzu profesyonel servis raporuna dönüştürsün. Yazma zamanından tasarruf edin.",
+                bg: "bg-pink-50",
+                isNew: true,
+              },
+              {
+                emoji: "💰",
+                title: "Akıllı Fiyat Önerisi",
+                desc: "Geçmiş servis kayıtlarınıza dayanarak benzer arızalar için fiyat aralığı önerir. Ne kadar çok kayıt, o kadar isabetli tahmin.",
+                bg: "bg-green-50",
+                isNew: true,
+              },
+            ].map((f) => (
+              <article
+                key={f.title}
+                className="group relative flex flex-col rounded-2xl border border-indigo-200/80 bg-white p-8 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
+              >
+                <div className="absolute -top-3 right-4">
+                  <span className="inline-flex rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                    Yapay Zeka
+                  </span>
+                </div>
+                <div
+                  className={`flex h-16 w-16 items-center justify-center rounded-2xl text-4xl ${f.bg} ring-1 ring-black/5`}
+                >
+                  {f.emoji}
+                </div>
+                <h3 className="mt-6 text-xl font-bold text-slate-900">{f.title}</h3>
+                <p className="mt-3 flex-1 text-base leading-relaxed text-slate-600">{f.desc}</p>
               </article>
             ))}
           </div>
@@ -628,6 +667,10 @@ export default function LandingPage() {
           </div>
           <div style={{ display: "grid", gap: "16px" }}>
             {[
+              {
+                q: "Yapay zeka özellikleri nasıl çalışıyor?",
+                a: "TamirTakip, sektördeki tek yapay zeka destekli teknik servis programıdır. Arıza teşhisi için cihaz ve şikayet bilgisini girin, AI olası nedenleri listelesin. Sesli not özelliğiyle mikrofona konuşun, AI metni profesyonel servis notuna dönüştürsün. Fiyat önerisi ise dükkanınızın kendi geçmiş kayıtlarına dayanarak benzer arızalar için fiyat aralığı sunar.",
+              },
               {
                 q: "TamirTakip nedir?",
                 a: "TamirTakip, teknik servisler için geliştirilmiş online servis takip programıdır. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok yönetimi ve ciro raporlaması gibi tüm servis yönetimi ihtiyaçlarınızı karşılar.",
