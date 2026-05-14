@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import OneriModal from "@/components/OneriModal";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -268,6 +269,7 @@ export function Sidebar() {
           })}
         </nav>
         <div className="border-t border-slate-200/80 p-3">
+          <OneriModal />
           <button
             type="button"
             onClick={() => void handleSignOut()}
