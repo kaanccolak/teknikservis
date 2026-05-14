@@ -298,7 +298,7 @@ export default function LandingPage() {
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Yapay Zeka Destekli Teknik Servis Programı
           </h2>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {[
               {
                 emoji: "🔧",
@@ -339,60 +339,53 @@ export default function LandingPage() {
             ].map((f) => (
               <article
                 key={f.title}
-                className="group flex flex-col rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm transition hover:border-indigo-200 hover:shadow-md"
+                className="group flex flex-col rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md"
               >
                 <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-2xl text-4xl ${f.bg} ring-1 ring-black/5`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl text-2xl ${f.bg} ring-1 ring-black/5`}
                 >
                   {f.emoji}
                 </div>
-                <h3 className="mt-6 text-xl font-bold text-slate-900">
-                  {f.title}
-                </h3>
-                <p className="mt-3 flex-1 text-base leading-relaxed text-slate-600">
-                  {f.desc}
-                </p>
+                <h3 className="mt-4 text-base font-bold text-slate-900">{f.title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{f.desc}</p>
               </article>
             ))}
             {[
               {
                 emoji: "🤖",
                 title: "AI Arıza Teşhisi",
-                desc: "Cihaz ve şikayet bilgisini girin, yapay zeka olası arızaları ve kontrol adımlarını anında listelesin. Deneyimsiz teknisyenleri bile yönlendirir.",
+                desc: "Cihaz ve şikayeti girin, yapay zeka olası arızaları ve kontrol adımlarını anında listelesin.",
                 bg: "bg-purple-50",
-                isNew: true,
               },
               {
                 emoji: "🎤",
                 title: "Sesli Servis Notu",
-                desc: "Mikrofona konuşun, yapay zeka sözlü notunuzu profesyonel servis raporuna dönüştürsün. Yazma zamanından tasarruf edin.",
+                desc: "Mikrofona konuşun, AI sözlü notunuzu profesyonel servis raporuna dönüştürsün.",
                 bg: "bg-pink-50",
-                isNew: true,
               },
               {
                 emoji: "💰",
                 title: "Akıllı Fiyat Önerisi",
-                desc: "Geçmiş servis kayıtlarınıza dayanarak benzer arızalar için fiyat aralığı önerir. Ne kadar çok kayıt, o kadar isabetli tahmin.",
+                desc: "Geçmiş kayıtlarınıza dayanarak benzer arızalar için fiyat aralığı önerir.",
                 bg: "bg-green-50",
-                isNew: true,
               },
             ].map((f) => (
               <article
                 key={f.title}
-                className="group relative flex flex-col rounded-2xl border border-indigo-200/80 bg-white p-8 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
+                className="group relative flex flex-col rounded-xl border border-indigo-200/80 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
               >
-                <div className="absolute -top-3 right-4">
-                  <span className="inline-flex rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                <div className="absolute -top-2.5 right-3">
+                  <span className="inline-flex rounded-full bg-indigo-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
                     Yapay Zeka
                   </span>
                 </div>
                 <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-2xl text-4xl ${f.bg} ring-1 ring-black/5`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl text-2xl ${f.bg} ring-1 ring-black/5`}
                 >
                   {f.emoji}
                 </div>
-                <h3 className="mt-6 text-xl font-bold text-slate-900">{f.title}</h3>
-                <p className="mt-3 flex-1 text-base leading-relaxed text-slate-600">{f.desc}</p>
+                <h3 className="mt-4 text-base font-bold text-slate-900">{f.title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{f.desc}</p>
               </article>
             ))}
           </div>
