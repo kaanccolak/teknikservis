@@ -15,42 +15,40 @@ export async function POST(req: Request) {
     const tur = KURULUM_TURLERI.find((t) => t.id === turId);
     if (!tur) return NextResponse.json({ error: "Tür bulunamadı" }, { status: 404 });
 
-    // Mevcut tanımları kontrol et
     const mevcutTanimlar = await prisma.deviceType.findMany({
       where: { shopId: shop.id },
       select: { name: true },
     });
     const mevcutTanimAdlari = new Set(mevcutTanimlar.map((t) => t.name.toLowerCase()));
 
-    // Tanımları ekle
-    const eklenenTanimlar: Record<string, string> = {};
+    const eklenenTanimlarIds: Record<string, string> = {};
     for (const tanim of tur.tanimlar) {
       if (mevcutTanimAdlari.has(tanim.ad.toLowerCase())) {
         const mevcut = await prisma.deviceType.findFirst({
           where: { shopId: shop.id, name: { equals: tanim.ad, mode: "insensitive" } },
         });
-        if (mevcut) eklenenTanimlar[tanim.ad] = mevcut.id;
+        if (mevcut) eklenenTanimlarIds[tanim.ad] = mevcut.id;
         continue;
       }
       const yeni = await prisma.deviceType.create({
         data: { shopId: shop.id, name: tanim.ad },
       });
-      eklenenTanimlar[tanim.ad] = yeni.id;
+      eklenenTanimlarIds[tanim.ad] = yeni.id;
     }
 
-    // Her marka için ilk tanımı kullan (veya türün ilk tanımı)
-    const ilkTanimId = Object.values(eklenenTanimlar)[0];
-    if (!ilkTanimId) return NextResponse.json({ error: "Tanım eklenemedi" }, { status: 500 });
+    const ilkTanimId = Object.values(eklenenTanimlarIds)[0];
+    if (!ilkTanimId) {
+      return NextResponse.json({ error: "Tanım eklenemedi" }, { status: 500 });
+    }
 
-    // Markaları ve modelleri ekle
     const mevcutMarkalar = await prisma.brand.findMany({
       where: { shopId: shop.id },
       select: { name: true, id: true },
     });
     const mevcutMarkaMap = new Map(mevcutMarkalar.map((m) => [m.name.toLowerCase(), m.id]));
 
-    let eklenenMarka = 0;
-    let eklenenModel = 0;
+    const eklenenMarkaIds: string[] = [];
+    const eklenenModelIds: string[] = [];
 
     for (const marka of tur.markalar) {
       let markaId = mevcutMarkaMap.get(marka.ad.toLowerCase());
@@ -60,7 +58,7 @@ export async function POST(req: Request) {
           data: { shopId: shop.id, name: marka.ad, deviceTypeId: ilkTanimId },
         });
         markaId = yeniMarka.id;
-        eklenenMarka++;
+        eklenenMarkaIds.push(yeniMarka.id);
       }
 
       const mevcutModeller = await prisma.deviceModel.findMany({
@@ -71,18 +69,35 @@ export async function POST(req: Request) {
 
       for (const model of marka.modeller) {
         if (mevcutModelAdlari.has(model.ad.toLowerCase())) continue;
-        await prisma.deviceModel.create({
+        const yeniModel = await prisma.deviceModel.create({
           data: { shopId: shop.id, brandId: markaId, name: model.ad },
         });
-        eklenenModel++;
+        eklenenModelIds.push(yeniModel.id);
+        mevcutModelAdlari.add(model.ad.toLowerCase());
       }
     }
 
+    const yuklemeId = `hizli_kurulum_${Date.now()}`;
+    const yuklemeData = {
+      turId,
+      tanimIds: Object.values(eklenenTanimlarIds),
+      markaIds: eklenenMarkaIds,
+      modelIds: eklenenModelIds,
+    };
+    await prisma.setting.create({
+      data: {
+        shopId: shop.id,
+        key: yuklemeId,
+        value: JSON.stringify(yuklemeData),
+      },
+    });
+
     return NextResponse.json({
       success: true,
-      eklenenTanim: Object.keys(eklenenTanimlar).length,
-      eklenenMarka,
-      eklenenModel,
+      yuklemeId,
+      eklenenTanim: Object.keys(eklenenTanimlarIds).length,
+      eklenenMarka: eklenenMarkaIds.length,
+      eklenenModel: eklenenModelIds.length,
     });
   } catch (error) {
     console.error(error);
