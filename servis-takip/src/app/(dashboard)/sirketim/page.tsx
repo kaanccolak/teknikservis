@@ -268,6 +268,8 @@ type TanimlarSubTabId = "types" | "brands" | "models";
 
 
 function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
+  const [seciliTur, setSeciliTur] = useState<string | null>(null);
+  const [yukleniyor, setYukleniyor] = useState(false);
   const [tanimlarSubTab, setTanimlarSubTab] = useState<TanimlarSubTabId>("types");
   const [showDeletePasswordModal, setShowDeletePasswordModal] =
     useState(false);
@@ -424,8 +426,129 @@ function SirketimTanimlarPanel({ isDemo }: { isDemo: boolean }) {
     </button>
   );
 
+  async function handleHizliKurulum() {
+    if (!seciliTur) return;
+    setYukleniyor(true);
+    try {
+      const res = await fetch("/api/hizli-kurulum", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ turId: seciliTur }),
+      });
+      const data = (await res.json()) as {
+        success?: boolean;
+        eklenenTanim?: number;
+        eklenenMarka?: number;
+        eklenenModel?: number;
+        error?: string;
+      };
+      if (!res.ok) {
+        toast.error(data.error ?? "Yükleme başarısız");
+        return;
+      }
+      toast.success(
+        `✅ Yüklendi! ${data.eklenenTanim ?? 0} tanım, ${data.eklenenMarka ?? 0} marka, ${data.eklenenModel ?? 0} model eklendi.`,
+      );
+      setSeciliTur(null);
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setYukleniyor(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {/* Hızlı Kurulum */}
+      <div
+        style={{
+          marginBottom: "32px",
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          padding: "24px",
+          background: "#f9fafb",
+        }}
+      >
+        <div style={{ marginBottom: "16px" }}>
+          <h2
+            style={{
+              fontSize: "16px",
+              fontWeight: 700,
+              color: "#111827",
+              margin: 0,
+            }}
+          >
+            ⚡ Hızlı Kurulum
+          </h2>
+          <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
+            Servis türünüzü seçin, cihaz tanımları, markalar ve modeller otomatik
+            eklensin.
+          </p>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginBottom: "16px",
+          }}
+        >
+          {[
+            { id: "telefon", ad: "📱 Telefon / Tablet" },
+            { id: "oyun-konsolu", ad: "🎮 Oyun Konsolu" },
+            { id: "televizyon", ad: "📺 Televizyon / Görüntü" },
+            { id: "klima", ad: "❄️ Klima / Isıtma" },
+            { id: "beyaz-esya", ad: "🏠 Beyaz Eşya" },
+            { id: "ofis-ekipmani", ad: "🖨️ Ofis Ekipmanı" },
+            { id: "kamera", ad: "📷 Kamera / Optik" },
+            { id: "kucuk-ev-aletleri", ad: "🔧 Küçük Ev Aletleri" },
+            { id: "ses-sistemleri", ad: "🔊 Ses / Müzik" },
+            { id: "bilgisayar", ad: "💻 Bilgisayar / Laptop" },
+            { id: "endustriyel", ad: "🔌 Endüstriyel Elektronik" },
+            { id: "oto-elektronik", ad: "🚗 Oto Elektronik" },
+            { id: "medikal", ad: "🏥 Medikal / Sağlık" },
+            { id: "guvenlik", ad: "🔑 Güvenlik Sistemleri" },
+          ].map((tur) => (
+            <button
+              key={tur.id}
+              type="button"
+              onClick={() => setSeciliTur(tur.id === seciliTur ? null : tur.id)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: "8px",
+                border:
+                  seciliTur === tur.id ? "2px solid #111827" : "1px solid #d1d5db",
+                background: seciliTur === tur.id ? "#111827" : "white",
+                color: seciliTur === tur.id ? "white" : "#374151",
+                fontSize: "13px",
+                cursor: "pointer",
+                fontWeight: seciliTur === tur.id ? 600 : 400,
+              }}
+            >
+              {tur.ad}
+            </button>
+          ))}
+        </div>
+        {seciliTur ? (
+          <button
+            type="button"
+            onClick={() => void handleHizliKurulum()}
+            disabled={yukleniyor}
+            style={{
+              padding: "10px 24px",
+              background: yukleniyor ? "#d1d5db" : "#111827",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: yukleniyor ? "wait" : "pointer",
+            }}
+          >
+            {yukleniyor ? "Yükleniyor..." : "✨ Seçili Türü Yükle"}
+          </button>
+        ) : null}
+      </div>
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Tanımlar</h1>
         <p className="mt-1 text-sm text-slate-600">
