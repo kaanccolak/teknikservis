@@ -8,9 +8,9 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 ## Onboarding sistemi
 
-- İlk girişte **WelcomeModal** (`src/components/onboarding/WelcomeModal.tsx`) — uygulama özeti, Tanımlar ve Şirketim yönlendirmesi, güvenlik önerisi.
+- İlk girişte **WelcomeModal** (`src/components/onboarding/WelcomeModal.tsx`) — uygulama özeti, Hızlı Kurulum yönlendirmesi, güvenlik önerisi.
 - Her sayfada ilk ziyarette **PageGuideModal** (`src/components/onboarding/PageGuideModal.tsx`) — o sayfaya özel kısa rehber.
-- Hangi modal’ların gösterildiği **localStorage** ile saklanır; kapatılanlar bir daha açılmaz.
+- Hangi modal’ların gösterildiği **/api/settings** (Setting tablosu, shopId + key) ile saklanır; farklı cihazdan girişte tekrar açılmaz.
 
 ## Tech Stack
 
@@ -78,6 +78,9 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **Mesaj Şablonları** sekmesi — her durum için WhatsApp metni; değişkenler: `{isim}`, `{seriNo}`, `{cihaz}`, `{fiyat}`, `{neden}` (şablonda kullanım).
 - **Silinen Kayıtlar** sekmesi — `deletedAt` dolu servis kayıtları listesi.
 - **`/whatsapp-mesajlari`** sayfası ve sidebar **WA Mesajları** linki **kaldırıldı** (özet: bkz. aşağıdaki WA Mesajları bölümü).
+- **Hızlı Kurulum** — Tanımlar sekmesinde; 13 servis türünden seçim yapılınca cihaz türleri, markalar ve modeller otomatik yüklenir. Yükleme geri alınabilir (`POST /api/hizli-kurulum`, `POST /api/hizli-kurulum/geri-al`). Yükleme verisi `Setting` tablosunda `hizli_kurulum_${timestamp}` key ile saklanır.
+- **Cihaz türü / marka cascade silme** — alt kayıtlar varsa çift onay popup'ı ile cascade silinir.
+- **Cihaz Etiketi termal mod** — `etiket_genislik` (mm) ayarı; `≤100mm` ise termal layout aktif (monospace, minimal padding, `@page size: Xmm auto`).
 
 ### Google Contacts entegrasyonu
 
@@ -515,6 +518,18 @@ src/app/api/baileys/status/
 src/app/api/baileys/send/
 src/app/api/baileys/disconnect/
 src/app/api/whatsapp/send/
+src/app/api/hizli-kurulum/           # Hızlı kurulum — tanım/marka/model toplu yükleme
+src/app/api/hizli-kurulum/geri-al/   # Hızlı kurulum geri alma
+src/app/api/ai-assistant/            # Groq Llama 3.3 70B — yardım & destek chatbotu
+src/app/api/ai-teshis/               # AI arıza teşhisi
+src/app/api/ai-servis-notu/          # Sesli not → AI metin düzenleme
+src/app/api/ai-fiyat-onerisi/        # Geçmiş kayıtlara dayalı akıllı fiyat önerisi
+src/app/api/ai-haftalik-ozet/        # Haftalık performans özeti + AI değerlendirmesi
+src/app/api/oneri/                   # Kullanıcı öneri/geri bildirim → Resend mail
+src/lib/hizli-kurulum-data.ts        # 13 servis türü için tanım/marka/model seed verisi
+src/components/AiAssistant.tsx       # Sağ alt köşe chat balonu (Yardım & Destek)
+src/components/HaftalikOzet.tsx      # Dashboard haftalık performans özeti widget'ı
+src/components/OneriModal.tsx        # Öneri & geri bildirim modalı
 src/app/fis/[id]/
 src/app/dukkan-nushasi/[id]/
 src/app/kargo-fisi/[id]/
@@ -539,8 +554,42 @@ src/lib/supabase/
 - **shadcn Select bozuk görünüm**: Native HTML select kullan
 - **Prisma .env okumaz**: .env dosyasına da DATABASE_URL yaz
 
+## Yapay Zeka Özellikleri
+
+**Model:** Groq API — `llama-3.3-70b-versatile` (ücretsiz tier, günlük 14.400 istek)
+**API Key:** `GROQ_API_KEY` (Vercel env)
+
+### Özellikler
+
+- **Yardım & Destek Chatbotu** (`src/components/AiAssistant.tsx` + `POST /api/ai-assistant`) — Sağ alt köşe "Yardım & Destek" balonu. TamirTakip hakkında sorulara cevap verir. Sorun bildiriminde destek telefonu paylaşır (+90 537 766 42 48).
+- **AI Arıza Teşhisi** (`POST /api/ai-teshis`) — Cihaz kayıt formunda şikayet alanının altında. Cihaz + şikayet bilgisine göre olası arıza nedenleri ve kontrol adımları listeler. Sadece ilgili cihaza özel cevap verir.
+- **Sesli Servis Notu** (`POST /api/ai-servis-notu`) — Web Speech API (tr-TR) ile ses tanıma; ham metni profesyonel servis notuna dönüştürür. Alanlar: şikayet, aksesuar, fiziksel hasar, kargo bilgisi (cihaz kayıt) + yapılan onarım, teknisyen notu, onarım detayı popup'ı (servis detay).
+- **Akıllı Fiyat Önerisi** (`POST /api/ai-fiyat-onerisi`) — Dükkanın kendi geçmiş teslim kayıtlarından cihaz + şikayet benzerliğine göre fiyat aralığı önerir. Yeterli kayıt yoksa "veri yetersiz" döner. Harici veri kullanmaz.
+- **Haftalık Performans Özeti** (`POST /api/ai-haftalik-ozet` + `src/components/HaftalikOzet.tsx`) — Dashboard'da geçen haftanın verilerini (yeni kayıt, teslim, ciro, en çok gelen cihaz, ortalama tamir süresi, bekleyen eski kayıtlar) analiz edip AI yorumu ekler.
+
+### Önemli Notlar
+- Fiyat önerisi **sadece o dükkanın verilerini** kullanır (`shopId` filtreli); farklı dükkanların verisi karışmaz.
+- Sesli not için tarayıcı **Chrome veya Edge** gerekir (Web Speech API).
+- Demo hesapta AI özellikleri `demoGuard` ile engellenebilir.
+
 ## Yapılacaklar (TODO)
 
+- [x] Hızlı Kurulum (13 servis türü, otomatik tanım/marka/model yükleme + geri alma)
+- [x] Cihaz etiketi termal yazıcı desteği (mm bazlı kağıt boyutu, termal layout)
+- [x] Fiş/nüsha barkod header'a taşındı
+- [x] Onboarding modal durumu DB'ye taşındı (Setting tablosu, cihaz bağımsız)
+- [x] Dashboard cache kaldırıldı (no-store, silinen kayıtlar anında yansır)
+- [x] AI Yardım & Destek chatbotu (Groq Llama 3.3 70B, sağ alt köşe)
+- [x] AI Arıza Teşhisi (cihaz kayıt formunda, ayrı endpoint)
+- [x] Sesli servis notu (Web Speech API + AI düzenleme; cihaz kayıt + servis detay)
+- [x] Akıllı fiyat önerisi (geçmiş kayıt benzerliği, arıza bazlı eşleştirme)
+- [x] Haftalık performans özeti (dashboard, AI değerlendirmesi)
+- [x] Öneri & geri bildirim sistemi (menüde 💡 butonu, Resend mail)
+- [x] Landing page AI bölümü + SEO meta güncelleme
+- [x] Müşteri sorgulama multi-tenant fix (findMany ile shopId izolasyonu)
+- [x] İkinci el alım formuna + butonu (cihaz türü/marka/model anında ekleme)
+- [x] Dashboard tooltip'leri (tüm stat kartları)
+- [x] Cascade silme (cihaz türü/marka, çift onay popup)
 - [x] Stok yönetimi
 - [x] Cari yönetimi
 - [x] Kargo fişi yazdırma

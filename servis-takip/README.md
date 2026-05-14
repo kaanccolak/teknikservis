@@ -8,7 +8,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 
 ## Özellikler
 
-- **Onboarding** — ilk girişte **WelcomeModal**; sayfa bazında **PageGuideModal**; tercihler **localStorage** (`src/components/onboarding/`).
+- **Onboarding** — ilk girişte **WelcomeModal**; sayfa bazında **PageGuideModal**; gösterim durumu **`/api/settings`** (Setting tablosu, `shopId + key`; cihaz bağımsız) (`src/components/onboarding/`).
 - **Admin paneli** — yalnızca **`kaanccolak@gmail.com`**; giriş/kayıt sonrası otomatik **`/admin`**. **`GET /api/admin/stats`**: dükkan listesi, özet sayılar, her dükkan için **bu ayki kayıt sayısı** ve **Baileys** `getSessionStatus` ile **WA durumu**. **`DELETE /api/admin/shops/[id]`** ile dükkan silme. **`getOrCreateDefaultShop()`** bu e-posta için dükkan oluşturmaz.
 - **Otomatik hatırlatma (cron)** — **`POST /api/cron/remind-waiting`**; Bearer **`CRON_SECRET`**. **15+ gün** teslim alınmamış kayıtlar için WhatsApp (Baileys); durumlar: `customer_return`, `repair_failed`, `completed`, `no_problem_found`; **`reminderSentAt`** ile en az 15 günde bir tekrar; çalıştırma başına **max 10** kayıt; mesajlar arası **5 sn**. VPS örnek: `0 10 * * * curl -X POST https://www.tamirtakip.com.tr/api/cron/remind-waiting` (Authorization header). Liste: `crontab -l`.
 - **Barkod tarama** — **`src/components/barcode-scanner.tsx`** (`@zxing/browser`, kamera). **Cihaz Sorgula**, **Bekleyen Cihazlar**, **İkinci El** sayfalarında kamera ikonu; mobil Chrome / Safari hedefi. **Zoom** (+/−) destekleyen cihazlarda; destek yoksa kontroller gizlenir; uygun donanımda başlangıçta **minimum zoom** (geniş açı). Tarama çerçevesi yaklaşık **%90 × %40** (yatay barkodlar).
@@ -81,6 +81,18 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Türkçe hata mesajları (giriş ekranı)
 - Production deploy ([www.tamirtakip.com.tr](https://www.tamirtakip.com.tr); eski Vercel URL: [teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
 - **Mobil / responsive** — sidebar hamburger + drawer; dashboard grid kırılımı; cihaz sorgula tablosu yatay kaydırma; cihaz kayıt formu alta dizilim; servis detay üst butonlar sarma/kaydırma; şirketim sekme şeridi yatay kaydırma; WelcomeModal kaydırılabilir; silinen kayıtlar tablosu yatay kaydırma
+- **Yapay Zeka Özellikleri** (Groq Llama 3.3 70B, ücretsiz):
+  - **AI Yardım & Destek Chatbotu** — sağ alt köşe; TamirTakip hakkında sorulara cevap verir
+  - **AI Arıza Teşhisi** — cihaz kayıt formunda; cihaz + şikayet bilgisine göre olası arızaları listeler
+  - **Sesli Servis Notu** — mikrofona konuş, AI profesyonel metne dönüştürsün (Web Speech API, Chrome/Edge)
+  - **Akıllı Fiyat Önerisi** — dükkanın kendi geçmiş kayıtlarından benzer arızalar için fiyat aralığı
+  - **Haftalık Performans Özeti** — dashboard'da geçen haftanın AI destekli analizi
+- **Öneri & Geri Bildirim** — sol menü 💡 butonu; öneri/hata bildirimi Resend ile `kaanccolak@gmail.com`'a gönderilir
+- **Hızlı Kurulum** — Şirketim → Tanımlar; 13 servis türü için otomatik cihaz türü/marka/model yükleme + geri alma
+- **Cihaz etiketi termal mod** — Fiş/Nüsha Ayarları'nda mm bazlı kağıt genişliği; ≤100mm termal layout
+- **Dashboard tooltipleri** — tüm stat kartlarında bilgi ikonu ve açıklama
+- **Onboarding durumu DB'de** — WelcomeModal ve PageGuideModal gösterim durumu Setting tablosunda (cihaz bağımsız)
+- **Müşteri sorgulama multi-tenant** — aynı kayıt numarasına sahip farklı dükkan kayıtları telefon ile ayırt edilir
 
 ### WhatsApp mantıksal şablon anahtarları
 
@@ -226,39 +238,15 @@ src/
 
 ## Yapılacaklar
 
-- [x] Stok yönetimi
-- [x] Cari yönetimi
-- [x] Kargo fişi yazdırma
-- [x] Müşteri Nüshası ve Cihaz Etiketi
-- [x] Döviz kurları
-- [x] Telefon normalize arama
-- [x] Fiş / etiket yazdırma (tarayıcı); Şirketim’deki Yazdırma Ayarları sekmesi kaldırıldı
-- [x] Kayıt düzenleme / silme
-- [x] WhatsApp (Baileys VPS + `buildMessage` + `POST /api/whatsapp/send`)
-- [x] Baileys API route’ları (`/api/baileys/*`)
-- [x] Mantıksal şablon anahtarları (13 durum + `fiyat_bildirimi` butonu)
-- [x] Durum değişince WA bildirimi (onay modalı)
-- [x] Auth / Login koruması
-- [x] Multi-tenant geçişi
-- [x] Landing page
-- [x] Şifre sıfırlama (Supabase + check-email + reset-password sayfası)
-- [x] Müşteri sorgulama sayfası (`/sorgula`)
-- [x] Vercel build uyumu (`prisma generate`, API route `dynamic`, Suspense ile useSearchParams sayfaları)
-- [x] Production deploy ([www.tamirtakip.com.tr](https://www.tamirtakip.com.tr))
-- [x] Bayiler modülü
-- [x] Autocomplete öneriler (şikayet / aksesuar / fiziksel hasar)
-- [x] Bayi grup ve iskonto sistemi
-- [x] Planlarım — tamamlandı geri al
-- [x] Google Contacts entegrasyonu
-- [x] Google OAuth — Cloud Console uygulama doğrulaması (doğrulanmamış uygulama uyarısı yok)
-- [x] Yasal sayfalar (`/gizlilik-politikasi`, `/hizmet-sartlari`) + landing footer linkleri
-- [x] Teslim modalı
+- [x] Hızlı Kurulum (13 servis türü)
+- [x] AI özellikleri (arıza teşhisi, sesli not, fiyat önerisi, haftalık özet, chatbot)
+- [x] Öneri & geri bildirim sistemi
+- [x] Termal yazıcı cihaz etiketi
+- [x] Dashboard cache fix + tooltips
+- [x] Onboarding DB'ye taşındı
 - [ ] iyzico ödeme entegrasyonu
 - [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
 - [ ] SMS entegrasyonu
-- [x] Mobil uyumluluk (sidebar, grid, tablolar, formlar, şirketim sekmeleri, modallar)
 - [ ] Ödeme linki WhatsApp metni
-- [x] Admin paneli + cron hatırlatma + barkod/QR + SEO + demo salt okunur + e-posta doğrulama (`/email-dogrulama`, Resend)
-- [x] Domain (**tamirtakip.com.tr**)
 
 ---
