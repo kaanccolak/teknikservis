@@ -1421,6 +1421,8 @@ function SirketimPageInner() {
   const [isDemo, setIsDemo] = useState(false);
   const [receiptNotes, setReceiptNotes] = useState("");
   const [savingReceiptNotes, setSavingReceiptNotes] = useState(false);
+  const [etiketGenislik, setEtiketGenislik] = useState("80");
+  const [savingEtiket, setSavingEtiket] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -1483,6 +1485,16 @@ function SirketimPageInner() {
         document.cookie.includes("demo_unlocked=true");
       setIsDemo(isDemoAccount && !isUnlocked);
       setReceiptNotes(row.receiptNotes ?? "");
+
+      try {
+        const settingsRes = await fetch("/api/settings");
+        const settingsData = await settingsRes.json().catch(() => ({}));
+        setEtiketGenislik(
+          (settingsData as Record<string, string>).etiket_genislik ?? "80",
+        );
+      } catch {
+        // varsayılan etiketGenislik kalır
+      }
 
       // Baileys bağlantı durumunu kontrol et
       try {
@@ -1561,6 +1573,27 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingReceiptNotes(false);
+    }
+  }
+
+  async function handleSaveEtiketGenislik() {
+    setSavingEtiket(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etiket_genislik: etiketGenislik }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("Etiket boyutu kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingEtiket(false);
     }
   }
 
@@ -3070,6 +3103,80 @@ function SirketimPageInner() {
                   Müşteri nüshasının altında görünecek servis şartlarını
                   düzenleyin
                 </p>
+              </div>
+              {/* Termal Etiket Boyutu */}
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Cihaz Etiketi Kağıt Genişliği (mm)
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Termal yazıcınızdaki kağıdın genişliğini girin. Yaygın
+                  değerler: 58mm, 72mm, 80mm
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    type="number"
+                    min={40}
+                    max={120}
+                    value={etiketGenislik}
+                    onChange={(e) => setEtiketGenislik(e.target.value)}
+                    style={{
+                      width: "120px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    placeholder="80"
+                  />
+                  <span style={{ fontSize: "13px", color: "#6b7280" }}>
+                    mm
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveEtiketGenislik()}
+                    disabled={savingEtiket}
+                    style={{
+                      padding: "8px 20px",
+                      background: savingEtiket ? "#d1d5db" : "#111827",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      cursor: savingEtiket ? "wait" : "pointer",
+                    }}
+                  >
+                    {savingEtiket ? "Kaydediliyor..." : "Kaydet"}
+                  </button>
+                </div>
               </div>
               <div
                 style={{

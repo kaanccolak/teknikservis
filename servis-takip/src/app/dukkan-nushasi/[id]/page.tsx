@@ -22,19 +22,6 @@ type DukkanNushasiOrder = {
 
 type PrintSettings = Record<string, string>;
 
-function getPageSize(size: string, orientation: string) {
-  if (size === "80mm termal") return "80mm auto";
-  if (size === "58mm termal") return "58mm auto";
-  return `${size} ${orientation}`;
-}
-
-function getPageMargin(v: string) {
-  if (v === "yok") return "0";
-  if (v === "dar") return "0.3cm";
-  if (v === "genis") return "2cm";
-  return "1cm";
-}
-
 function textOrFallback(v: string | null | undefined, fallback: string) {
   const t = v?.trim();
   return t ? t : fallback;
@@ -52,12 +39,7 @@ export default function DukkanNushasiPage() {
   const [error, setError] = useState<string | null>(null);
 
   const printStyles = useMemo(() => {
-    const size = getPageSize(
-      settings.servis_fisi_boyut ?? "A5",
-      settings.servis_fisi_yon ?? "portrait",
-    );
-    const margin = getPageMargin(settings.servis_fisi_kenar ?? "normal");
-
+    const genislik = settings.etiket_genislik ?? "80";
     return `
       body { background: #f3f4f6; }
       @media print {
@@ -67,18 +49,15 @@ export default function DukkanNushasiPage() {
           box-shadow: none !important;
           border-radius: 0 !important;
           margin: 0 !important;
-          max-width: 100% !important;
-          padding: 16px !important;
+          width: ${genislik}mm !important;
+          max-width: ${genislik}mm !important;
+          padding: 4mm !important;
         }
         @page {
-          size: ${size};
-          margin: ${margin};
-          margin-top: 0.5cm;
-          margin-bottom: 0.5cm;
+          size: ${genislik}mm auto;
+          margin: 0;
         }
-        svg {
-          display: block !important;
-        }
+        svg { display: block !important; }
       }
     `;
   }, [settings]);
@@ -172,8 +151,12 @@ export default function DukkanNushasiPage() {
         <p className="text-sm text-destructive">{error}</p>
       ) : order ? (
         <div
-          className="fis-card mx-auto max-w-[400px] rounded-lg bg-white p-8 text-black shadow-[0_2px_12px_rgba(0,0,0,0.1)]"
-          style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}
+          className="fis-card mx-auto rounded-lg bg-white p-6 text-black shadow-[0_2px_12px_rgba(0,0,0,0.1)]"
+          style={{
+            fontFamily: "ui-sans-serif, system-ui, sans-serif",
+            maxWidth: `${settings.etiket_genislik ?? "80"}mm`,
+            width: "100%",
+          }}
         >
           <div className="mb-5 border-b-2 border-slate-900 pb-4 text-center">
             <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">
@@ -237,9 +220,9 @@ export default function DukkanNushasiPage() {
               >
                 <Barcode
                   value={order.orderNumber.trim()}
-                  width={2}
-                  height={50}
-                  fontSize={12}
+                  width={1}
+                  height={45}
+                  fontSize={11}
                 />
               </div>
             </div>
