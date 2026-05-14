@@ -215,33 +215,35 @@ export async function GET(request: Request) {
       prisma.serviceOrder.count({
         where: {
           shopId,
+          deletedAt: null,
           status: { notIn: [...TERMINAL_STATUSES] },
         },
       }),
       prisma.serviceOrder.count({
-        where: { shopId, status: "in_service" },
+        where: { shopId, deletedAt: null, status: "in_service" },
       }),
       prisma.serviceOrder.count({
-        where: { shopId, status: "waiting_approval" },
+        where: { shopId, deletedAt: null, status: "waiting_approval" },
       }),
       prisma.serviceOrder.count({
-        where: { shopId, status: "approval_given" },
+        where: { shopId, deletedAt: null, status: "approval_given" },
       }),
       prisma.serviceOrder.count({
-        where: { shopId, status: "waiting_part" },
+        where: { shopId, deletedAt: null, status: "waiting_part" },
       }),
       prisma.serviceOrder.count({
-        where: { shopId, status: "sent_to_external" },
+        where: { shopId, deletedAt: null, status: "sent_to_external" },
       }),
       prisma.serviceOrder.count({
         where: {
           shopId,
+          deletedAt: null,
           status: { in: [...COMPLETED_TODAY_STATUSES] },
           updatedAt: { gte: dayStart, lte: dayEnd },
         },
       }),
       prisma.serviceOrder.findMany({
-        where: { shopId },
+        where: { shopId, deletedAt: null },
         take: 5,
         orderBy: { createdAt: "desc" },
         select: {
