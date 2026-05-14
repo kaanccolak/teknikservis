@@ -8,9 +8,10 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 
 ## Özellikler
 
-- **Onboarding** — ilk girişte **WelcomeModal**; sayfa bazında **PageGuideModal**; tercihler **localStorage** (`src/components/onboarding/`). yalnızca **`kaanccolak@gmail.com`**; middleware + giriş/kayıt sonrası otomatik `/admin` yönlendirmesi. Veri: **`GET /api/admin/stats`** (dükkan listesi, özet sayılar, her dükkan için **Baileys** oturum bağlantısı). Silme: **`DELETE /api/admin/shops/[id]`**. Bu kullanıcı için **`getOrCreateDefaultShop()`** dükkan oluşturmaz.
+- **Onboarding** — ilk girişte **WelcomeModal**; sayfa bazında **PageGuideModal**; tercihler **localStorage** (`src/components/onboarding/`).
+- **Admin paneli** — yalnızca **`kaanccolak@gmail.com`**; giriş/kayıt sonrası otomatik **`/admin`**. **`GET /api/admin/stats`**: dükkan listesi, özet sayılar, her dükkan için **bu ayki kayıt sayısı** ve **Baileys** `getSessionStatus` ile **WA durumu**. **`DELETE /api/admin/shops/[id]`** ile dükkan silme. **`getOrCreateDefaultShop()`** bu e-posta için dükkan oluşturmaz.
 - **Otomatik hatırlatma (cron)** — **`POST /api/cron/remind-waiting`**; Bearer **`CRON_SECRET`**. **15+ gün** teslim alınmamış kayıtlar için WhatsApp (Baileys); durumlar: `customer_return`, `repair_failed`, `completed`, `no_problem_found`; **`reminderSentAt`** ile en az 15 günde bir tekrar; çalıştırma başına **max 10** kayıt; mesajlar arası **5 sn**. VPS örnek: `0 10 * * * curl -X POST https://www.tamirtakip.com.tr/api/cron/remind-waiting` (Authorization header). Liste: `crontab -l`.
-- **Barkod tarama** — **`src/components/barcode-scanner.tsx`** (`@zxing/browser`, kamera). **Cihaz Sorgula**, **Bekleyen Cihazlar**, **İkinci El** sayfalarında kamera ikonu; mobil Chrome / Safari hedefi.
+- **Barkod tarama** — **`src/components/barcode-scanner.tsx`** (`@zxing/browser`, kamera). **Cihaz Sorgula**, **Bekleyen Cihazlar**, **İkinci El** sayfalarında kamera ikonu; mobil Chrome / Safari hedefi. **Zoom** (+/−) destekleyen cihazlarda; destek yoksa kontroller gizlenir; uygun donanımda başlangıçta **minimum zoom** (geniş açı). Tarama çerçevesi yaklaşık **%90 × %40** (yatay barkodlar).
 - **QR kod (müşteri nüshası)** — **`react-qr-code`**; **`src/app/fis/[id]/page.tsx`** barkodun altında; QR → **`https://tamirtakip.com.tr/sorgula?kayitNo=...&telefon=...`** ile doğrudan müşteri sorgulama.
 - **SEO** — **`src/app/sitemap.ts`**, **`src/app/robots.ts`**, **`src/app/icon.tsx`** (favicon); kök ve **landing** metadata (OpenGraph, Twitter). Landing: **H1**, **SSS**, **“Kimler Kullanabilir?”**. PageSpeed (referans): Performans / SEO / En iyi uygulamalar **100**, Erişilebilirlik **94**.
 - **Logo** — indigo `#4f46e5` kare + **T** + yeşil `#22c55e` onay; **tamir**/**takip** tipografi; navbar, sidebar, login, landing.
@@ -24,8 +25,8 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Bayi detay sayfası (cihaz geçmişi, toplam ciro, onarım istatistikleri)
 - **Bayi toplam ciro** — yalnızca tamamlanmış ve teslim durumlarındaki servis kayıtlarının ücret toplamı: `completed`, `delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return` (`GET /api/bayiler` ve `GET /api/bayiler/[id]` aynı filtre; cihaz adedi tüm kayıtlar)
 - Servis durumu güncelleme (Teknik Serviste, Onay Bekliyor, Onay Verildi, Parça Bekliyor, Onarım Tamamlandı, Teslim Edildi)
-- Otomatik kayıt numarası (YYYYMM001 formatı)
-- Cihaz türü, marka ve model tanım yönetimi
+- Otomatik kayıt numarası (YYYYMM001 formatı); **dükkan bazında** (`allocateServiceOrderNumber` + `shopId`); silinmiş kayıtların numaraları yeniden kullanılmaz
+- Cihaz türü, marka ve model tanım yönetimi; **Şirketim → Tanımlar** içinde satır içi **Düzenle** (Kaydet/İptal) ve **PATCH** API’leri (`/api/device-types/[id]`, `/api/brands/[id]`, `/api/models/[id]`)
 - **Yedek parça stok yönetimi** (cihaz türü / marka / modele göre filtreleme)
 - **Kayıtta kullanılan parça takibi** ve otomatik stok düşme (iptal/silmede iade)
 - **Müşteri Nüshası (servis giriş fişi) ve Cihaz Etiketi yazdırma** (tarayıcı yazdır / PDF kaydet); müşteri nüshu sayfasında **QR kod** (`react-qr-code`) ile sorgulama bağlantısı
@@ -39,7 +40,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Telefon numarası formatlama (+90 5XX XXX XX XX)
 - Arama filtresi URL'de saklanır, geri dönünce kaybolmaz
 - Sayfadan ayrılma uyarısı (form doldurulmuşken)
-- **Kayıt düzenleme**; **silme** işlemleri **yönetici parolası** ile (`src/lib/verify-settings-password.ts`), servis kaydı **soft delete** (`deletedAt`)
+- **Kayıt düzenleme**; **silme** işlemleri **yönetici parolası** ile (`src/lib/verify-settings-password.ts`), servis kaydı **soft delete** (`deletedAt`). **Silme onayı:** `pendingDeleteId` yarışı giderildi; AlertDialog’da silinecek **id** yerelde tutulur (bayiler, stok, cari, ikinci el, dış servis, planlarım, cihaz sorgula, servis detay).
 - Ciro takibi (günlük / haftalık / aylık / yıllık / **tarih aralığı**)
 - **WhatsApp (Baileys)** — Meta WhatsApp Business API kaldırıldı; giden mesajlar **Baileys** VPS üzerinden düz metin olarak gider. Hetzner VPS (**46.62.253.209**, Ubuntu 24.04, CX23), **PM2** (`baileys-api`), oturumlar **`/opt/baileys/sessions/{shopId}/`**. Ortam: **`BAILEYS_API_URL`**, **`BAILEYS_API_KEY`**. Kütüphane: `src/lib/baileys-client.ts`; API: `/api/baileys/connect`, `/api/baileys/status`, `/api/baileys/send`, `/api/baileys/disconnect`. **`POST /api/whatsapp/send`** şablon anahtarı + parametre alır, **`buildMessage`** ile metne çevirir ve Baileys ile gönderir.
 - **Şirketim** — **parola koruması** (ilk kurulumda parola oluşturma, sonraki girişlerde sorma; **sessionStorage** ile aynı oturumda tekrar sormaz). Sekmeler: Şirket bilgileri, **WhatsApp** (**“WhatsApp API” → “WhatsApp”**, pairing kodu), **Mesaj Şablonları**, **Silinen Kayıtlar**, Google Contacts, **Tanımlar** (cihaz türü/marka/model; **sidebar’dan Tanımlar kaldırıldı**), **Fiş / Nüsha Ayarları** (müşteri nüshası servis şartları / `receiptNotes`). **Yazdırma Ayarları** sekmesi kaldırıldı. Sekme şeridi mobilde **yatay kaydırılabilir**; parola alanı **16px** font (iOS zoom). VPS: `ssh root@46.62.253.209`; `pm2 logs baileys-api`, `pm2 restart baileys-api`.
@@ -68,14 +69,14 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Teslim modalı** — kendisine / başkasına teslim, teslim alan kişi ve not (`deliveryType`, `deliveryPersonName`, `deliveryNote`)
 - **Tüm teslim durumları** için teslim bilgisi kaydı (`delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return`)
 - **Ödeme Linki Gönder** butonu (servis detay, ücret kartı) — şu an toast / bilgi; **iyzico entegrasyonu yakında**
-- **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları)
+- **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları); **tanım listeleri** için cache anahtarları **shopId** bazlı (`device-types-${shopId}`, `brands-${shopId}-…`, `models-${shopId}-…`); liste API’lerinde **`dynamic = 'force-dynamic'`**; silme sonrası istemci yenilemelerinde **`cache: 'no-store'`** ve timestamp
 - **Auth / Login koruması** (Supabase Auth)
 - **Multi-tenant mimari** (her dükkan kendi verisini görür)
 - **Landing page** — yeniden tasarlanmış içerik (`src/app/landing/page.tsx`, **`'use client'`**); **SEO metadata** `src/app/landing/layout.tsx` içinde. Hero, mock-up, özellikler, SSS, “Kimler Kullanabilir?”, fiyatlandırma, CTA; **“Kullanıcılarımız ne diyor?”** başlığı
 - **Demo hesabı otomatik giriş** (`/login?demo=true`)
 - **Kayıt olunca otomatik Shop oluşturma** (`/api/auth/register`)
 - **Şirket bazlı veri izolasyonu** (`shopId`)
-- **Şifre sıfırlama** — giriş sayfasından “Şifremi unuttum”; kayıtlı e-posta kontrolü + sıfırlama bağlantısı; üretim **`redirectTo`**: **`https://www.tamirtakip.com.tr/reset-password`**; **`/reset-password`** ile yeni şifre. Supabase **Site URL**: **`https://www.tamirtakip.com.tr`**
+- **Şifre sıfırlama** — giriş sayfasından “Şifremi unuttum”; kayıtlı e-posta kontrolü + sıfırlama bağlantısı; üretim **`redirectTo`**: **`https://www.tamirtakip.com.tr/reset-password`**; **`/reset-password`** ile yeni şifre. Supabase **Site URL**: **`https://www.tamirtakip.com.tr`**. **Resend** SMTP (`smtp.resend.com:465`, kullanıcı `resend`, **from:** `noreply@tamirtakip.com.tr`); şablonlar **TamirTakip** markasıyla; e-posta doğrulama açık; doğrulama sonrası **`/email-dogrulama`**
 - Cari yönetiminde detay modal
 - Türkçe hata mesajları (giriş ekranı)
 - Production deploy ([www.tamirtakip.com.tr](https://www.tamirtakip.com.tr); eski Vercel URL: [teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
@@ -167,7 +168,7 @@ Geliştirme için önerilen ayarlar:
 - **Site URL**: `http://localhost:3000`
 - **Redirect URL**: `http://localhost:3000/api/auth/callback`
 
-Production’da e-posta onayını açabilirsin; redirect URL’leri ortama göre güncelle (**www.tamirtakip.com.tr** + localhost).
+Production’da e-posta onayını açabilirsin; redirect URL’leri ortama göre güncelle (**www.tamirtakip.com.tr** + localhost). **Resend** ile SMTP (`smtp.resend.com:465`); doğrulama sonrası **`/email-dogrulama`** sayfası.
 
 ## Proje Yapısı
 
@@ -178,6 +179,7 @@ src/
 │   ├── admin/                # Yönetici paneli (yalnızca belirli e-posta)
 │   ├── sorgula/              # Müşteri sorgulama (public)
 │   ├── reset-password/       # Şifre sıfırlama formu (public)
+│   ├── email-dogrulama/        # E-posta doğrulama sonrası landing (public)
 │   ├── (auth)/login/         # Giriş / kayıt
 │   ├── (dashboard)/          # Korumalı uygulama
 │   │   ├── page.tsx          # Gösterge paneli
@@ -214,7 +216,8 @@ src/
 
 ## Prisma şema notları
 
-- **ServiceOrder**: `deletedAt` (`DateTime?`), `repairDetails` (`String?`), `reminderSentAt` (`DateTime?` — cron hatırlatması)
+- **ServiceOrder**: `deletedAt` (`DateTime?`), `repairDetails` (`String?`), `reminderSentAt` (`DateTime?` — cron hatırlatması); **`orderNumber`** — `@@unique([shopId, orderNumber])` (dükkan başına ayrı sıra)
+- **Bayi**: `@@unique([shopId, bayiCode])` (dükkan başına ayrı bayi kodu sırası)
 - **Shop**: `settingsPassword` (`String?`), `receiptNotes` (`String?`)
 - **WaTemplate**: `shopId`, `templateName`, `message`
 - **StatusLog**: `oldPrice` (`Float?`), `newPrice` (`Float?`)
@@ -252,7 +255,7 @@ src/
 - [ ] SMS entegrasyonu
 - [x] Mobil uyumluluk (sidebar, grid, tablolar, formlar, şirketim sekmeleri, modallar)
 - [ ] Ödeme linki WhatsApp metni
-- [x] Admin paneli + cron hatırlatma + barkod/QR + SEO + demo salt okunur
+- [x] Admin paneli + cron hatırlatma + barkod/QR + SEO + demo salt okunur + e-posta doğrulama (`/email-dogrulama`, Resend)
 - [x] Domain (**tamirtakip.com.tr**)
 
 ---

@@ -225,6 +225,11 @@ function CihazKayitServiceInner({
   const [isReturn, setIsReturn] = useState(false);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
+  const [showAddDeviceType, setShowAddDeviceType] = useState(false);
+  const [showAddBrand, setShowAddBrand] = useState(false);
+  const [showAddModel, setShowAddModel] = useState(false);
+  const [newDefinitionName, setNewDefinitionName] = useState("");
+  const [savingDefinition, setSavingDefinition] = useState(false);
 
   const customerNameRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
@@ -665,6 +670,96 @@ function CihazKayitServiceInner({
     }
   }
 
+  async function handleAddDeviceType() {
+    if (!newDefinitionName.trim()) return;
+    setSavingDefinition(true);
+    try {
+      const res = await fetch("/api/device-types", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newDefinitionName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      await loadDeviceTypes();
+      setValue("deviceTypeId", data.id);
+      setShowAddDeviceType(false);
+      setNewDefinitionName("");
+      toast.success("Cihaz türü eklendi");
+    } finally {
+      setSavingDefinition(false);
+    }
+  }
+
+  async function handleAddBrand() {
+    if (!newDefinitionName.trim() || !deviceTypeId) return;
+    setSavingDefinition(true);
+    try {
+      const res = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newDefinitionName.trim(),
+          deviceTypeId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      // Markaları yeniden yükle
+      const brandsRes = await fetch(
+        `/api/brands?deviceTypeId=${encodeURIComponent(deviceTypeId)}`,
+      );
+      const brandsData = await brandsRes.json();
+      setBrands(brandsData);
+      skipBrandCascade.current = true;
+      setValue("brandId", data.id);
+      setShowAddBrand(false);
+      setNewDefinitionName("");
+      toast.success("Marka eklendi");
+    } finally {
+      setSavingDefinition(false);
+    }
+  }
+
+  async function handleAddModel() {
+    if (!newDefinitionName.trim() || !brandId) return;
+    setSavingDefinition(true);
+    try {
+      const res = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newDefinitionName.trim(),
+          brandId,
+          deviceTypeId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      // Modelleri yeniden yükle
+      const modelsRes = await fetch(
+        `/api/models?brandId=${encodeURIComponent(brandId)}`,
+      );
+      const modelsData = await modelsRes.json();
+      setModels(modelsData);
+      setValue("deviceModelId", data.id);
+      setShowAddModel(false);
+      setNewDefinitionName("");
+      toast.success("Model eklendi");
+    } finally {
+      setSavingDefinition(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -935,28 +1030,62 @@ function CihazKayitServiceInner({
                 <Label>
                   Cihaz türü <span className="text-destructive">*</span>
                 </Label>
-                <Controller
-                  name="deviceTypeId"
-                  control={control}
-                  render={({ field }) => (
-                    <select
-                      ref={deviceTypeRef}
-                      id="form-device-type"
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      onKeyDown={(e) => handleEnterKey(e, brandRef)}
-                      aria-invalid={!!errors.deviceTypeId}
-                      className={nativeSelectClassName}
-                    >
-                      <option value="">Cihaz türü seçin</option>
-                      {deviceTypes.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                />
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <Controller
+                    name="deviceTypeId"
+                    control={control}
+                    render={({ field }) => (
+                      <select
+                        ref={deviceTypeRef}
+                        id="form-device-type"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        onKeyDown={(e) => handleEnterKey(e, brandRef)}
+                        aria-invalid={!!errors.deviceTypeId}
+                        className={nativeSelectClassName}
+                      >
+                        <option value="">Cihaz türü seçin</option>
+                        {deviceTypes.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDefinitionName("");
+                      setShowAddDeviceType(true);
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      width: "32px",
+                      height: "32px",
+                      background: "#4f46e5",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "18px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    title="Yeni cihaz türü ekle"
+                  >
+                    +
+                  </button>
+                </div>
                 {errors.deviceTypeId ? (
                   <p className="text-sm text-destructive" role="alert">
                     {errors.deviceTypeId.message}
@@ -967,35 +1096,70 @@ function CihazKayitServiceInner({
                 <Label>
                   Marka <span className="text-destructive">*</span>
                 </Label>
-                <Controller
-                  name="brandId"
-                  control={control}
-                  render={({ field }) => (
-                    <select
-                      ref={brandRef}
-                      id="form-brand"
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      onKeyDown={(e) => handleEnterKey(e, modelRef)}
-                      disabled={!deviceTypeId || brands.length === 0}
-                      aria-invalid={!!errors.brandId}
-                      className={nativeSelectClassName}
-                    >
-                      <option value="">
-                        {!deviceTypeId
-                          ? "Önce cihaz türü seçin"
-                          : brands.length === 0
-                            ? "Bu türde marka yok"
-                            : "Marka seçin"}
-                      </option>
-                      {brands.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <Controller
+                    name="brandId"
+                    control={control}
+                    render={({ field }) => (
+                      <select
+                        ref={brandRef}
+                        id="form-brand"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        onKeyDown={(e) => handleEnterKey(e, modelRef)}
+                        disabled={!deviceTypeId || brands.length === 0}
+                        aria-invalid={!!errors.brandId}
+                        className={nativeSelectClassName}
+                      >
+                        <option value="">
+                          {!deviceTypeId
+                            ? "Önce cihaz türü seçin"
+                            : brands.length === 0
+                              ? "Bu türde marka yok"
+                              : "Marka seçin"}
                         </option>
-                      ))}
-                    </select>
-                  )}
-                />
+                        {brands.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDefinitionName("");
+                      setShowAddBrand(true);
+                    }}
+                    disabled={!deviceTypeId}
+                    style={{
+                      flexShrink: 0,
+                      width: "32px",
+                      height: "32px",
+                      background: deviceTypeId ? "#4f46e5" : "#e5e7eb",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "18px",
+                      cursor: deviceTypeId ? "pointer" : "not-allowed",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    title="Yeni marka ekle"
+                  >
+                    +
+                  </button>
+                </div>
                 {errors.brandId ? (
                   <p className="text-sm text-destructive" role="alert">
                     {errors.brandId.message}
@@ -1006,35 +1170,70 @@ function CihazKayitServiceInner({
                 <Label>
                   Model <span className="text-destructive">*</span>
                 </Label>
-                <Controller
-                  name="deviceModelId"
-                  control={control}
-                  render={({ field }) => (
-                    <select
-                      ref={modelRef}
-                      id="form-model"
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
-                      disabled={!brandId || models.length === 0}
-                      aria-invalid={!!errors.deviceModelId}
-                      className={nativeSelectClassName}
-                    >
-                      <option value="">
-                        {!brandId
-                          ? "Önce marka seçin"
-                          : models.length === 0
-                            ? "Bu markada model yok"
-                            : "Model seçin"}
-                      </option>
-                      {models.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.name}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <Controller
+                    name="deviceModelId"
+                    control={control}
+                    render={({ field }) => (
+                      <select
+                        ref={modelRef}
+                        id="form-model"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        onKeyDown={(e) => handleEnterKey(e, serialNoRef)}
+                        disabled={!brandId || models.length === 0}
+                        aria-invalid={!!errors.deviceModelId}
+                        className={nativeSelectClassName}
+                      >
+                        <option value="">
+                          {!brandId
+                            ? "Önce marka seçin"
+                            : models.length === 0
+                              ? "Bu markada model yok"
+                              : "Model seçin"}
                         </option>
-                      ))}
-                    </select>
-                  )}
-                />
+                        {models.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDefinitionName("");
+                      setShowAddModel(true);
+                    }}
+                    disabled={!brandId}
+                    style={{
+                      flexShrink: 0,
+                      width: "32px",
+                      height: "32px",
+                      background: brandId ? "#4f46e5" : "#e5e7eb",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "18px",
+                      cursor: brandId ? "pointer" : "not-allowed",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    title="Yeni model ekle"
+                  >
+                    +
+                  </button>
+                </div>
                 {errors.deviceModelId ? (
                   <p className="text-sm text-destructive" role="alert">
                     {errors.deviceModelId.message}
@@ -1622,6 +1821,118 @@ function CihazKayitServiceInner({
           </div>
         </DialogContent>
       </Dialog>
+
+      {(showAddDeviceType || showAddBrand || showAddModel) && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "28px",
+              width: "100%",
+              maxWidth: "400px",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: 600,
+                marginBottom: "16px",
+              }}
+            >
+              {showAddDeviceType
+                ? "Yeni Cihaz Türü"
+                : showAddBrand
+                  ? "Yeni Marka"
+                  : "Yeni Model"}{" "}
+              Ekle
+            </h3>
+            <input
+              type="text"
+              value={newDefinitionName}
+              onChange={(e) => setNewDefinitionName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (showAddDeviceType) void handleAddDeviceType();
+                  else if (showAddBrand) void handleAddBrand();
+                  else void handleAddModel();
+                }
+                if (e.key === "Escape") {
+                  setShowAddDeviceType(false);
+                  setShowAddBrand(false);
+                  setShowAddModel(false);
+                }
+              }}
+              placeholder="İsim girin..."
+              autoFocus
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                fontSize: "14px",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "16px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (showAddDeviceType) void handleAddDeviceType();
+                  else if (showAddBrand) void handleAddBrand();
+                  else void handleAddModel();
+                }}
+                disabled={savingDefinition || !newDefinitionName.trim()}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                {savingDefinition ? "Kaydediliyor..." : "Ekle"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddDeviceType(false);
+                  setShowAddBrand(false);
+                  setShowAddModel(false);
+                  setNewDefinitionName("");
+                }}
+                style={{
+                  padding: "10px 16px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
