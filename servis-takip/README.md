@@ -18,7 +18,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Bekleyen Cihazlar** — varsayılan durum filtresi: `completed`, `waiting_approval`, `approval_given`, `waiting_part`, `repair_failed`, `no_problem_found`, `customer_return_request`, `sent_to_external`. **`reminderSentAt`** etiketi (cron sonrası).
 - **Demo salt okunur** — **`src/lib/demo-guard.ts`**, **`/api/demo/unlock`** / **`/api/demo/lock`**, **`demo-banner.tsx`**, cookie **`demo_unlocked`**; demo şifresi **`Kaanky316293!`**. **`/sirketim`** `isDemo` iken parola / WA / şablon kısıtları.
 - **Müşteri durum sorgulama** (`/sorgula`, şifre gerektirmez) — kayıt no + telefon ile kayıt özeti; **tamir olmuyor** durumunda **tamir olmama nedeni** gösterimi
-- Cihaz kayıt ve takip
+- Cihaz kayıt ve takip; **cihaz türü / marka / model** alanlarında **“+”** ile modal üzerinden **anında tanım ekleme** ve otomatik seçim (Tanımlar sayfasına gitmeden)
 - Müşteri yönetimi
 - Cari yönetimi (firma/müşteri kaydı, cari kodu: C202605001 formatı)
 - Bayiler modülü (firma adı, yetkili kişi, telefon, vergi bilgileri)
@@ -32,7 +32,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Müşteri Nüshası (servis giriş fişi) ve Cihaz Etiketi yazdırma** (tarayıcı yazdır / PDF kaydet); müşteri nüshu sayfasında **QR kod** (`react-qr-code`) ile sorgulama bağlantısı
 - **Kargo gönderi fişi yazdırma** (cari bazında)
 - **Raporlar sayfası** (servis, finansal, ikinci el — sekme yapısı)
-- **Döviz kurları** (USD/EUR, TCMB/ExchangeRate-API) — dashboard’da gösterim; **istemci ~10 dakikada bir günceller** (gereksiz istek azaltma)
+- **Döviz kurları** — **`GET /api/exchange-rates`** (`src/app/api/exchange-rates/route.ts`): **TCMB** resmi XML **`https://www.tcmb.gov.tr/kurlar/today.xml`**; hata/parse durumunda **fallback** **`open.er-api.com`**. Dashboard’da gösterim; istemci ~10 dakikada bir günceller.
 - Ciro maskeleme (göster/gizle butonu)
 - Cihaz kayıt formunda geçmiş müşteri arama ve otomatik doldurma
 - Cihaz kayıtta bayi seçimi ve otomatik müşteri bilgisi doldurma
@@ -40,7 +40,7 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - Telefon numarası formatlama (+90 5XX XXX XX XX)
 - Arama filtresi URL'de saklanır, geri dönünce kaybolmaz
 - Sayfadan ayrılma uyarısı (form doldurulmuşken)
-- **Kayıt düzenleme**; **silme** işlemleri **yönetici parolası** ile (`src/lib/verify-settings-password.ts`), servis kaydı **soft delete** (`deletedAt`). **Silme onayı:** `pendingDeleteId` yarışı giderildi; AlertDialog’da silinecek **id** yerelde tutulur (bayiler, stok, cari, ikinci el, dış servis, planlarım, cihaz sorgula, servis detay).
+- **Kayıt düzenleme**; **silme** işlemleri **yönetici parolası** ile (`src/lib/verify-settings-password.ts`), servis kaydı **soft delete** (`deletedAt`). **Silme onayı:** `pendingDeleteId` yarışı giderildi; AlertDialog’da silinecek **id** yerelde tutulur (bayiler, stok, cari, ikinci el, dış servis, planlarım, cihaz sorgula, servis detay); React DevTools kapalıyken de güvenilir.
 - Ciro takibi (günlük / haftalık / aylık / yıllık / **tarih aralığı**)
 - **WhatsApp (Baileys)** — Meta WhatsApp Business API kaldırıldı; giden mesajlar **Baileys** VPS üzerinden düz metin olarak gider. Hetzner VPS (**46.62.253.209**, Ubuntu 24.04, CX23), **PM2** (`baileys-api`), oturumlar **`/opt/baileys/sessions/{shopId}/`**. Ortam: **`BAILEYS_API_URL`**, **`BAILEYS_API_KEY`**. Kütüphane: `src/lib/baileys-client.ts`; API: `/api/baileys/connect`, `/api/baileys/status`, `/api/baileys/send`, `/api/baileys/disconnect`. **`POST /api/whatsapp/send`** şablon anahtarı + parametre alır, **`buildMessage`** ile metne çevirir ve Baileys ile gönderir.
 - **Şirketim** — **parola koruması** (ilk kurulumda parola oluşturma, sonraki girişlerde sorma; **sessionStorage** ile aynı oturumda tekrar sormaz). Sekmeler: Şirket bilgileri, **WhatsApp** (**“WhatsApp API” → “WhatsApp”**, pairing kodu), **Mesaj Şablonları**, **Silinen Kayıtlar**, Google Contacts, **Tanımlar** (cihaz türü/marka/model; **sidebar’dan Tanımlar kaldırıldı**), **Fiş / Nüsha Ayarları** (müşteri nüshası servis şartları / `receiptNotes`). **Yazdırma Ayarları** sekmesi kaldırıldı. Sekme şeridi mobilde **yatay kaydırılabilir**; parola alanı **16px** font (iOS zoom). VPS: `ssh root@46.62.253.209`; `pm2 logs baileys-api`, `pm2 restart baileys-api`.
@@ -65,18 +65,18 @@ Küçük ve orta ölçekli teknik servis dükkanları için geliştirilmiş web 
 - **Bayi grubuna göre otomatik iskonto** — servis detayda girilen brüt tutardan net hesaplanır, veritabanına **net** kaydedilir
 - **Servis detayda iskonto bilgisi** — kayıtlı fiyat üzerinden brüt/iskonto/net özeti (kalıcı kutu); yazarken ayrı önizleme
 - **Planlarım** — tamamlanmış planlar için **Geri Al** (`isCompleted: false`)
-- **Google Contacts entegrasyonu** — yeni müşteri oluşturulunca Gmail kişilerine otomatik eklenir (`Şirketim` → Google Contacts; kişi adı: `{müşteri adı} #{kayıt numarası}`)
+- **Google Contacts entegrasyonu** — yeni müşteri oluşturulunca Gmail kişilerine otomatik eklenir (`Şirketim` → Google Contacts; kişi adı: `{müşteri adı} #{kayıt numarası}`). **Google Cloud Console**’da uygulama **doğrulanmış**; OAuth akışında “doğrulanmamış uygulama” uyarısı yok.
 - **Teslim modalı** — kendisine / başkasına teslim, teslim alan kişi ve not (`deliveryType`, `deliveryPersonName`, `deliveryNote`)
 - **Tüm teslim durumları** için teslim bilgisi kaydı (`delivered`, `delivered_repair_failed`, `delivered_no_problem`, `delivered_customer_return`)
 - **Ödeme Linki Gönder** butonu (servis detay, ücret kartı) — şu an toast / bilgi; **iyzico entegrasyonu yakında**
 - **Performans optimizasyonları** (bellek içi cache, paralel veritabanı sorguları); **tanım listeleri** için cache anahtarları **shopId** bazlı (`device-types-${shopId}`, `brands-${shopId}-…`, `models-${shopId}-…`); liste API’lerinde **`dynamic = 'force-dynamic'`**; silme sonrası istemci yenilemelerinde **`cache: 'no-store'`** ve timestamp
 - **Auth / Login koruması** (Supabase Auth)
 - **Multi-tenant mimari** (her dükkan kendi verisini görür)
-- **Landing page** — yeniden tasarlanmış içerik (`src/app/landing/page.tsx`, **`'use client'`**); **SEO metadata** `src/app/landing/layout.tsx` içinde. Hero, mock-up, özellikler, SSS, “Kimler Kullanabilir?”, fiyatlandırma, CTA; **“Kullanıcılarımız ne diyor?”** başlığı
+- **Landing page** — yeniden tasarlanmış içerik (`src/app/landing/page.tsx`, **`'use client'`**); **SEO metadata** `src/app/landing/layout.tsx` içinde. Hero, mock-up, özellikler, SSS, “Kimler Kullanabilir?”, fiyatlandırma, CTA; **“Kullanıcılarımız ne diyor?”** başlığı; **footer** linkleri: **`/gizlilik-politikasi`**, **`/hizmet-sartlari`**
 - **Demo hesabı otomatik giriş** (`/login?demo=true`)
 - **Kayıt olunca otomatik Shop oluşturma** (`/api/auth/register`)
 - **Şirket bazlı veri izolasyonu** (`shopId`)
-- **Şifre sıfırlama** — giriş sayfasından “Şifremi unuttum”; kayıtlı e-posta kontrolü + sıfırlama bağlantısı; üretim **`redirectTo`**: **`https://www.tamirtakip.com.tr/reset-password`**; **`/reset-password`** ile yeni şifre. Supabase **Site URL**: **`https://www.tamirtakip.com.tr`**. **Resend** SMTP (`smtp.resend.com:465`, kullanıcı `resend`, **from:** `noreply@tamirtakip.com.tr`); şablonlar **TamirTakip** markasıyla; e-posta doğrulama açık; doğrulama sonrası **`/email-dogrulama`**
+- **Şifre sıfırlama** — giriş sayfasından “Şifremi unuttum”; kayıtlı e-posta kontrolü + sıfırlama bağlantısı; üretim **`redirectTo`**: **`https://www.tamirtakip.com.tr/reset-password`**; **`/reset-password`** ile yeni şifre. Supabase **Site URL**: **`https://www.tamirtakip.com.tr`**. **Resend** SMTP (**EU region**; `smtp.resend.com:465`, kullanıcı `resend`, **from:** `noreply@tamirtakip.com.tr`); şablonlar **TamirTakip** markasıyla; e-posta doğrulama açık; doğrulama sonrası **`/email-dogrulama`**
 - Cari yönetiminde detay modal
 - Türkçe hata mesajları (giriş ekranı)
 - Production deploy ([www.tamirtakip.com.tr](https://www.tamirtakip.com.tr); eski Vercel URL: [teknikservis-seven.vercel.app](https://teknikservis-seven.vercel.app))
@@ -135,7 +135,7 @@ CRON_SECRET="..."
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
 NEXT_PUBLIC_GOOGLE_CLIENT_ID="..."
-NEXT_PUBLIC_APP_URL="https://www.tamirtakip.com.tr"
+NEXT_PUBLIC_APP_URL="https://tamirtakip.com.tr"
 ```
 
 Supabase Dashboard → **Authentication → URL Configuration** içine **`/reset-password`** için tam URL ekleyin (örn. `https://www.tamirtakip.com.tr/reset-password` ve `http://localhost:3000/reset-password`). **Site URL** üretimde **`https://www.tamirtakip.com.tr`** olmalı.
@@ -168,7 +168,7 @@ Geliştirme için önerilen ayarlar:
 - **Site URL**: `http://localhost:3000`
 - **Redirect URL**: `http://localhost:3000/api/auth/callback`
 
-Production’da e-posta onayını açabilirsin; redirect URL’leri ortama göre güncelle (**www.tamirtakip.com.tr** + localhost). **Resend** ile SMTP (`smtp.resend.com:465`); doğrulama sonrası **`/email-dogrulama`** sayfası.
+Production’da e-posta onayını açabilirsin; redirect URL’leri ortama göre güncelle (**www.tamirtakip.com.tr** + localhost). **Resend** ile SMTP (**EU region**, `smtp.resend.com:465`); doğrulama sonrası **`/email-dogrulama`** sayfası.
 
 ## Proje Yapısı
 
@@ -180,6 +180,8 @@ src/
 │   ├── sorgula/              # Müşteri sorgulama (public)
 │   ├── reset-password/       # Şifre sıfırlama formu (public)
 │   ├── email-dogrulama/        # E-posta doğrulama sonrası landing (public)
+│   ├── gizlilik-politikasi/    # Gizlilik Politikası (public)
+│   ├── hizmet-sartlari/        # Hizmet Şartları (public)
 │   ├── (auth)/login/         # Giriş / kayıt
 │   ├── (dashboard)/          # Korumalı uygulama
 │   │   ├── page.tsx          # Gösterge paneli
@@ -216,7 +218,7 @@ src/
 
 ## Prisma şema notları
 
-- **ServiceOrder**: `deletedAt` (`DateTime?`), `repairDetails` (`String?`), `reminderSentAt` (`DateTime?` — cron hatırlatması); **`orderNumber`** — `@@unique([shopId, orderNumber])` (dükkan başına ayrı sıra)
+- **ServiceOrder**: `deletedAt` (`DateTime?`), `repairDetails` (`String?`), `reminderSentAt` (`DateTime?` — cron hatırlatması); **`orderNumber`** — `@@unique([shopId, orderNumber])` (dükkan başına ayrı sıra; silinmiş kayıt numaraları tekrar kullanılmaz)
 - **Bayi**: `@@unique([shopId, bayiCode])` (dükkan başına ayrı bayi kodu sırası)
 - **Shop**: `settingsPassword` (`String?`), `receiptNotes` (`String?`)
 - **WaTemplate**: `shopId`, `templateName`, `message`
@@ -248,9 +250,10 @@ src/
 - [x] Bayi grup ve iskonto sistemi
 - [x] Planlarım — tamamlandı geri al
 - [x] Google Contacts entegrasyonu
+- [x] Google OAuth — Cloud Console uygulama doğrulaması (doğrulanmamış uygulama uyarısı yok)
+- [x] Yasal sayfalar (`/gizlilik-politikasi`, `/hizmet-sartlari`) + landing footer linkleri
 - [x] Teslim modalı
 - [ ] iyzico ödeme entegrasyonu
-- [ ] Google OAuth production doğrulaması (domain alınınca)
 - [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
 - [ ] SMS entegrasyonu
 - [x] Mobil uyumluluk (sidebar, grid, tablolar, formlar, şirketim sekmeleri, modallar)

@@ -27,13 +27,13 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 - **Supabase Auth** kullanılıyor.
 - **`src/middleware.ts`** — Dashboard rotalarını korur; `/api/*` matcher dışında (API route’lar doğrudan işlenir).
-- **Herkese açık rotalar** (`publicPaths`): **`/login`**, **`/landing`**, **`/sorgula`**, **`/reset-password`**, **`/email-dogrulama`**, **`/sitemap.xml`**, **`/robots.txt`**, **`/api/cron`** öneki (ör. cron endpoint’leri) ve bunların alt yolları.
+- **Herkese açık rotalar** (`publicPaths`): **`/login`**, **`/landing`**, **`/sorgula`**, **`/reset-password`**, **`/email-dogrulama`**, **`/gizlilik-politikasi`**, **`/hizmet-sartlari`**, **`/sitemap.xml`**, **`/robots.txt`**, **`/api/cron`** öneki (ör. cron endpoint’leri) ve bunların alt yolları.
 - **Matcher** içinde **`/`** açıkça tanımlıdır; kök adres için middleware tetiklenir (aksi halde kök korumalı kalıp yönlendirme çalışmayabilirdi).
 - **Giriş yoksa** ve rota korumalıysa → **`/landing`** yönlendirilir (login değil).
 - **Giriş varken `/login`** → e-posta **`kaanccolak@gmail.com`** ise **`/admin`**, aksi halde **`/`** (middleware). Başarılı **giriş** ve **kayıt** sonrası istemci tarafında da `supabase.auth.getUser()` ile aynı **`/admin`** yönlendirmesi (`src/app/(auth)/login/page.tsx`).
 - **Çıkış** (`Sidebar`) → **`/landing`**.
 - **Şifre sıfırlama**: Login sayfasında **Şifremi unuttum** → e-posta ile **`resetPasswordForEmail`**; üretim **`redirectTo`**: **`https://www.tamirtakip.com.tr/reset-password`**. Öncesinde **`POST /api/auth/check-email`** ile kayıtlı e-posta kontrolü (Supabase **Admin** `listUsers`; sunucuda **`SUPABASE_SERVICE_ROLE_KEY`** gerekir). Supabase Dashboard **Site URL**: **`https://www.tamirtakip.com.tr`**.
-- **E-posta (Resend + Supabase SMTP):** **Resend** entegrasyonu; **tamirtakip.com.tr** domain doğrulandı. Supabase Auth SMTP: **`smtp.resend.com:465`**, kullanıcı **`resend`**, gönderen **`noreply@tamirtakip.com.tr`**. E-posta şablonları (**Confirm signup**, **Reset password**) **TamirTakip** markasıyla güncellendi; e-posta doğrulama açık. Doğrulama sonrası yönlendirme: **`/email-dogrulama`** (**`src/app/email-dogrulama/page.tsx`** — doğrulama landing sayfası).
+- **E-posta (Resend + Supabase SMTP):** **Resend** entegrasyonu (**EU region**); **tamirtakip.com.tr** domain doğrulandı. Supabase Auth SMTP: **`smtp.resend.com:465`**, kullanıcı **`resend`**, gönderen **`noreply@tamirtakip.com.tr`**. E-posta şablonları (**Confirm signup**, **Reset password**) **TamirTakip** markasıyla güncellendi; e-posta doğrulama açık. Doğrulama sonrası yönlendirme: **`/email-dogrulama`** (**`src/app/email-dogrulama/page.tsx`** — doğrulama landing sayfası).
 - **`src/app/reset-password/page.tsx`** — Kök dizinde, **public**; oturum/hash sonrası **`updateUser({ password })`**. Geçersiz oturumda girişe dönüş butonu (`window.location.href`).
 - Supabase Dashboard → **Authentication → URL Configuration**: **`/reset-password`** redirect URL eklenmeli (prod + localhost).
 
@@ -46,15 +46,15 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 ### Landing page
 
-- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public** (`'use client'`); **metadata** (`title`, `description`, `keywords`, OpenGraph, Twitter card) **`src/app/landing/layout.tsx`** içinde. **tamamen yeniden tasarlanmış** içerik: hero + dashboard mock-up, sosyal kanıt bandı, özellik kartları, 3 adım, referanslar, fiyatlandırma, CTA, footer; **H1** SEO için optimize; **SSS** ve **“Kimler Kullanabilir?”** bölümleri. Testimonial başlığı: **“Kullanıcılarımız ne diyor?”** PageSpeed Insights (referans skorlar): Performans **100**, SEO **100**, En İyi Uygulamalar **100**, Erişilebilirlik **94**.
+- **`src/app/landing/page.tsx`** — Dashboard layout dışında, **public** (`'use client'`); **metadata** (`title`, `description`, `keywords`, OpenGraph, Twitter card) **`src/app/landing/layout.tsx`** içinde. **tamamen yeniden tasarlanmış** içerik: hero + dashboard mock-up, sosyal kanıt bandı, özellik kartları, 3 adım, referanslar, fiyatlandırma, CTA, footer; **H1** SEO için optimize; **SSS** ve **“Kimler Kullanabilir?”** bölümleri. **Footer:** **`/gizlilik-politikasi`**, **`/hizmet-sartlari`** linkleri. Testimonial başlığı: **“Kullanıcılarımız ne diyor?”** PageSpeed Insights (referans skorlar): Performans **100**, SEO **100**, En İyi Uygulamalar **100**, Erişilebilirlik **94**.
 - **“Demo İncele”** → **`/login?demo=true`** → e-posta / şifre otomatik doldurulur (`demo@demo.tr` / `demodemo`).
 - **“Kullanmaya Başlayın”** / alt CTA **“Hemen Başlayın”** → **`#fiyatlandirma`** bölümüne `scrollIntoView({ behavior: 'smooth' })`.
 - **“Servis Paneli”** → **`/login`**.
 
 ### Veritabanı
 
-- **`ServiceOrder.orderNumber`**: **dükkan bazında benzersiz** — `@@unique([shopId, orderNumber])` (global `orderNumber` unique kaldırıldı; her dükkan kendi **001** sırasından başlar).
-- **`Bayi.bayiCode`**: **dükkan bazında benzersiz** — `@@unique([shopId, bayiCode])` (global unique kaldırıldı).
+- **`ServiceOrder.orderNumber`**: **dükkan bazında benzersiz** — `@@unique([shopId, orderNumber])` (global `orderNumber` `@unique` kaldırıldı; her dükkan kendi **001** sırasından başlar). Silinmiş kayıtların numaraları da sayılır; **numara tekrar kullanılmaz**.
+- **`Bayi.bayiCode`**: **dükkan bazında benzersiz** — `@@unique([shopId, bayiCode])` (global `@unique` kaldırıldı).
 - **`ServiceOrder.repairFailedReason`** (`String?`) — durum **`repair_failed`** iken servis detayda modal ile girilen tamir olmama nedeni; müşteri **`/sorgula`** sonucunda da gösterilir (durum + dolu neden).
 - **`ServiceOrder.reminderSentAt`** (`DateTime?`) — **cron** hatırlatma gönderilince set edilir; **Bekleyen Cihazlar** listesinde gösterilir.
 - **`ServiceOrder.repairDetails`** (`String?`) — **Onarım Tamamlandı** (`completed`) seçiminde açılan modal ile girilen onarım özeti; servis detayda **Arıza ve Notlar** bölümünde gösterilir ve düzenlenebilir; **Teslim Fişi** sayfasında kullanılır.
@@ -89,8 +89,8 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - Token’lar **`Shop`** tablosunda: `googleAccessToken`, `googleRefreshToken`, `googleTokenExpiry`. Yenileme: `src/lib/googleContacts.ts` içinde **`refreshGoogleToken`**.
 - **Callback:** `GET /api/auth/google/callback` — kod → token, `getShop()` ile shop, Prisma `update`. Başarı/hata: `/sirketim?googleSuccess=true` | `googleError=true`.
 - **Kaynak:** `src/lib/googleContacts.ts` (`addContactToGoogle`, `refreshGoogleToken`).
-- **Test / doğrulama:** OAuth ekranında uygulama test modunda olabilir; Google’ın **100 test kullanıcı** limiti geçerli olabilir. Üretimde domain doğrulaması / OAuth ekranı yayınlama gerekebilir.
-- **`NEXT_PUBLIC_GOOGLE_CLIENT_ID`** zorunlu (bağlan URL’si). Üretim tabanı: `NEXT_PUBLIC_APP_URL` (örn. `https://teknikservis-seven.vercel.app`) — token değişimi ve istemci `redirect_uri` ile uyumlu olmalı.
+- **Google OAuth:** Uygulama **Google Cloud Console** üzerinde **doğrulanmış** durumda; kullanıcılar Google Contacts bağlarken **“doğrulanmamış uygulama”** uyarısı görmez.
+- **`NEXT_PUBLIC_GOOGLE_CLIENT_ID`** zorunlu (bağlan URL’si). Üretim tabanı: **`NEXT_PUBLIC_APP_URL`** (örn. **`https://tamirtakip.com.tr`**) — token değişimi ve istemci `redirect_uri` ile uyumlu olmalı.
 
 ### Teslim modalı (servis detay)
 
@@ -107,7 +107,7 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **Durum geçmişi** kaydırılabilir kutu içinde; fiyat değişiklikleri **StatusLog** `oldPrice` / `newPrice` ile gösterilir (eski → yeni).
 - **Serbest WhatsApp** mesajı gönderme alanı (düz metin).
 - **Silme**: **soft delete** (`deletedAt`); kritik silmelerde **yönetici parolası** — doğrulama **`src/lib/verify-settings-password.ts`** (merkezi).
-- **Silme onayı (race condition):** **`pendingDeleteId`** ile yarış durumu giderildi; **AlertDialog** “Evet, Sil” **`onClick`** içinde silinecek kaydın **`id`** değeri **yerel değişkene** alınır, callback doğrudan bu kimlikle çalışır (state gecikmesine bağlı yanlış silme engellenir). Etkilenen sayfalar: **bayiler**, **stok**, **cari**, **ikinci el** (`ikinci-el` veya ilgili rota), **dış servis** (`dis-servis`), **planlarım**, **cihaz sorgula**, **servis detay**.
+- **Silme onayı (race condition):** **`pendingDeleteId`** ile yarış durumu giderildi; **AlertDialog** “Evet, Sil” **`onClick`** içinde silinecek kaydın **`id`** değeri **yerel değişkene** alınır, callback doğrudan bu kimlikle çalışır (state gecikmesine bağlı yanlış silme engellenir; React DevTools kapalıyken de güvenilir). Etkilenen sayfalar: **bayiler**, **stok**, **cari**, **ikinci el** (`ikinci-el` veya ilgili rota), **dış servis** (`dis-servis`), **planlarım**, **cihaz sorgula**, **servis detay**.
 
 ### Servis Durumları
 
@@ -183,6 +183,8 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/sorgula` — Müşteri cihaz durumu sorgulama (dashboard dışı, public)
 - `/reset-password` — Şifre sıfırlama formu (e-posta bağlantısı sonrası, public)
 - `/email-dogrulama` — E-posta doğrulama sonrası landing (public)
+- `/gizlilik-politikasi` — Gizlilik Politikası (`src/app/gizlilik-politikasi/page.tsx`, public)
+- `/hizmet-sartlari` — Hizmet Şartları (`src/app/hizmet-sartlari/page.tsx`, public)
 
 ### Yeni API Route'lar
 
@@ -202,7 +204,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/cari/[id]` — **GET**, **PATCH**, **DELETE**
 - `/api/customers/search` — **GET** (`?q=` ile müşteri arama, min 3 karakter)
 - `/api/suggestions` — **GET** (`?field=&q=&deviceTypeId=`); `field`: `complaint` | `accessories` | `physicalCondition` (Prisma’da `physicalDamage` ile eşlenir); `getShop()` ile shop; min 2 karakter; geçmiş `ServiceOrder` metinlerinden frekansa göre öneri
-- `/api/exchange-rates` — **GET** (USD/EUR kurları; sunucu tarafı cache + dashboard’da ~10 dk’da bir istemci yenilemesi)
+- `/api/exchange-rates` — **GET** (`src/app/api/exchange-rates/route.ts`). **Kaynak:** TCMB resmi XML **`https://www.tcmb.gov.tr/kurlar/today.xml`** (USD/EUR `ForexBuying` / `ForexSelling` regex ile parse). **Fallback:** **`open.er-api.com`** (`/v6/latest/USD` ve EUR). Dashboard’da ~10 dk’da bir istemci yenilemesi.
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
@@ -238,7 +240,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 ### SEO ve domain
 
-- **Üretim domain:** **`tamirtakip.com.tr`** (İsimtescil → **Vercel**). Google Search Console bağlı; **sitemap** gönderildi.
+- **Üretim domain:** **`tamirtakip.com.tr`** (aktif; İsimtescil → **Vercel**). **`NEXT_PUBLIC_APP_URL`** Vercel ortamında **`https://tamirtakip.com.tr`** olacak şekilde güncellendi. Google Search Console bağlı; **sitemap** gönderildi.
 - **`src/app/sitemap.ts`**, **`src/app/robots.ts`** — dinamik sitemap / robots.
 - **`src/app/icon.tsx`** — Next.js 14 favicon (indigo kare + **T** + yeşil onay).
 - **Kök `layout` metadata:** `title`, `description`, `keywords`, OpenGraph, Twitter card (uygulama geneli).
@@ -284,7 +286,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (OAuth token değişimi; istemci kimliği yalnızca public ise `NEXT_PUBLIC_GOOGLE_CLIENT_ID` ile aynı olabilir)
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (OAuth yetkilendirme URL’si)
 - `CRON_SECRET` — **`POST /api/cron/remind-waiting`** için Bearer doğrulama (VPS cron)
-- `NEXT_PUBLIC_APP_URL` — OAuth `redirect_uri` / kök URL (üretim: **`https://www.tamirtakip.com.tr`** veya Vercel kökü; geliştirme: `http://localhost:3000`)
+- `NEXT_PUBLIC_APP_URL` — OAuth `redirect_uri` / kök URL (Vercel üretim: **`https://tamirtakip.com.tr`**; **`https://www.tamirtakip.com.tr`** veya localhost geliştirme URL’leri ile uyum için Dashboard redirect’leri eklenmeli; geliştirme: `http://localhost:3000`)
 
 ### Production
 
@@ -324,6 +326,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 
 ## Form UX
 
+- **Cihaz kayıt** (`src/app/(dashboard)/cihaz-kayit/page.tsx`): cihaz türü / marka / model **native `<select>`** alanlarının yanında **“+”** butonu; tıklanınca modal ile isim girip **POST** (`/api/device-types`, `/api/brands`, `/api/models`) kayıt; liste yenilenir ve yeni tanım **otomatik seçilir** (Tanımlar sayfasına gitmeden).
 - **Cihaz kayıt** formunda **Enter** ile bir sonraki alana odak (TAB benzeri sıra).
 - **İkinci el alım** (`src/app/(dashboard)/cihaz-kayit/second-hand-form.tsx`), **cari** ve **bayi** formlarında aynı Enter navigasyonu (`handleEnterKey` + ref zinciri).
 - İlgili **input / native select** alanlarında `onKeyDown` ile Enter işlenir.
@@ -494,7 +497,9 @@ src/app/admin/                            # Admin paneli (client + /api/admin/*)
 src/app/sitemap.ts
 src/app/robots.ts
 src/app/icon.tsx
-src/app/landing/                            # SaaS landing (public; metadata: layout.tsx)
+src/app/landing/                            # SaaS landing (public; metadata: layout.tsx; footer: gizlilik + hizmet şartları)
+src/app/gizlilik-politikasi/                # Gizlilik Politikası (public)
+src/app/hizmet-sartlari/                    # Hizmet Şartları (public)
 src/components/barcode-scanner.tsx
 src/components/demo-banner.tsx
 src/lib/demo-guard.ts
@@ -569,11 +574,12 @@ src/lib/supabase/
 - [x] Silme onayı `pendingDeleteId` yarış düzeltmesi (liste sayfaları)
 - [x] Tanım cache shopId anahtarları + liste `force-dynamic` / silme sonrası `no-store` + timestamp
 - [x] `orderNumber` / `bayiCode` dükkan bazlı unique + `allocateServiceOrderNumber(shopId)` (silinmiş numaralar sayılır)
-- [x] Resend e-posta + `/email-dogrulama` (doğrulama landing)
+- [x] Resend e-posta (**EU region**) + `/email-dogrulama` (doğrulama landing)
 - [ ] iyzico ödeme entegrasyonu
-- [ ] Google OAuth production doğrulaması (domain alınınca)
+- [x] Google OAuth — Google Cloud Console uygulama doğrulaması tamamlandı
 - [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
 - [ ] SMS entegrasyonu
 - [x] Mobil uyumlu tasarım (sidebar drawer, grid/form/tablo/şirketim sekmeleri, modallar)
 - [ ] Ödeme linki WhatsApp metni
 - [x] Domain bağlama (**tamirtakip.com.tr**)
+- [x] Yasal sayfalar + landing footer (`/gizlilik-politikasi`, `/hizmet-sartlari`)
