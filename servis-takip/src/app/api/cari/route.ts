@@ -33,7 +33,10 @@ async function allocateCariCode(shopId: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search")?.trim() ?? "";
+  const search =
+    searchParams.get("search")?.trim() ||
+    searchParams.get("q")?.trim() ||
+    "";
 
   let shop;
   try {

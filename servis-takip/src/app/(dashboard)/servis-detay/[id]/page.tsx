@@ -1067,7 +1067,7 @@ export default function ServisDetayPage() {
               order.brand?.name ||
               order.deviceType?.name ||
               "Cihaz",
-            order.totalPrice.toLocaleString("tr-TR"),
+            order.totalPrice.toLocaleString("tr-TR") + " ₺",
           ],
         }),
       });

@@ -469,30 +469,29 @@ function CihazKayitServiceInner({
 
   useEffect(() => {
     if (!cariDialogOpen) return;
-    const q = cariSearch.trim();
-    if (q.length < 2) {
-      setCariRows([]);
-      setCariLoading(false);
-      return;
-    }
-    const t = window.setTimeout(async () => {
-      setCariLoading(true);
-      try {
-        const res = await fetch(`/api/cari?search=${encodeURIComponent(q)}`);
-        const data = (await res.json()) as CariRow[] | { error?: string };
-        if (!res.ok) {
-          setCariRows([]);
-          return;
-        }
-        setCariRows(data as CariRow[]);
-      } catch {
-        setCariRows([]);
-      } finally {
-        setCariLoading(false);
-      }
-    }, 250);
-    return () => window.clearTimeout(t);
-  }, [cariDialogOpen, cariSearch]);
+    let cancelled = false;
+    setCariLoading(true);
+    const query =
+      cariSearch.trim().length >= 2
+        ? `?q=${encodeURIComponent(cariSearch.trim())}`
+        : "";
+    void fetch(`/api/cari${query}`)
+      .then((r) => r.json())
+      .then((data: unknown) => {
+        if (cancelled) return;
+        if (Array.isArray(data)) setCariRows(data as CariRow[]);
+        else setCariRows([]);
+      })
+      .catch(() => {
+        if (!cancelled) setCariRows([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCariLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [cariSearch, cariDialogOpen]);
 
   useEffect(() => {
     if (!bayiDialogOpen) return;
@@ -2367,7 +2366,7 @@ function CihazKayitServiceInner({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cari Seç</DialogTitle>
-            <DialogDescription>En az 2 karakterle cari arayın.</DialogDescription>
+            <DialogDescription>Arayın veya listeden seçin.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Input
@@ -2375,7 +2374,7 @@ function CihazKayitServiceInner({
               value={cariSearch}
               onChange={(e) => setCariSearch(e.target.value)}
             />
-            <div className="max-h-72 overflow-y-auto rounded-md border border-slate-200">
+            <div className="max-h-80 overflow-y-auto rounded-md border border-slate-200">
               {cariLoading ? (
                 <p className="px-3 py-3 text-sm text-slate-600">Yükleniyor...</p>
               ) : cariRows.length === 0 ? (
