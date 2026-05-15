@@ -48,6 +48,7 @@ export default function DukkanNushasiPage() {
   const printStyles = useMemo(() => {
     const genislik = settings.etiket_genislik ?? "80";
     const thermal = Number(genislik) <= 100;
+    const padding = Number(genislik) <= 60 ? "2mm" : "4mm";
     if (thermal) {
       return `
       body { background: #f3f4f6; }
@@ -60,7 +61,7 @@ export default function DukkanNushasiPage() {
           margin: 0 !important;
           width: ${genislik}mm !important;
           max-width: ${genislik}mm !important;
-          padding: 3mm !important;
+          padding: ${padding} !important;
         }
         @page {
           size: ${genislik}mm auto;
@@ -89,7 +90,7 @@ export default function DukkanNushasiPage() {
   }, [settings]);
 
   const isThermal =
-    ["58", "72", "80"].includes((settings.etiket_genislik ?? "80").trim()) ||
+    ["58", "60", "72", "80"].includes((settings.etiket_genislik ?? "80").trim()) ||
     Number(settings.etiket_genislik) <= 100;
 
   const load = useCallback(async () => {
@@ -182,10 +183,9 @@ export default function DukkanNushasiPage() {
       ) : order ? (
         (() => {
           const genislik = settings.etiket_genislik ?? "80";
-          const deviceType = order.deviceType?.name ?? order.deviceTypeName ?? "";
           const brand = order.brand?.name ?? order.brandName ?? "";
           const model = order.deviceModel?.name ?? order.modelName ?? "";
-          const cihaz = [deviceType, brand, model].filter(Boolean).join(" / ");
+          const cihaz = [brand, model].filter(Boolean).join(" / ");
 
           if (isThermal) {
             return (
