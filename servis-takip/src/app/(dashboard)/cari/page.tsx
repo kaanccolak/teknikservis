@@ -327,7 +327,7 @@ export default function CariPage() {
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="w-full min-w-[820px] text-left text-sm">
+        <table className="w-full min-w-[920px] text-left text-sm">
           <thead>
             <tr className="border-b bg-slate-50">
               <th className="px-3 py-2.5">Cari Kodu</th>
@@ -358,7 +358,7 @@ export default function CariPage() {
                   <td className="px-3 py-2.5 font-medium text-slate-900">{row.name}</td>
                   <td className="px-3 py-2.5">{row.phone ? formatPhone(row.phone) : "—"}</td>
                   <td className="px-3 py-2.5">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -370,6 +370,15 @@ export default function CariPage() {
                       </Button>
                       <Button type="button" variant="outline" size="sm" onClick={() => openEdit(row)}>
                         Düzenle
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-amber-200 text-amber-800 hover:bg-amber-50 hover:text-amber-900"
+                        onClick={() => window.open(`/kargo-fisi/${row.id}`, "_blank")}
+                      >
+                        Kargo Fişi
                       </Button>
                       <Button type="button" variant="destructive" size="sm" onClick={() => void askDelete(row)}>
                         Sil
@@ -527,7 +536,7 @@ export default function CariPage() {
                   </div>
                 ))}
 
-              <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+              <div style={{ marginTop: "8px" }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -535,7 +544,7 @@ export default function CariPage() {
                     openEdit(selectedCari);
                   }}
                   style={{
-                    flex: 1,
+                    width: "100%",
                     padding: "10px",
                     border: "1px solid #e5e7eb",
                     borderRadius: "8px",
@@ -545,21 +554,6 @@ export default function CariPage() {
                   }}
                 >
                   Düzenle
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.open(`/kargo-fisi/${selectedCari.id}`, "_blank")}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                    background: "white",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                  }}
-                >
-                  Kargo Fişi
                 </button>
               </div>
             </div>

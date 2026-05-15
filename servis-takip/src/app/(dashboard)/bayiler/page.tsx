@@ -612,6 +612,27 @@ export default function BayilerPage() {
                 <div style={{ fontSize: "13px", color: "#666" }}>
                   {detail.bayi.bayiCode} · {detail.bayi.yetkiliKisi} · {formatPhone(detail.bayi.phone)}
                 </div>
+                <div
+                  style={{
+                    marginTop: "12px",
+                    paddingTop: "12px",
+                    borderTop: "1px solid #f3f4f6",
+                    display: "grid",
+                    gap: "8px",
+                    fontSize: "13px",
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={{ color: "#6b7280", minWidth: "140px" }}>Vergi dairesi</span>
+                    <span style={{ color: "#111827", fontWeight: 500 }}>
+                      {detail.bayi.vergiDairesi?.trim() ? detail.bayi.vergiDairesi : "—"}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={{ color: "#6b7280", minWidth: "140px" }}>TC / Vergi no</span>
+                    <span style={{ color: "#111827", fontWeight: 500 }}>{detail.bayi.tcVergiNo}</span>
+                  </div>
+                </div>
               </div>
 
               <div

@@ -29,6 +29,8 @@ const serviceOrderInclude = {
       firmaAdi: true,
       yetkiliKisi: true,
       phone: true,
+      vergiDairesi: true,
+      tcVergiNo: true,
       grup: true,
     },
   },

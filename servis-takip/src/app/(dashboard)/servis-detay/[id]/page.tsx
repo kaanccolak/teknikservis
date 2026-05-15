@@ -161,6 +161,8 @@ type ServiceOrderDetail = {
     firmaAdi: string;
     yetkiliKisi: string;
     phone: string;
+    vergiDairesi?: string | null;
+    tcVergiNo?: string;
     grup?: string | null;
   } | null;
   deviceType: NamedEntity | null;
@@ -2287,6 +2289,12 @@ export default function ServisDetayPage() {
                   <DetailRow label="Firma Adı">{order.bayi.firmaAdi}</DetailRow>
                   <DetailRow label="Yetkili Kişi">{order.bayi.yetkiliKisi}</DetailRow>
                   <DetailRow label="Telefon">{order.bayi.phone}</DetailRow>
+                  <DetailRow label="Vergi dairesi">
+                    {order.bayi.vergiDairesi?.trim() ? order.bayi.vergiDairesi : "—"}
+                  </DetailRow>
+                  <DetailRow label="TC / Vergi no">
+                    {order.bayi.tcVergiNo ?? "—"}
+                  </DetailRow>
                 </dl>
               </CardContent>
             </Card>
