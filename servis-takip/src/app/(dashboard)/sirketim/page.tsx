@@ -52,6 +52,7 @@ type ShopFull = {
   receiptNotes?: string | null;
   ikinciElGarantiSartlari?: string | null;
   ikinciElAlimBelgeNotu?: string | null;
+  ikinciElSatisFiyatGoster?: boolean;
   isDemo?: boolean;
 };
 
@@ -2064,6 +2065,8 @@ function SirketimPageInner() {
   const [savingIkinciElGaranti, setSavingIkinciElGaranti] = useState(false);
   const [ikinciElAlimBelgeNotu, setIkinciElAlimBelgeNotu] = useState("");
   const [savingIkinciElAlim, setSavingIkinciElAlim] = useState(false);
+  const [ikinciElSatisFiyatGoster, setIkinciElSatisFiyatGoster] = useState(true);
+  const [savingIkinciElSatisFiyat, setSavingIkinciElSatisFiyat] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -2136,6 +2139,7 @@ function SirketimPageInner() {
           ? row.ikinciElAlimBelgeNotu
           : "",
       );
+      setIkinciElSatisFiyatGoster(row.ikinciElSatisFiyatGoster !== false);
 
       try {
         const settingsRes = await fetch("/api/settings");
@@ -2245,6 +2249,28 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingIkinciElAlim(false);
+    }
+  }
+
+  async function handleSaveIkinciElSatisFiyat(value: boolean) {
+    setSavingIkinciElSatisFiyat(true);
+    try {
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ikinciElSatisFiyatGoster: value }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      setIkinciElSatisFiyatGoster(value);
+      toast.success("Ayar kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingIkinciElSatisFiyat(false);
     }
   }
 
@@ -4126,6 +4152,70 @@ function SirketimPageInner() {
                   Satış belgesinin imza alanının altında görünür. Her satır
                   ayrı madde olarak gösterilir.
                 </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 0",
+                    borderBottom: "1px solid #f3f4f6",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "#374151",
+                        margin: 0,
+                      }}
+                    >
+                      Satış Fiyatını Belgede Göster
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                        margin: "2px 0 0 0",
+                      }}
+                    >
+                      Kapalıysa belgede fiyat alanı görünmez
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void handleSaveIkinciElSatisFiyat(!ikinciElSatisFiyatGoster)
+                    }
+                    disabled={savingIkinciElSatisFiyat}
+                    style={{
+                      width: "48px",
+                      height: "26px",
+                      borderRadius: "13px",
+                      border: "none",
+                      background: ikinciElSatisFiyatGoster ? "#4f46e5" : "#d1d5db",
+                      cursor: savingIkinciElSatisFiyat ? "wait" : "pointer",
+                      position: "relative",
+                      transition: "background 0.2s",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "3px",
+                        left: ikinciElSatisFiyatGoster ? "24px" : "3px",
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        background: "white",
+                        transition: "left 0.2s",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                      }}
+                    />
+                  </button>
+                </div>
                 <textarea
                   value={ikinciElGarantiSartlari}
                   onChange={(e) => setIkinciElGarantiSartlari(e.target.value)}

@@ -155,6 +155,9 @@ export async function PATCH(request: Request) {
         ...(typeof body.ikinciElAlimBelgeNotu === "string"
           ? { ikinciElAlimBelgeNotu: body.ikinciElAlimBelgeNotu }
           : {}),
+        ...(typeof body.ikinciElSatisFiyatGoster === "boolean"
+          ? { ikinciElSatisFiyatGoster: body.ikinciElSatisFiyatGoster }
+          : {}),
         ...(body.waPhoneNumberId !== undefined
           ? {
               waPhoneNumberId: optStr(body.waPhoneNumberId as string),

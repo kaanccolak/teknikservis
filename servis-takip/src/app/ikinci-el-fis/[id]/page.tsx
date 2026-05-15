@@ -176,7 +176,7 @@ export default function IkinciElAlimFisPage() {
         <div className="fis-card mx-auto max-w-lg border border-slate-200 bg-white px-6 py-8 shadow-sm print:shadow-none">
           <div className="border-b border-slate-200 pb-4 text-center">
             <h1 className="text-lg font-bold tracking-wide text-slate-900">
-              İKİNCİ EL ALIM BELGESİ
+              İKİNCİ EL ÜRÜN ALIM BELGESİ
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-700">
               {shop?.name ?? "—"}

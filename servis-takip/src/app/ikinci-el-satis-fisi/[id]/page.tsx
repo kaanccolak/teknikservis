@@ -10,7 +10,11 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 
-type ShopRow = { name: string; ikinciElGarantiSartlari?: string | null };
+type ShopRow = {
+  name: string;
+  ikinciElGarantiSartlari?: string | null;
+  ikinciElSatisFiyatGoster?: boolean;
+};
 
 type DeviceRow = {
   deviceCode: string;
@@ -119,6 +123,7 @@ export default function IkinciElSatisFisPage() {
                 typeof sJson.ikinciElGarantiSartlari === "string"
                   ? sJson.ikinciElGarantiSartlari
                   : null,
+              ikinciElSatisFiyatGoster: sJson.ikinciElSatisFiyatGoster !== false,
             }
           : { name: "—" },
       );
@@ -183,7 +188,7 @@ export default function IkinciElSatisFisPage() {
         <div className="fis-card mx-auto max-w-lg border border-slate-200 bg-white px-6 py-8 shadow-sm print:shadow-none">
           <div className="border-b border-slate-200 pb-4 text-center">
             <h1 className="text-lg font-bold tracking-wide text-slate-900">
-              İKİNCİ EL SATIŞ BELGESİ
+              İKİNCİ EL ÜRÜN SATIŞ BELGESİ
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-700">
               {shop?.name ?? "—"}
@@ -242,14 +247,16 @@ export default function IkinciElSatisFisPage() {
             </div>
           </div>
 
-          <div className="mt-4 border-b border-slate-200 pb-4">
-            <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-              Satış fiyatı
-            </h2>
-            <p className="text-2xl font-bold tabular-nums text-emerald-700">
-              {formatTry(row.soldPrice)}
-            </p>
-          </div>
+          {shop?.ikinciElSatisFiyatGoster !== false ? (
+            <div className="mt-4 border-b border-slate-200 pb-4">
+              <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                Satış fiyatı
+              </h2>
+              <p className="text-2xl font-bold tabular-nums text-emerald-700">
+                {formatTry(row.soldPrice)}
+              </p>
+            </div>
+          ) : null}
 
           <p className="mt-6 text-sm leading-relaxed text-slate-700">
             Yukarıda belirtilen cihazı belirtilen bedel karşılığında teslim aldığımı
