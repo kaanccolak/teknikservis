@@ -411,9 +411,24 @@ function IkinciElInner() {
             Kayıt bulunamadı
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div
+            style={{
+              overflowX: "auto",
+              overflowY: "auto",
+              maxHeight: "min(600px, calc(100vh - 17rem))",
+              border: "1px solid #e5e7eb",
+              borderRadius: "8px",
+            }}
+          >
             <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
-              <thead>
+              <thead
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  background: "white",
+                  zIndex: 1,
+                }}
+              >
                 <tr className="border-b border-slate-200 bg-slate-50/90">
                   <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Kayıt kodu

@@ -667,7 +667,7 @@ function CihazSorgulaInner() {
             style={{
               overflowX: "auto",
               overflowY: "auto",
-              maxHeight: "600px",
+              maxHeight: "min(600px, calc(100vh - 17rem))",
               border: "1px solid #e5e7eb",
               borderRadius: "8px",
             }}
