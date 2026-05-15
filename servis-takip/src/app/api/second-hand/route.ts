@@ -56,6 +56,20 @@ export async function GET(request: Request) {
     where.isSold = true;
   }
 
+  const sp = new URL(request.url).searchParams;
+  const deviceTypeId = sp.get("deviceTypeId")?.trim() ?? "";
+  const brandId = sp.get("brandId")?.trim() ?? "";
+  const deviceModelId = sp.get("deviceModelId")?.trim() ?? "";
+  if (deviceTypeId) {
+    where.deviceTypeId = deviceTypeId;
+  }
+  if (brandId) {
+    where.brandId = brandId;
+  }
+  if (deviceModelId) {
+    where.deviceModelId = deviceModelId;
+  }
+
   if (search) {
     where.OR = [
       { sellerName: { contains: search, mode: "insensitive" } },

@@ -45,6 +45,8 @@ type Row = {
   deviceModel: { name: string } | null;
 };
 
+type IdName = { id: string; name: string };
+
 function formatTry(n: number) {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
@@ -71,6 +73,10 @@ function IkinciElInner() {
   const statusFilter: "all" | "stock" | "sold" =
     soldParamRaw === "stock" || soldParamRaw === "sold" ? soldParamRaw : "all";
 
+  const deviceTypeFilter = searchParams.get("deviceType") || "";
+  const brandFilter = searchParams.get("brand") || "";
+  const modelFilter = searchParams.get("model") || "";
+
   const [search, setSearch] = useState(searchParam);
   const [showScanner, setShowScanner] = useState(false);
   const [items, setItems] = useState<Row[]>([]);
@@ -87,6 +93,10 @@ function IkinciElInner() {
   const [hasSettingsPassword, setHasSettingsPassword] = useState<
     boolean | null
   >(null);
+  const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
+  const [brands, setBrands] = useState<IdName[]>([]);
+  const [models, setModels] = useState<IdName[]>([]);
+  const [metaError, setMetaError] = useState<string | null>(null);
 
   useEffect(() => {
     setSearch(searchParam);
@@ -107,16 +117,97 @@ function IkinciElInner() {
     };
   }, []);
 
-  const updateURL = useCallback(
-    (q: string) => {
-      const p = new URLSearchParams(searchParams.toString());
-      if (q.trim()) p.set("search", q.trim());
-      else p.delete("search");
-      const s = p.toString();
-      router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
+  const replaceQuery = useCallback(
+    (params: Record<string, string>) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          current.set(key, value);
+        } else {
+          current.delete(key);
+        }
+      });
+      const query = current.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
     },
     [pathname, router, searchParams],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/device-types")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data)) {
+          setDeviceTypes(data as IdName[]);
+          setMetaError(null);
+        } else if (
+          typeof data === "object" &&
+          data &&
+          "error" in data &&
+          typeof (data as { error: string }).error === "string"
+        ) {
+          setDeviceTypes([]);
+          setMetaError((data as { error: string }).error);
+        } else {
+          setDeviceTypes([]);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDeviceTypes([]);
+          setMetaError("Cihaz türleri yüklenemedi");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!deviceTypeFilter) {
+      setBrands([]);
+      return;
+    }
+    let cancelled = false;
+    void fetch(
+      `/api/brands?deviceTypeId=${encodeURIComponent(deviceTypeFilter)}`,
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setBrands(Array.isArray(data) ? (data as IdName[]) : []);
+      })
+      .catch(() => {
+        if (!cancelled) setBrands([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceTypeFilter]);
+
+  useEffect(() => {
+    if (!brandFilter) {
+      setModels([]);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/models?brandId=${encodeURIComponent(brandFilter)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setModels(Array.isArray(data) ? (data as IdName[]) : []);
+      })
+      .catch(() => {
+        if (!cancelled) setModels([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [brandFilter]);
 
   const setStatusFilter = useCallback(
     (v: "all" | "stock" | "sold") => {
@@ -137,6 +228,9 @@ function IkinciElInner() {
       const q = search.trim();
       if (q) params.set("search", q);
       if (statusFilter !== "all") params.set("sold", statusFilter);
+      if (deviceTypeFilter) params.set("deviceTypeId", deviceTypeFilter);
+      if (brandFilter) params.set("brandId", brandFilter);
+      if (modelFilter) params.set("deviceModelId", modelFilter);
       const res = await fetch(`/api/second-hand?${params}`, { cache: "no-store" });
       const data = (await res.json()) as
         | { items?: Row[]; total?: number; error?: string; details?: string }
@@ -164,7 +258,7 @@ function IkinciElInner() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter]);
+  }, [search, statusFilter, deviceTypeFilter, brandFilter, modelFilter]);
 
   useEffect(() => {
     void fetchSecondHand();
@@ -241,6 +335,15 @@ function IkinciElInner() {
     [total],
   );
 
+  const hasAdvancedFilters =
+    Boolean(deviceTypeFilter) ||
+    Boolean(brandFilter) ||
+    Boolean(modelFilter);
+
+  const clearDeviceFilters = useCallback(() => {
+    replaceQuery({ deviceType: "", brand: "", model: "" });
+  }, [replaceQuery]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -262,6 +365,12 @@ function IkinciElInner() {
           Yeni kayıt ekle
         </Link>
       </div>
+
+      {metaError ? (
+        <p className="text-sm text-amber-800" role="status">
+          {metaError}
+        </p>
+      ) : null}
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -285,7 +394,7 @@ function IkinciElInner() {
                 onChange={(e) => {
                   const v = e.target.value;
                   setSearch(v);
-                  updateURL(v);
+                  replaceQuery({ search: v.trim() });
                 }}
               />
               <button
@@ -330,7 +439,7 @@ function IkinciElInner() {
             <BarcodeScanner
               onScan={(value) => {
                 setSearch(value);
-                updateURL(value);
+                replaceQuery({ search: value.trim() });
                 setShowScanner(false);
               }}
               onClose={() => setShowScanner(false)}
@@ -382,6 +491,104 @@ function IkinciElInner() {
           >
             Satıldı
           </Button>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginTop: "4px",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <select
+            aria-label="Cihaz türü"
+            value={deviceTypeFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              replaceQuery({ deviceType: v, brand: "", model: "" });
+            }}
+            style={{
+              padding: "8px 12px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              fontSize: "13px",
+              minWidth: "150px",
+            }}
+          >
+            <option value="">Tüm cihaz türleri</option>
+            {deviceTypes.map((dt) => (
+              <option key={dt.id} value={dt.id}>
+                {dt.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Marka"
+            value={brandFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              replaceQuery({ brand: v, model: "" });
+            }}
+            disabled={!deviceTypeFilter}
+            style={{
+              padding: "8px 12px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              fontSize: "13px",
+              minWidth: "150px",
+            }}
+          >
+            <option value="">Tüm markalar</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Model"
+            value={modelFilter}
+            onChange={(e) => {
+              replaceQuery({ model: e.target.value });
+            }}
+            disabled={!brandFilter}
+            style={{
+              padding: "8px 12px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              fontSize: "13px",
+              minWidth: "150px",
+            }}
+          >
+            <option value="">Tüm modeller</option>
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+
+          {hasAdvancedFilters ? (
+            <button
+              type="button"
+              onClick={clearDeviceFilters}
+              style={{
+                padding: "8px 14px",
+                border: "1px solid #fca5a5",
+                borderRadius: "6px",
+                fontSize: "13px",
+                color: "#ef4444",
+                background: "#fef2f2",
+                cursor: "pointer",
+              }}
+            >
+              Cihaz filtresini temizle ✕
+            </button>
+          ) : null}
         </div>
       </div>
 
