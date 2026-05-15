@@ -51,6 +51,7 @@ type ShopFull = {
   googleContactsConnected?: boolean;
   receiptNotes?: string | null;
   ikinciElGarantiSartlari?: string | null;
+  ikinciElAlimBelgeNotu?: string | null;
   isDemo?: boolean;
 };
 
@@ -2061,6 +2062,8 @@ function SirketimPageInner() {
   const [savingEtiket, setSavingEtiket] = useState(false);
   const [ikinciElGarantiSartlari, setIkinciElGarantiSartlari] = useState("");
   const [savingIkinciElGaranti, setSavingIkinciElGaranti] = useState(false);
+  const [ikinciElAlimBelgeNotu, setIkinciElAlimBelgeNotu] = useState("");
+  const [savingIkinciElAlim, setSavingIkinciElAlim] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -2127,6 +2130,11 @@ function SirketimPageInner() {
         typeof row.ikinciElGarantiSartlari === "string"
           ? row.ikinciElGarantiSartlari
           : "Ürünün garanti süresi 6 aydır.\nÜrünün varsa kutu, fatura ve diğer belgelerini saklayın. Aksi halde garanti geçerli olmayacaktır.\nSıvı temas, enerji dalgalanmaları, darbe sonucu oluşan arızalar garanti kapsamı dışındadır.",
+      );
+      setIkinciElAlimBelgeNotu(
+        typeof row.ikinciElAlimBelgeNotu === "string"
+          ? row.ikinciElAlimBelgeNotu
+          : "",
       );
 
       try {
@@ -2216,6 +2224,27 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingReceiptNotes(false);
+    }
+  }
+
+  async function handleSaveIkinciElAlim() {
+    setSavingIkinciElAlim(true);
+    try {
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ikinciElAlimBelgeNotu }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("Alım belgesi notu kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingIkinciElAlim(false);
     }
   }
 
@@ -3999,9 +4028,76 @@ function SirketimPageInner() {
                   }}
                 >
                   İkinci el alım ve satış belgelerinin altında görünecek
-                  garanti şartlarını düzenleyin
+                  notları düzenleyin
                 </p>
               </div>
+
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  📥 İkinci El Alım Belgesi Notu
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Alım belgesinin imza alanının altında görünür
+                </p>
+                <textarea
+                  value={ikinciElAlimBelgeNotu}
+                  onChange={(e) => setIkinciElAlimBelgeNotu(e.target.value)}
+                  rows={5}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    padding: "10px 12px",
+                    fontSize: "13px",
+                    resize: "vertical",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    lineHeight: "1.6",
+                  }}
+                  placeholder="Alım belgesi için not ekleyin (opsiyonel)..."
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleSaveIkinciElAlim()}
+                  disabled={savingIkinciElAlim}
+                  style={{
+                    marginTop: "16px",
+                    padding: "10px 20px",
+                    background: savingIkinciElAlim ? "#d1d5db" : "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: savingIkinciElAlim ? "wait" : "pointer",
+                  }}
+                >
+                  {savingIkinciElAlim ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+              </div>
+
               <div
                 style={{
                   border: "1px solid #e5e7eb",
@@ -4015,10 +4111,10 @@ function SirketimPageInner() {
                     fontWeight: 600,
                     color: "#374151",
                     display: "block",
-                    marginBottom: "8px",
+                    marginBottom: "4px",
                   }}
                 >
-                  Garanti Şartları
+                  📤 İkinci El Satış Belgesi Garanti Şartları
                 </label>
                 <p
                   style={{
@@ -4027,7 +4123,8 @@ function SirketimPageInner() {
                     marginBottom: "12px",
                   }}
                 >
-                  Her satır belgede ayrı madde olarak görünür
+                  Satış belgesinin imza alanının altında görünür. Her satır
+                  ayrı madde olarak gösterilir.
                 </p>
                 <textarea
                   value={ikinciElGarantiSartlari}
@@ -4065,37 +4162,29 @@ function SirketimPageInner() {
                 >
                   {savingIkinciElGaranti ? "Kaydediliyor..." : "Kaydet"}
                 </button>
-              </div>
-              {ikinciElGarantiSartlari ? (
-                <div
-                  style={{
-                    marginTop: "24px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "10px",
-                    padding: "20px",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      marginBottom: "12px",
-                      color: "#374151",
-                    }}
-                  >
-                    Önizleme
-                  </p>
+                {ikinciElGarantiSartlari ? (
                   <div
                     style={{
+                      marginTop: "20px",
                       borderTop: "1px solid #e5e7eb",
-                      paddingTop: "12px",
+                      paddingTop: "16px",
                     }}
                   >
                     <p
                       style={{
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        marginBottom: "8px",
+                        color: "#374151",
+                      }}
+                    >
+                      Önizleme
+                    </p>
+                    <p
+                      style={{
                         fontSize: "11px",
                         fontWeight: 700,
-                        marginBottom: "8px",
+                        marginBottom: "6px",
                         color: "#111827",
                       }}
                     >
@@ -4118,8 +4207,8 @@ function SirketimPageInner() {
                         </p>
                       ))}
                   </div>
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </div>
           ) : activeTab === "tanimlar" ? (
             <div style={{ maxWidth: "900px", margin: "0 auto" }}>

@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 
-type ShopRow = { name: string; ikinciElGarantiSartlari?: string | null };
+type ShopRow = { name: string; ikinciElAlimBelgeNotu?: string | null };
 
 type DeviceRow = {
   deviceCode: string;
@@ -108,9 +108,9 @@ export default function IkinciElAlimFisPage() {
         typeof sJson.name === "string"
           ? {
               name: sJson.name,
-              ikinciElGarantiSartlari:
-                typeof sJson.ikinciElGarantiSartlari === "string"
-                  ? sJson.ikinciElGarantiSartlari
+              ikinciElAlimBelgeNotu:
+                typeof sJson.ikinciElAlimBelgeNotu === "string"
+                  ? sJson.ikinciElAlimBelgeNotu
                   : null,
             }
           : { name: "—" },
@@ -257,7 +257,7 @@ export default function IkinciElAlimFisPage() {
             </div>
           </div>
 
-          {shop?.ikinciElGarantiSartlari ? (
+          {shop?.ikinciElAlimBelgeNotu ? (
             <div
               style={{
                 marginTop: "24px",
@@ -273,10 +273,10 @@ export default function IkinciElAlimFisPage() {
                   color: "#111827",
                 }}
               >
-                Garanti Şartları
+                Notlar
               </p>
               <div style={{ fontSize: "10px", color: "#374151", lineHeight: "1.6" }}>
-                {shop.ikinciElGarantiSartlari
+                {shop.ikinciElAlimBelgeNotu
                   .split("\n")
                   .filter((l) => l.trim())
                   .map((line, i) => (

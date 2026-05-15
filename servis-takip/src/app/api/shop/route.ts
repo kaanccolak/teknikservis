@@ -152,6 +152,9 @@ export async function PATCH(request: Request) {
         ...(typeof body.ikinciElGarantiSartlari === "string"
           ? { ikinciElGarantiSartlari: body.ikinciElGarantiSartlari }
           : {}),
+        ...(typeof body.ikinciElAlimBelgeNotu === "string"
+          ? { ikinciElAlimBelgeNotu: body.ikinciElAlimBelgeNotu }
+          : {}),
         ...(body.waPhoneNumberId !== undefined
           ? {
               waPhoneNumberId: optStr(body.waPhoneNumberId as string),
