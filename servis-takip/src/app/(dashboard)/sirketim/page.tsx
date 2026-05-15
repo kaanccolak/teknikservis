@@ -162,7 +162,7 @@ const DEFAULT_TEMPLATES: Record<
   teslim_edildi: {
     label: "Teslim Edildi",
     defaultMessage:
-      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz. Lütfen bize Google'dan yorum yapmayı unutmayın :) https://g.page/r/CVR6INoM1FuaEBE/review",
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.",
     variables: ["{isim}", "{seriNo}", "{cihaz}"],
   },
   teslim_tamir_olmuyor: {

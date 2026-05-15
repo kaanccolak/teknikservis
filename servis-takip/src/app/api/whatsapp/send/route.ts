@@ -187,7 +187,7 @@ function buildMessage(templateName: string, parameters: string[]): string {
 
     onarim_tamamlandi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın onarımı tamamlanmıştır. Tamir ücreti ${p[3] ?? ""}. Cihazınızı teslim alabilirsiniz.`,
 
-    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz. Lütfen bize Google'dan yorum yapmayı unutmayın :) https://g.page/r/CVR6INoM1FuaEBE/review`,
+    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
     teslim_tamir_olmuyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız tamiri yapılamamış olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
