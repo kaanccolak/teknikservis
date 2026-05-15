@@ -62,15 +62,6 @@ function formatPhone(stored: string | null): string {
   return stored;
 }
 
-function deviceSummary(r: Row): string {
-  const parts = [
-    r.deviceType?.name,
-    r.brand?.name,
-    r.deviceModel?.name,
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(" · ") : "—";
-}
-
 function IkinciElInner() {
   const router = useRouter();
   const pathname = usePathname();
@@ -608,7 +599,7 @@ function IkinciElInner() {
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {deviceSummary(row)}
+                      {row.deviceModel?.name ?? "—"}
                     </td>
                     <td
                       className="text-slate-700"
