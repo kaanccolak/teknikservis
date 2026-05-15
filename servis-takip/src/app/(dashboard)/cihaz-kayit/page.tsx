@@ -2363,18 +2363,19 @@ function CihazKayitServiceInner({
       </AlertDialog>
 
       <Dialog open={cariDialogOpen} onOpenChange={setCariDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="flex max-h-[85vh] flex-col gap-4 overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Cari Seç</DialogTitle>
             <DialogDescription>Arayın veya listeden seçin.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
             <Input
+              className="shrink-0"
               placeholder="İsim, telefon veya vergi no ara..."
               value={cariSearch}
               onChange={(e) => setCariSearch(e.target.value)}
             />
-            <div className="max-h-80 overflow-y-auto rounded-md border border-slate-200">
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-slate-200">
               {cariLoading ? (
                 <p className="px-3 py-3 text-sm text-slate-600">Yükleniyor...</p>
               ) : cariRows.length === 0 ? (
@@ -2410,18 +2411,19 @@ function CihazKayitServiceInner({
       </Dialog>
 
       <Dialog open={bayiDialogOpen} onOpenChange={setBayiDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="flex max-h-[85vh] flex-col gap-4 overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Bayi Seç</DialogTitle>
             <DialogDescription>Bayi arayın veya yeni bayi ekleyin.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
             <Input
+              className="shrink-0"
               placeholder="Firma adı, yetkili veya vergi no ara..."
               value={bayiSearch}
               onChange={(e) => setBayiSearch(e.target.value)}
             />
-            <div className="flex justify-end">
+            <div className="flex shrink-0 justify-end">
               <Button
                 type="button"
                 variant="outline"
@@ -2432,7 +2434,7 @@ function CihazKayitServiceInner({
               </Button>
             </div>
             {showInlineBayiForm ? (
-              <div className="space-y-2 rounded-md border border-slate-200 p-3">
+              <div className="shrink-0 space-y-2 rounded-md border border-slate-200 p-3">
                 <Input
                   placeholder="Firma Adı"
                   value={inlineBayiForm.firmaAdi}
@@ -2496,7 +2498,7 @@ function CihazKayitServiceInner({
                 </div>
               </div>
             ) : null}
-            <div className="max-h-72 overflow-y-auto rounded-md border border-slate-200">
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-slate-200">
               {bayiLoading ? (
                 <p className="px-3 py-3 text-sm text-slate-600">Yükleniyor...</p>
               ) : bayiRows.length === 0 ? (
