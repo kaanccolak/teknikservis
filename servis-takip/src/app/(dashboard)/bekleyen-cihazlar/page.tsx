@@ -602,135 +602,35 @@ function BekleyenCihazlarInner() {
             Bekleyen cihaz bulunamadı
           </p>
         ) : (
-          <div
-            style={{
-              overflowX: "hidden",
-              overflowY: "auto",
-              maxHeight: "min(600px, calc(100vh - 17rem))",
-              border: "1px solid #e5e7eb",
-              borderRadius: "8px",
-            }}
-          >
-            <table
-              style={{
-                width: "100%",
-                tableLayout: "fixed",
-                borderCollapse: "collapse",
-                fontSize: "12px",
-                textAlign: "left",
-              }}
-            >
-              <colgroup>
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "9%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "7%" }} />
-              </colgroup>
-              <thead
-                style={{
-                  position: "sticky",
-                  top: 0,
-                  background: "white",
-                  zIndex: 1,
-                }}
-              >
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
+              <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/90">
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Kayıt No
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{
-                      padding: "8px 6px",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Müşteri Adı
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Telefon
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Geliş Tarihi
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{
-                      padding: "8px 6px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Cihaz Türü
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{
-                      padding: "8px 6px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Marka
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{
-                      padding: "8px 6px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Model
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{
-                      padding: "8px 6px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <th className="px-3 py-3 font-medium text-slate-700">Cihaz Türü</th>
+                  <th className="px-3 py-3 font-medium text-slate-700">Marka</th>
+                  <th className="px-3 py-3 font-medium text-slate-700">Model</th>
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Seri No
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Durum
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     Bekleme Süresi
                   </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
+                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
                     İşlem
                   </th>
                 </tr>
@@ -755,95 +655,29 @@ function BekleyenCihazlarInner() {
                         i % 2 === 0 ? "bg-white" : "bg-slate-50/50"
                       }`}
                     >
-                      <td
-                        className="font-medium text-slate-900"
-                        style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                      >
+                      <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
                         {formatServiceOrderNo(row)}
                       </td>
-                      <td
-                        className="text-slate-800"
-                        title={row.customer.name}
-                        style={{
-                          padding: "8px 6px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {row.customer.name}
-                      </td>
-                      <td
-                        className="text-slate-700"
-                        style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                      >
+                      <td className="px-3 py-2.5 text-slate-800">{row.customer.name}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
                         {row.customer.phone ?? "—"}
                       </td>
-                      <td
-                        className="text-slate-700"
-                        style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                      >
+                      <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
                         {formatArrivedAt(row.arrivedAt)}
                       </td>
-                      <td
-                        className="text-slate-700"
-                        title={
-                          row.deviceType?.name ??
-                          row.deviceTypeName ??
-                          undefined
-                        }
-                        style={{
-                          padding: "8px 6px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
+                      <td className="px-3 py-2.5 text-slate-700">
                         {row.deviceType?.name ?? row.deviceTypeName ?? "—"}
                       </td>
-                      <td
-                        className="text-slate-700"
-                        title={row.brand?.name ?? row.brandName ?? undefined}
-                        style={{
-                          padding: "8px 6px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
+                      <td className="px-3 py-2.5 text-slate-700">
                         {row.brand?.name ?? row.brandName ?? "—"}
                       </td>
-                      <td
-                        className="text-slate-700"
-                        title={
-                          row.deviceModel?.name ?? row.modelName ?? undefined
-                        }
-                        style={{
-                          padding: "8px 6px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
+                      <td className="px-3 py-2.5 text-slate-700">
                         {row.deviceModel?.name ?? row.modelName ?? "—"}
                       </td>
-                      <td
-                        className="text-slate-700"
-                        title={
-                          row.noSerialNo
-                            ? undefined
-                            : (row.serialNo ?? undefined)
-                        }
-                        style={{
-                          padding: "8px 6px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
+                      <td className="max-w-[120px] truncate px-3 py-2.5 text-slate-700">
                         {row.noSerialNo ? "—" : (row.serialNo ?? "—")}
                       </td>
-                      <td style={{ padding: "8px 6px", verticalAlign: "top" }}>
+                      <td className="whitespace-nowrap px-3 py-2.5">
                         <div
                           style={{
                             display: "flex",
@@ -888,12 +722,12 @@ function BekleyenCihazlarInner() {
                           ) : null}
                         </div>
                       </td>
-                      <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
+                      <td className="whitespace-nowrap px-3 py-2.5">
                         <span className={waitingDaysClass(days)}>
                           {days} gün
                         </span>
                       </td>
-                      <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
+                      <td className="whitespace-nowrap px-3 py-2.5">
                         <Button
                           type="button"
                           variant="outline"

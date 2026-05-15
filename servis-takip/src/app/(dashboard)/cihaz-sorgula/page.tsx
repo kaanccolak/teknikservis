@@ -665,9 +665,9 @@ function CihazSorgulaInner() {
         ) : (
           <div
             style={{
-              overflowX: "hidden",
+              overflowX: "auto",
               overflowY: "auto",
-              maxHeight: "min(600px, calc(100vh - 17rem))",
+              maxHeight: "600px",
               border: "1px solid #e5e7eb",
               borderRadius: "8px",
             }}
@@ -675,24 +675,11 @@ function CihazSorgulaInner() {
             <table
               style={{
                 width: "100%",
-                tableLayout: "fixed",
                 borderCollapse: "collapse",
                 fontSize: "12px",
                 textAlign: "left",
               }}
             >
-              <colgroup>
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "13%" }} />
-                <col style={{ width: "9%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "9%" }} />
-                <col style={{ width: "13%" }} />
-                <col style={{ width: "10%" }} />
-              </colgroup>
               <thead
                 style={{
                   position: "sticky",
