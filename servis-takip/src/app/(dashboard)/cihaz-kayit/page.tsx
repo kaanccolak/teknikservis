@@ -147,6 +147,7 @@ function formatArrivedAtDisplay(datetimeLocal: string) {
 const defaultValuesBase: Omit<CreateServiceOrderFormValues, "arrivedAt"> = {
   customerName: "",
   phone: "",
+  personnelId: "",
   arrivedByCargo: false,
   cargoInfo: "",
   deviceTypeId: "",
@@ -234,6 +235,9 @@ function CihazKayitServiceInner({
     grup: null as string | null,
   });
   const [isReturn, setIsReturn] = useState(false);
+  const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
+    [],
+  );
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -316,6 +320,15 @@ function CihazKayitServiceInner({
   useEffect(() => {
     window.__formIsDirty = isDirty;
   }, [isDirty]);
+
+  useEffect(() => {
+    void fetch("/api/personnel")
+      .then((r) => r.json())
+      .then((data: { id: string; name: string }[]) => {
+        if (Array.isArray(data)) setPersoneller(data);
+      })
+      .catch(() => null);
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -558,7 +571,7 @@ function CihazKayitServiceInner({
   }
 
   function applyBayiToForm(bayi: BayiSuggestionItem) {
-    setValue("customerName", bayi.yetkiliKisi, { shouldDirty: true });
+    setValue("customerName", bayi.firmaAdi, { shouldDirty: true });
     setValue("phone", normalizePhoneForInput(bayi.phone), { shouldDirty: true });
     setSelectedBayiId(bayi.id);
     setSelectedBayiName(bayi.firmaAdi);
@@ -582,6 +595,7 @@ function CihazKayitServiceInner({
           ...payload,
           cariId: selectedCariId ?? undefined,
           bayiId: selectedBayiId ?? undefined,
+          personnelId: data.personnelId || undefined,
           isReturn,
         }),
       });
@@ -675,7 +689,7 @@ function CihazKayitServiceInner({
       const created = data as BayiRow;
       setSelectedBayiId(created.id);
       setSelectedBayiName(created.firmaAdi);
-      setValue("customerName", created.yetkiliKisi, { shouldDirty: true });
+      setValue("customerName", created.firmaAdi, { shouldDirty: true });
       setValue("phone", normalizePhoneForInput(created.phone), { shouldDirty: true });
       setShowInlineBayiForm(false);
       setInlineBayiForm({
@@ -1087,6 +1101,37 @@ function CihazKayitServiceInner({
               </div>
             </CardContent>
             </Card>
+
+            {personeller.length > 0 ? (
+              <Card className="border-slate-200/80 bg-white shadow-sm">
+                <CardHeader>
+                  <CardTitle>Kaydı yapan personel</CardTitle>
+                  <CardDescription>
+                    Opsiyonel — bu kaydı hangi personel oluşturdu?
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Controller
+                    name="personnelId"
+                    control={control}
+                    render={({ field }) => (
+                      <select
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        className={nativeSelectClassName}
+                      >
+                        <option value="">Personel seçin (opsiyonel)</option>
+                        {personeller.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            ) : null}
 
             <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
@@ -2465,7 +2510,7 @@ function CihazKayitServiceInner({
                       type="button"
                       className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left hover:bg-slate-50"
                       onClick={() => {
-                        setValue("customerName", bayi.yetkiliKisi, { shouldDirty: true });
+                        setValue("customerName", bayi.firmaAdi, { shouldDirty: true });
                         setValue("phone", normalizePhoneForInput(bayi.phone), {
                           shouldDirty: true,
                         });

@@ -48,6 +48,19 @@ model Shop {
   secondHandDevices SecondHandDevice[]
   whatsAppMessages WhatsAppMessage[]
   waTemplates        WaTemplate[]
+  personnel          Personnel[]
+}
+
+model Personnel {
+  id            String         @id @default(cuid())
+  shopId        String
+  shop          Shop           @relation(fields: [shopId], references: [id])
+  name          String
+  createdAt     DateTime       @default(now())
+  serviceOrders ServiceOrder[]
+  statusLogs    StatusLog[]
+
+  @@index([shopId])
 }
 
 model WaTemplate {
@@ -220,6 +233,8 @@ model ServiceOrder {
   cari       Cari?    @relation(fields: [cariId], references: [id])
   bayiId     String?
   bayi       Bayi?    @relation(fields: [bayiId], references: [id])
+  personnelId String?
+  personnel   Personnel? @relation(fields: [personnelId], references: [id], onDelete: SetNull)
 
   deviceTypeId   String?
   brandId        String?
@@ -334,6 +349,8 @@ model StatusLog {
   id             String       @id @default(cuid())
   serviceOrderId String
   serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+  personnelId    String?
+  personnel      Personnel?   @relation(fields: [personnelId], references: [id], onDelete: SetNull)
   oldStatus      String?
   newStatus      String
   oldPrice       Float?

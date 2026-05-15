@@ -215,6 +215,11 @@ export async function POST(request: Request) {
 
   const body = parsed.data;
 
+  const personnelIdRaw =
+    typeof body.personnelId === "string" && body.personnelId.trim()
+      ? body.personnelId.trim()
+      : undefined;
+
   if (process.env.NODE_ENV === "development") {
     console.log("[POST /api/service-orders] body", body);
   }
@@ -298,6 +303,18 @@ export async function POST(request: Request) {
             }
           }
 
+          let personnelIdCreate: string | null = null;
+          if (personnelIdRaw) {
+            const pRow = await tx.personnel.findFirst({
+              where: { id: personnelIdRaw, shopId: shop.id },
+              select: { id: true },
+            });
+            if (!pRow) {
+              throw new Error("INVALID_PERSONNEL");
+            }
+            personnelIdCreate = pRow.id;
+          }
+
           const phoneStored = phoneRawToStorage(body.phone);
           const phoneDigits = phoneStored ? normalizePhone(phoneStored) : null;
 
@@ -361,6 +378,7 @@ export async function POST(request: Request) {
               arrivedAt,
               status: isReturn ? "returned_device" : "in_service",
               estimatedPrice: formEstimatedPriceToDb(body.estimatedPrice),
+              personnelId: personnelIdCreate,
             },
             select: { id: true, orderNumber: true, serialNo: true },
           });
@@ -426,6 +444,9 @@ export async function POST(request: Request) {
     }
     if (e instanceof Error && e.message === "INVALID_BAYI") {
       return NextResponse.json({ error: "Geçersiz bayi seçimi" }, { status: 400 });
+    }
+    if (e instanceof Error && e.message === "INVALID_PERSONNEL") {
+      return NextResponse.json({ error: "Geçersiz personel seçimi" }, { status: 400 });
     }
     if (e instanceof Error && e.message === "INVALID_DEVICE_CHAIN") {
       console.error("[POST /api/service-orders] INVALID_DEVICE_CHAIN", {

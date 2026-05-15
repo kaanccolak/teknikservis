@@ -32,12 +32,14 @@ const serviceOrderInclude = {
       grup: true,
     },
   },
+  personnel: { select: { name: true } },
   deviceType: true,
   brand: true,
   deviceModel: true,
   externalService: true,
   statusLogs: {
     orderBy: { createdAt: "desc" as const },
+    include: { personnel: { select: { name: true } } },
   },
   sparePartUsages: {
     orderBy: { createdAt: "asc" as const },
@@ -431,6 +433,31 @@ export async function PATCH(
 
   const previousStatus = existing.status;
 
+  let statusLogPersonnelId: string | null = null;
+  if (
+    actuallyChangeStatus &&
+    newStatus !== undefined &&
+    newStatus !== previousStatus
+  ) {
+    const rawPid =
+      typeof body.personnelId === "string" && body.personnelId.trim()
+        ? body.personnelId.trim()
+        : null;
+    if (rawPid) {
+      const pRow = await prisma.personnel.findFirst({
+        where: { id: rawPid, shopId: shop.id },
+        select: { id: true },
+      });
+      if (!pRow) {
+        return NextResponse.json(
+          { error: "Geçersiz personel seçimi" },
+          { status: 400 },
+        );
+      }
+      statusLogPersonnelId = pRow.id;
+    }
+  }
+
   try {
     await prisma.$transaction(async (tx) => {
       if (actuallyChangeStatus && newStatus !== undefined) {
@@ -440,6 +467,7 @@ export async function PATCH(
             oldStatus: previousStatus,
             newStatus,
             note: "Durum güncellendi",
+            personnelId: statusLogPersonnelId,
           },
         });
       }

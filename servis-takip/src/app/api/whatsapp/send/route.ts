@@ -187,13 +187,13 @@ function buildMessage(templateName: string, parameters: string[]): string {
 
     onarim_tamamlandi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın onarımı tamamlanmıştır. Tamir ücreti ${p[3] ?? ""}. Cihazınızı teslim alabilirsiniz.`,
 
-    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim edilmiştir.${p[3] ? ` Toplam ücret: ${p[3]}.` : ""} Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
-    teslim_tamir_olmuyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız tamiri yapılamamış olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_tamir_olmuyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız tamiri yapılamamış olup teslim edilmiştir.${p[3] ? ` Toplam ücret: ${p[3]}.` : ""} Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
-    teslim_sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın arıza tespitinde herhangi bir sorun görülmemiş olup teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_sorun_gorulmedi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın arıza tespitinde herhangi bir sorun görülmemiş olup teslim edilmiştir.${p[3] ? ` Toplam ücret: ${p[3]}.` : ""} Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
-    teslim_musteri_iade: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızı iade almak istediğinizi belirttiniz ve herhangi bir işlem yapılmadan teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.`,
+    teslim_musteri_iade: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızı iade almak istediğinizi belirttiniz ve herhangi bir işlem yapılmadan teslim edilmiştir.${p[3] ? ` Toplam ücret: ${p[3]}.` : ""} Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
     ikinci_el_satin_alindi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} cihazınız ${p[2] ?? ""} TL bedelle satın alındı. Teşekkür ederiz.`,
   };

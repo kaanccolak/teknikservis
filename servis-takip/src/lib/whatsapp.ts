@@ -6,6 +6,7 @@ export type WaTemplateOrder = {
   brand?: { name: string } | null;
   deviceType?: { name: string } | null;
   repairFailedReason?: string | null;
+  totalPrice?: number | null;
 };
 
 /**
@@ -87,6 +88,7 @@ export const WA_TEMPLATES: Record<
       o.customer.name,
       o.serialNo || "Belirtilmemiş",
       o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "Belirtilmemiş",
     ],
   },
   delivered: {
@@ -95,6 +97,7 @@ export const WA_TEMPLATES: Record<
       o.customer.name,
       o.serialNo || "Belirtilmemiş",
       o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "",
     ],
   },
   delivered_repair_failed: {
@@ -103,6 +106,7 @@ export const WA_TEMPLATES: Record<
       o.customer.name,
       o.serialNo || "Belirtilmemiş",
       o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "",
     ],
   },
   delivered_no_problem: {
@@ -111,6 +115,7 @@ export const WA_TEMPLATES: Record<
       o.customer.name,
       o.serialNo || "Belirtilmemiş",
       o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "",
     ],
   },
   delivered_customer_return: {
@@ -119,6 +124,7 @@ export const WA_TEMPLATES: Record<
       o.customer.name,
       o.serialNo || "Belirtilmemiş",
       o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "",
     ],
   },
 };

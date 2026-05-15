@@ -73,6 +73,7 @@ type StatusLogRow = {
   newPrice?: number | null;
   note: string | null;
   createdAt: string;
+  personnel?: { name: string } | null;
 };
 
 type SparePartUsageRow = {
@@ -165,6 +166,7 @@ type ServiceOrderDetail = {
   deviceType: NamedEntity | null;
   brand: NamedEntity | null;
   deviceModel: NamedEntity | null;
+  personnel?: { name: string } | null;
   statusLogs: StatusLogRow[];
   sparePartUsages?: SparePartUsageRow[];
   deliveryType?: string | null;
@@ -312,6 +314,10 @@ export default function ServisDetayPage() {
   const [savingEstimated, setSavingEstimated] = useState(false);
 
   const [waShopReady, setWaShopReady] = useState(false);
+  const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [secilenPersonelId, setSecilenPersonelId] = useState("");
   const [waSending, setWaSending] = useState(false);
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
@@ -688,6 +694,20 @@ export default function ServisDetayPage() {
 
   useEffect(() => {
     let cancelled = false;
+    void fetch("/api/personnel")
+      .then((r) => r.json())
+      .then((data: { id: string; name: string }[]) => {
+        if (cancelled) return;
+        if (Array.isArray(data)) setPersoneller(data);
+      })
+      .catch(() => null);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
     void fetch("/api/baileys/status")
       .then((r) => r.json())
       .then((j: { connected?: boolean }) => {
@@ -810,7 +830,12 @@ export default function ServisDetayPage() {
     }
     setSavingStatus(true);
     try {
-      const updated = await patchOrder({ status: next });
+      const updated = await patchOrder({
+        status: next,
+        ...(secilenPersonelId.trim()
+          ? { personnelId: secilenPersonelId.trim() }
+          : {}),
+      });
       setOrder(updated);
       toast.success("Durum güncellendi");
       const tpl = WA_TEMPLATES[next];
@@ -839,6 +864,9 @@ export default function ServisDetayPage() {
           ? Number(externalReturnCost.replace(",", "."))
           : null,
         externalReturnNote: externalReturnNote.trim() || null,
+        ...(secilenPersonelId.trim()
+          ? { personnelId: secilenPersonelId.trim() }
+          : {}),
       });
       setShowExternalReturnModal(false);
       setPendingReturnStatus(null);
@@ -871,6 +899,9 @@ export default function ServisDetayPage() {
         deliveryPersonName:
           deliveryType === "other" ? deliveryPersonName.trim() : null,
         deliveryNote: deliveryNote.trim() || null,
+        ...(secilenPersonelId.trim()
+          ? { personnelId: secilenPersonelId.trim() }
+          : {}),
       });
       setShowDeliveryModal(false);
       setPendingDeliveryStatus("");
@@ -905,6 +936,9 @@ export default function ServisDetayPage() {
       const updated = await patchOrder({
         status: "repair_failed",
         repairFailedReason: repairFailedReason.trim(),
+        ...(secilenPersonelId.trim()
+          ? { personnelId: secilenPersonelId.trim() }
+          : {}),
       });
       setOrder(updated);
       setRepairFailedReason("");
@@ -939,6 +973,9 @@ export default function ServisDetayPage() {
         status: "sent_to_external",
         externalServiceId: sid,
         externalNote: externalSendNote.trim() || null,
+        ...(secilenPersonelId.trim()
+          ? { personnelId: secilenPersonelId.trim() }
+          : {}),
       });
       setOrder(updated);
       setExternalSendOpen(false);
@@ -2308,6 +2345,9 @@ export default function ServisDetayPage() {
                 <DetailRow label="Geliş Tarihi ve Saati">
                   {formatArrivedAt(order.arrivedAt)}
                 </DetailRow>
+                {order.personnel?.name ? (
+                  <DetailRow label="Kaydı yapan">{order.personnel.name}</DetailRow>
+                ) : null}
               </dl>
             </CardContent>
           </Card>
@@ -2812,6 +2852,40 @@ export default function ServisDetayPage() {
             </CardHeader>
             <CardContent className="pt-4">
               <div>
+                {personeller.length > 0 ? (
+                  <div style={{ marginBottom: "12px" }}>
+                    <label
+                      style={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                        display: "block",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Bu işlemi yapan personel (opsiyonel)
+                    </label>
+                    <select
+                      value={secilenPersonelId}
+                      onChange={(e) => setSecilenPersonelId(e.target.value)}
+                      style={{
+                        width: "100%",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        padding: "7px 10px",
+                        fontSize: "13px",
+                        outline: "none",
+                        background: "white",
+                      }}
+                    >
+                      <option value="">Personel seçin</option>
+                      {personeller.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
                 {STATUS_GROUPS.map((group, gi) => (
                   <div key={group.title}>
                     {gi > 0 ? (
@@ -3360,6 +3434,12 @@ export default function ServisDetayPage() {
                             <span className="font-medium">
                               {serviceOrderStatusLabel(log.newStatus)}
                             </span>
+                            {log.personnel?.name ? (
+                              <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                                {" "}
+                                — {log.personnel.name}
+                              </span>
+                            ) : null}
                           </p>
                         )}
                         {log.note ? (

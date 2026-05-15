@@ -2039,6 +2039,7 @@ function SirketimPageInner() {
     | "durumlar"
     | "tanimlar"
     | "fis"
+    | "personeller"
     | "ikinci-el-belge"
   >("sirket");
   const [deletedOrders, setDeletedOrders] = useState<{
@@ -2069,6 +2070,13 @@ function SirketimPageInner() {
   const [savingIkinciElAlim, setSavingIkinciElAlim] = useState(false);
   const [ikinciElSatisFiyatGoster, setIkinciElSatisFiyatGoster] = useState(true);
   const [savingIkinciElSatisFiyat, setSavingIkinciElSatisFiyat] = useState(false);
+
+  const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
+  const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
+  const [personelSiliniyor, setPersonelSiliniyor] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -2198,6 +2206,17 @@ function SirketimPageInner() {
       setPasswordInput("1234");
     }
   }, [isDemo, settingsLocked]);
+
+  useEffect(() => {
+    if (activeTab === "personeller") {
+      void fetch("/api/personnel")
+        .then((r) => r.json())
+        .then((data: { id: string; name: string }[]) => {
+          if (Array.isArray(data)) setPersoneller(data);
+        })
+        .catch(() => null);
+    }
+  }, [activeTab]);
 
   function openEdit() {
     if (!shop) return;
@@ -2351,6 +2370,7 @@ function SirketimPageInner() {
       | "durumlar"
       | "tanimlar"
       | "fis"
+      | "personeller"
       | "ikinci-el-belge",
   ) {
     setActiveTab(tab);
@@ -2360,6 +2380,7 @@ function SirketimPageInner() {
       tab === "silinen" ||
       tab === "tanimlar" ||
       tab === "fis" ||
+      tab === "personeller" ||
       tab === "ikinci-el-belge"
     )
       setEditing(false);
@@ -2396,6 +2417,47 @@ function SirketimPageInner() {
       toast.error("Şablonlar yüklenemedi");
     } finally {
       setLoadingTemplates(false);
+    }
+  }
+
+  async function handlePersonelEkle() {
+    if (!yeniPersonelAdi.trim()) return;
+    setPersonelEkleniyor(true);
+    try {
+      const res = await fetch("/api/personnel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: yeniPersonelAdi.trim() }),
+      });
+      const data = (await res.json()) as { id: string; name: string; error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Eklenemedi");
+        return;
+      }
+      setPersoneller((prev) => [...prev, data]);
+      setYeniPersonelAdi("");
+      toast.success("Personel eklendi");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setPersonelEkleniyor(false);
+    }
+  }
+
+  async function handlePersonelSil(id: string) {
+    setPersonelSiliniyor(id);
+    try {
+      const res = await fetch(`/api/personnel/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Silinemedi");
+        return;
+      }
+      setPersoneller((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Personel silindi");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setPersonelSiliniyor(null);
     }
   }
 
@@ -2968,6 +3030,28 @@ function SirketimPageInner() {
               }}
             >
               🧾 Fiş / Nüsha Ayarları
+            </button>
+            <button
+              type="button"
+              onClick={() => selectTab("personeller")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "personeller" ? "600" : "400",
+                color: activeTab === "personeller" ? "#111827" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "personeller"
+                    ? "2px solid #111827"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+                whiteSpace: "nowrap" as const,
+                flexShrink: 0,
+              }}
+            >
+              👥 Personeller
             </button>
             <button
               type="button"
@@ -4136,6 +4220,139 @@ function SirketimPageInner() {
                   </div>
                 </div>
               ) : null}
+            </div>
+          ) : activeTab === "personeller" ? (
+            <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "24px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>Personeller</h1>
+                <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
+                  Servis kayıtlarında ve durum değişikliklerinde personel takibi yapın
+                </p>
+              </div>
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Yeni Personel Ekle
+                </label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    type="text"
+                    value={yeniPersonelAdi}
+                    onChange={(e) => setYeniPersonelAdi(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && void handlePersonelEkle()}
+                    placeholder="İsim soyisim"
+                    style={{
+                      flex: 1,
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handlePersonelEkle()}
+                    disabled={personelEkleniyor || !yeniPersonelAdi.trim()}
+                    style={{
+                      padding: "8px 20px",
+                      background: "#111827",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {personelEkleniyor ? "Ekleniyor..." : "Ekle"}
+                  </button>
+                </div>
+              </div>
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                }}
+              >
+                {personeller.length === 0 ? (
+                  <p
+                    style={{
+                      padding: "24px",
+                      textAlign: "center",
+                      color: "#9ca3af",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Henüz personel eklenmedi
+                  </p>
+                ) : (
+                  personeller.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 16px",
+                        borderBottom: "1px solid #f3f4f6",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div
+                          style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            background: "#f3f4f6",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: "#374151",
+                          }}
+                        >
+                          {p.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
+                          {p.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handlePersonelSil(p.id)}
+                        disabled={personelSiliniyor === p.id}
+                        style={{
+                          padding: "4px 10px",
+                          background: "#fef2f2",
+                          color: "#dc2626",
+                          border: "1px solid #fca5a5",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {personelSiliniyor === p.id ? "Siliniyor..." : "Sil"}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           ) : activeTab === "ikinci-el-belge" ? (
             <div style={{ maxWidth: "700px", margin: "0 auto" }}>
