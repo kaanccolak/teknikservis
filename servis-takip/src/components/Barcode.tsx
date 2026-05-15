@@ -8,6 +8,7 @@ interface BarcodeProps {
   width?: number;
   height?: number;
   fontSize?: number;
+  margin?: number;
 }
 
 export default function Barcode({
@@ -15,6 +16,7 @@ export default function Barcode({
   width = 2,
   height = 60,
   fontSize = 14,
+  margin = 4,
 }: BarcodeProps) {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -29,11 +31,11 @@ export default function Barcode({
       fontSize,
       displayValue: true,
       text: value.trim(),
-      margin: 4,
+      margin,
       background: "#ffffff",
       lineColor: "#000000",
     });
-  }, [value, width, height, fontSize]);
+  }, [value, width, height, fontSize, margin]);
 
   if (!value.trim()) return null;
 

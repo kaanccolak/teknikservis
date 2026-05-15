@@ -220,7 +220,7 @@ export default function DukkanNushasiPage() {
                   alignItems: isLandscape ? "center" : undefined,
                 }}
               >
-                <div style={{ flex: isLandscape ? 1 : undefined, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
                   <p
                     style={{
                       fontWeight: 700,
@@ -301,30 +301,18 @@ export default function DukkanNushasiPage() {
                     style={{
                       flexShrink: 0,
                       display: "flex",
+                      flexDirection: "column",
                       justifyContent: "center",
                       alignItems: "center",
-                      width: isLandscape ? "45px" : undefined,
-                      height: isLandscape ? "45px" : undefined,
-                      overflow: "visible",
                     }}
                   >
-                    <div
-                      style={{
-                        transform: isLandscape
-                          ? "rotate(90deg) translateX(-50%)"
-                          : undefined,
-                        transformOrigin: isLandscape ? "top left" : undefined,
-                        position: isLandscape ? "relative" : undefined,
-                        top: isLandscape ? "45px" : undefined,
-                      }}
-                    >
-                      <Barcode
-                        value={order.orderNumber.trim()}
-                        width={isLandscape ? 1 : 1}
-                        height={isLandscape ? 40 : 40}
-                        fontSize={isLandscape ? 9 : 10}
-                      />
-                    </div>
+                    <Barcode
+                      value={order.orderNumber.trim()}
+                      width={isLandscape ? 0.7 : 1}
+                      height={isLandscape ? 28 : 40}
+                      fontSize={isLandscape ? 7 : 10}
+                      margin={isLandscape ? 2 : 4}
+                    />
                   </div>
                 ) : null}
               </div>
