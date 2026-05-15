@@ -47,6 +47,7 @@ export default function DukkanNushasiPage() {
 
   const printStyles = useMemo(() => {
     const genislik = settings.etiket_genislik ?? "80";
+    const fontBoyutu = settings.etiket_font_boyutu ?? "13";
     const thermal = Number(genislik) <= 100;
     const padding = Number(genislik) <= 60 ? "2mm" : "4mm";
     if (thermal) {
@@ -62,6 +63,7 @@ export default function DukkanNushasiPage() {
           width: ${genislik}mm !important;
           max-width: ${genislik}mm !important;
           padding: ${padding} !important;
+          font-size: ${fontBoyutu}px !important;
         }
         @page {
           size: ${genislik}mm auto;
@@ -183,6 +185,7 @@ export default function DukkanNushasiPage() {
       ) : order ? (
         (() => {
           const genislik = settings.etiket_genislik ?? "80";
+          const fontBoyutu = Number(settings.etiket_font_boyutu ?? 13);
           const brand = order.brand?.name ?? order.brandName ?? "";
           const model = order.deviceModel?.name ?? order.modelName ?? "";
           const cihaz = [brand, model].filter(Boolean).join(" / ");
@@ -193,7 +196,7 @@ export default function DukkanNushasiPage() {
                 className="fis-card bg-white text-black"
                 style={{
                   fontFamily: "monospace",
-                  fontSize: "12px",
+                  fontSize: `${settings.etiket_font_boyutu ?? "13"}px`,
                   lineHeight: "1.6",
                   maxWidth: `${genislik}mm`,
                   width: "100%",
@@ -203,10 +206,22 @@ export default function DukkanNushasiPage() {
                   borderRadius: "4px",
                 }}
               >
-                <p style={{ fontWeight: 700, fontSize: "13px", marginBottom: "2px" }}>
+                <p
+                  style={{
+                    fontWeight: 700,
+                    fontSize: `${fontBoyutu + 2}px`,
+                    marginBottom: "2px",
+                  }}
+                >
                   {textOrFallback(shopProfile?.name ?? order.shop?.name, "Dükkan")}
                 </p>
-                <p style={{ fontSize: "10px", color: "#555", marginBottom: "6px" }}>
+                <p
+                  style={{
+                    fontSize: `${fontBoyutu - 2}px`,
+                    color: "#555",
+                    marginBottom: "6px",
+                  }}
+                >
                   {new Date(order.arrivedAt).toLocaleString("tr-TR")}
                 </p>
                 <div style={{ borderTop: "1px dashed #999", margin: "6px 0" }} />

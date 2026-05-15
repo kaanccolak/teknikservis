@@ -2061,6 +2061,8 @@ function SirketimPageInner() {
   const [savingReceiptNotes, setSavingReceiptNotes] = useState(false);
   const [etiketGenislik, setEtiketGenislik] = useState("80");
   const [savingEtiket, setSavingEtiket] = useState(false);
+  const [etiketFontBoyutu, setEtiketFontBoyutu] = useState("13");
+  const [savingEtiketFont, setSavingEtiketFont] = useState(false);
   const [ikinciElGarantiSartlari, setIkinciElGarantiSartlari] = useState("");
   const [savingIkinciElGaranti, setSavingIkinciElGaranti] = useState(false);
   const [ikinciElAlimBelgeNotu, setIkinciElAlimBelgeNotu] = useState("");
@@ -2146,6 +2148,9 @@ function SirketimPageInner() {
         const settingsData = await settingsRes.json().catch(() => ({}));
         setEtiketGenislik(
           (settingsData as Record<string, string>).etiket_genislik ?? "80",
+        );
+        setEtiketFontBoyutu(
+          (settingsData as Record<string, string>).etiket_font_boyutu ?? "13",
         );
       } catch {
         // varsayılan etiketGenislik kalır
@@ -2313,6 +2318,27 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingEtiket(false);
+    }
+  }
+
+  async function handleSaveEtiketFont() {
+    setSavingEtiketFont(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etiket_font_boyutu: etiketFontBoyutu }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("Font boyutu kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingEtiketFont(false);
     }
   }
 
@@ -3917,6 +3943,77 @@ function SirketimPageInner() {
                     }}
                   >
                     {savingEtiket ? "Kaydediliyor..." : "Kaydet"}
+                  </button>
+                </div>
+              </div>
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Cihaz Etiketi Font Boyutu (px)
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Termal etiketteki yazı boyutu. Önerilen: 11-16 arası. Varsayılan:
+                  13
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <input
+                    type="number"
+                    min={8}
+                    max={24}
+                    value={etiketFontBoyutu}
+                    onChange={(e) => setEtiketFontBoyutu(e.target.value)}
+                    style={{
+                      width: "100px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                    placeholder="13"
+                  />
+                  <span style={{ fontSize: "13px", color: "#6b7280" }}>px</span>
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveEtiketFont()}
+                    disabled={savingEtiketFont}
+                    style={{
+                      padding: "8px 20px",
+                      background: savingEtiketFont ? "#d1d5db" : "#111827",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      cursor: savingEtiketFont ? "wait" : "pointer",
+                    }}
+                  >
+                    {savingEtiketFont ? "Kaydediliyor..." : "Kaydet"}
                   </button>
                 </div>
               </div>
