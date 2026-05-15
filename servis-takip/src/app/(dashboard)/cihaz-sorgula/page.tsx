@@ -81,7 +81,7 @@ function CihazSorgulaInner() {
   const searchParam = searchParams.get("search") || "";
   const statusParam = searchParams.get("status") || "all";
   const hideDeliveredParam = searchParams.get("hideDelivered");
-  const hideDelivered = hideDeliveredParam !== "false";
+  const hideDelivered = hideDeliveredParam === "true";
   const onlyBayiParam = searchParams.get("onlyBayi") === "true";
   const initialStatus =
     statusParam !== "all" && SERVICE_ORDER_STATUS_VALUES.has(statusParam)
@@ -450,7 +450,7 @@ function CihazSorgulaInner() {
               }}
             />
             <span className="text-sm font-medium text-slate-700">
-              Tamamlananları gizle
+              Teslim Edilenleri Gizle
             </span>
           </label>
         </div>

@@ -19,6 +19,7 @@ type TeslimOrder = {
   serialNo: string | null;
   noSerialNo: boolean;
   arrivedAt: string;
+  complaint: string | null;
   repairDetails: string | null;
   totalPrice: number | null;
   technicianNote: string | null;
@@ -247,6 +248,17 @@ export default function TeslimFisiPage() {
               </tr>
             </tbody>
           </table>
+
+          {order.complaint?.trim() ? (
+            <div className="mb-5 border-b border-slate-200 pb-5">
+              <p className="mb-2 text-[10px] uppercase tracking-[0.1em] text-slate-400">
+                ŞİKAYET / ARIZA
+              </p>
+              <p className="text-[13px] leading-6 text-slate-700">
+                {order.complaint}
+              </p>
+            </div>
+          ) : null}
 
           <div className="mb-5 border-b border-slate-200 pb-5">
             <p className="mb-2 text-[10px] uppercase tracking-[0.1em] text-slate-400">

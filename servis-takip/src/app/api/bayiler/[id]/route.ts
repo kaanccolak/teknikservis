@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { invalidateCache, invalidateCachePrefix } from "@/lib/cache";
 import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
@@ -146,6 +147,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Bayi bulunamadı" }, { status: 404 });
     }
     const updated = await prisma.bayi.findFirst({ where: { id, shopId: shop.id } });
+    invalidateCachePrefix(`bayiler-${shop.id}`);
+    invalidateCache(`bayiler-${shop.id}`);
+    invalidateCachePrefix("bayiler-");
     return NextResponse.json(updated);
   } catch (e) {
     return jsonServerError("PATCH /api/bayiler/[id]", e, "Bayi güncellenemedi");
