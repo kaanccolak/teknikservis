@@ -52,12 +52,8 @@ export default function DukkanNushasiPage() {
 
     if (thermal) {
       const w = Number(genislik);
-      // 60x40 gibi yatay etiketler için landscape
       const isLandscape = w <= 60;
-      const height = isLandscape ? Math.round(w * 0.67) : undefined;
-      const pageSize = isLandscape
-        ? `${w}mm ${height}mm landscape`
-        : `${w}mm auto`;
+      const pageSize = isLandscape ? `${w}mm 40mm landscape` : `${w}mm auto`;
 
       return `
       body { background: #f3f4f6; }
@@ -70,7 +66,7 @@ export default function DukkanNushasiPage() {
           margin: 0 !important;
           width: ${w}mm !important;
           max-width: ${w}mm !important;
-          padding: ${isLandscape ? "1.5mm" : "3mm"} !important;
+          padding: 2mm !important;
           font-size: ${fontBoyutu}px !important;
         }
         @page {
@@ -199,7 +195,6 @@ export default function DukkanNushasiPage() {
           const cihaz = model || brand || "";
 
           if (isThermal) {
-            const isLandscape = Number(genislik) <= 60;
             const fontSize = Number(settings.etiket_font_boyutu ?? 13);
 
             return (
@@ -212,16 +207,12 @@ export default function DukkanNushasiPage() {
                   maxWidth: `${genislik}mm`,
                   width: "100%",
                   margin: "0 auto",
-                  padding: isLandscape ? "2mm" : "4mm",
+                  padding: "2mm",
                   boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
                   borderRadius: "4px",
-                  display: isLandscape ? "flex" : "block",
-                  gap: isLandscape ? "3mm" : undefined,
-                  alignItems: isLandscape ? "center" : undefined,
                 }}
               >
-                <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
-                  <p
+                <p
                     style={{
                       fontWeight: 700,
                       fontSize: `${fontSize + 1}px`,
@@ -254,64 +245,62 @@ export default function DukkanNushasiPage() {
                   >
                     {textOrFallback(order.customer?.name, "—")}
                   </p>
-                  <p style={{ marginBottom: "1px", fontSize: `${fontSize - 1}px` }}>
-                    {textOrFallback(order.customer?.phone, "—")}
+                <p
+                  style={{
+                    marginBottom: "1px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {textOrFallback(order.customer?.phone, "—")}
+                </p>
+                {cihaz ? (
+                  <p
+                    style={{
+                      marginBottom: "1px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {cihaz}
                   </p>
-                  {cihaz ? (
-                    <p
-                      style={{
-                        marginBottom: "1px",
-                        fontSize: `${fontSize - 1}px`,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {cihaz}
-                    </p>
-                  ) : null}
-                  {order.complaint?.trim() ? (
-                    <p
-                      style={{
-                        marginBottom: "1px",
-                        fontSize: `${fontSize - 1}px`,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {order.complaint.trim()}
-                    </p>
-                  ) : null}
-                  {order.totalPrice != null ? (
-                    <p
-                      style={{
-                        fontSize: `${fontSize}px`,
-                        fontWeight: 700,
-                        marginTop: "2px",
-                      }}
-                    >
-                      {order.totalPrice.toLocaleString("tr-TR")} ₺
-                    </p>
-                  ) : null}
-                </div>
+                ) : null}
+                {order.complaint?.trim() ? (
+                  <p
+                    style={{
+                      marginBottom: "1px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {order.complaint.trim()}
+                  </p>
+                ) : null}
+                {order.totalPrice != null ? (
+                  <p style={{ fontWeight: 700, marginBottom: "2px" }}>
+                    {order.totalPrice.toLocaleString("tr-TR")} ₺
+                  </p>
+                ) : null}
 
                 {order.orderNumber?.trim() ? (
                   <div
                     style={{
-                      flexShrink: 0,
+                      borderTop: "1px dashed #999",
+                      marginTop: "4px",
+                      paddingTop: "3px",
                       display: "flex",
-                      flexDirection: "column",
                       justifyContent: "center",
-                      alignItems: "center",
                     }}
                   >
                     <Barcode
                       value={order.orderNumber.trim()}
-                      width={isLandscape ? 0.7 : 1}
-                      height={isLandscape ? 28 : 40}
-                      fontSize={isLandscape ? 7 : 10}
-                      margin={isLandscape ? 2 : 4}
+                      width={1.2}
+                      height={32}
+                      fontSize={9}
+                      margin={2}
                     />
                   </div>
                 ) : null}
