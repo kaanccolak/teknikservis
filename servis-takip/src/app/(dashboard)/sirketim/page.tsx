@@ -50,6 +50,7 @@ type ShopFull = {
   waTokenConfigured?: boolean;
   googleContactsConnected?: boolean;
   receiptNotes?: string | null;
+  ikinciElGarantiSartlari?: string | null;
   isDemo?: boolean;
 };
 
@@ -2036,6 +2037,7 @@ function SirketimPageInner() {
     | "durumlar"
     | "tanimlar"
     | "fis"
+    | "ikinci-el-belge"
   >("sirket");
   const [deletedOrders, setDeletedOrders] = useState<{
     id: string;
@@ -2057,6 +2059,8 @@ function SirketimPageInner() {
   const [savingReceiptNotes, setSavingReceiptNotes] = useState(false);
   const [etiketGenislik, setEtiketGenislik] = useState("80");
   const [savingEtiket, setSavingEtiket] = useState(false);
+  const [ikinciElGarantiSartlari, setIkinciElGarantiSartlari] = useState("");
+  const [savingIkinciElGaranti, setSavingIkinciElGaranti] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -2119,6 +2123,11 @@ function SirketimPageInner() {
         document.cookie.includes("demo_unlocked=true");
       setIsDemo(isDemoAccount && !isUnlocked);
       setReceiptNotes(row.receiptNotes ?? "");
+      setIkinciElGarantiSartlari(
+        typeof row.ikinciElGarantiSartlari === "string"
+          ? row.ikinciElGarantiSartlari
+          : "Ürünün garanti süresi 6 aydır.\nÜrünün varsa kutu, fatura ve diğer belgelerini saklayın. Aksi halde garanti geçerli olmayacaktır.\nSıvı temas, enerji dalgalanmaları, darbe sonucu oluşan arızalar garanti kapsamı dışındadır.",
+      );
 
       try {
         const settingsRes = await fetch("/api/settings");
@@ -2210,6 +2219,27 @@ function SirketimPageInner() {
     }
   }
 
+  async function handleSaveIkinciElGaranti() {
+    setSavingIkinciElGaranti(true);
+    try {
+      const res = await fetch("/api/shop", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ikinciElGarantiSartlari }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Kayıt başarısız");
+        return;
+      }
+      toast.success("Garanti şartları kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingIkinciElGaranti(false);
+    }
+  }
+
   async function handleSaveEtiketGenislik() {
     setSavingEtiket(true);
     try {
@@ -2239,7 +2269,8 @@ function SirketimPageInner() {
       | "silinen"
       | "durumlar"
       | "tanimlar"
-      | "fis",
+      | "fis"
+      | "ikinci-el-belge",
   ) {
     setActiveTab(tab);
     if (
@@ -2247,7 +2278,8 @@ function SirketimPageInner() {
       tab === "google" ||
       tab === "silinen" ||
       tab === "tanimlar" ||
-      tab === "fis"
+      tab === "fis" ||
+      tab === "ikinci-el-belge"
     )
       setEditing(false);
     if (tab === "silinen") void loadDeletedOrders();
@@ -2856,8 +2888,29 @@ function SirketimPageInner() {
             >
               🧾 Fiş / Nüsha Ayarları
             </button>
+            <button
+              type="button"
+              onClick={() => selectTab("ikinci-el-belge")}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                fontWeight: activeTab === "ikinci-el-belge" ? "600" : "400",
+                color: activeTab === "ikinci-el-belge" ? "#111827" : "#6b7280",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  activeTab === "ikinci-el-belge"
+                    ? "2px solid #111827"
+                    : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+                whiteSpace: "nowrap" as const,
+                flexShrink: 0,
+              }}
+            >
+              📦 İkinci El Belge Ayarları
+            </button>
             </div>
-          </div>
 
           {activeTab === "sirket" ? (
             <div style={{ maxWidth: "600px", margin: "0 auto" }}>
@@ -3932,6 +3985,142 @@ function SirketimPageInner() {
                 </div>
               ) : null}
             </div>
+          ) : activeTab === "ikinci-el-belge" ? (
+            <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+              <div style={{ marginBottom: "24px" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>
+                  İkinci El Alış / Satış Belge Ayarları
+                </h1>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginTop: "4px",
+                  }}
+                >
+                  İkinci el alım ve satış belgelerinin altında görünecek
+                  garanti şartlarını düzenleyin
+                </p>
+              </div>
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Garanti Şartları
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Her satır belgede ayrı madde olarak görünür
+                </p>
+                <textarea
+                  value={ikinciElGarantiSartlari}
+                  onChange={(e) => setIkinciElGarantiSartlari(e.target.value)}
+                  rows={6}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    padding: "10px 12px",
+                    fontSize: "13px",
+                    resize: "vertical",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    lineHeight: "1.6",
+                  }}
+                  placeholder="Her satıra bir madde yazın..."
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleSaveIkinciElGaranti()}
+                  disabled={savingIkinciElGaranti}
+                  style={{
+                    marginTop: "16px",
+                    padding: "10px 20px",
+                    background: savingIkinciElGaranti ? "#d1d5db" : "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    cursor: savingIkinciElGaranti ? "wait" : "pointer",
+                  }}
+                >
+                  {savingIkinciElGaranti ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+              </div>
+              {ikinciElGarantiSartlari ? (
+                <div
+                  style={{
+                    marginTop: "24px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "10px",
+                    padding: "20px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      marginBottom: "12px",
+                      color: "#374151",
+                    }}
+                  >
+                    Önizleme
+                  </p>
+                  <div
+                    style={{
+                      borderTop: "1px solid #e5e7eb",
+                      paddingTop: "12px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        marginBottom: "8px",
+                        color: "#111827",
+                      }}
+                    >
+                      Garanti Şartları
+                    </p>
+                    {ikinciElGarantiSartlari
+                      .split("\n")
+                      .filter((l) => l.trim())
+                      .map((line, i) => (
+                        <p
+                          key={i}
+                          style={{
+                            fontSize: "10px",
+                            color: "#374151",
+                            margin: "2px 0",
+                            lineHeight: "1.6",
+                          }}
+                        >
+                          • {line}
+                        </p>
+                      ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           ) : activeTab === "tanimlar" ? (
             <div style={{ maxWidth: "900px", margin: "0 auto" }}>
               <SirketimTanimlarPanel isDemo={isDemo} />
@@ -4052,6 +4241,7 @@ function SirketimPageInner() {
               </div>
             </div>
           )}
+          </div>
         </>
       ) : null}
 

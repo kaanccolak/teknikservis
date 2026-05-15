@@ -149,6 +149,9 @@ export async function PATCH(request: Request) {
         ...(typeof body.receiptNotes === "string"
           ? { receiptNotes: body.receiptNotes }
           : {}),
+        ...(typeof body.ikinciElGarantiSartlari === "string"
+          ? { ikinciElGarantiSartlari: body.ikinciElGarantiSartlari }
+          : {}),
         ...(body.waPhoneNumberId !== undefined
           ? {
               waPhoneNumberId: optStr(body.waPhoneNumberId as string),

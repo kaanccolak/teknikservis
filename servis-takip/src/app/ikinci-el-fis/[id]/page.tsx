@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 
-type ShopRow = { name: string };
+type ShopRow = { name: string; ikinciElGarantiSartlari?: string | null };
 
 type DeviceRow = {
   deviceCode: string;
@@ -105,7 +105,15 @@ export default function IkinciElAlimFisPage() {
       }
       setRow(dJson as DeviceRow);
       setShop(
-        typeof sJson.name === "string" ? { name: sJson.name } : { name: "—" },
+        typeof sJson.name === "string"
+          ? {
+              name: sJson.name,
+              ikinciElGarantiSartlari:
+                typeof sJson.ikinciElGarantiSartlari === "string"
+                  ? sJson.ikinciElGarantiSartlari
+                  : null,
+            }
+          : { name: "—" },
       );
     } catch {
       setError("Bağlantı hatası");
@@ -248,6 +256,37 @@ export default function IkinciElAlimFisPage() {
               Yetkili imzası
             </div>
           </div>
+
+          {shop?.ikinciElGarantiSartlari ? (
+            <div
+              style={{
+                marginTop: "24px",
+                borderTop: "1px solid #e5e7eb",
+                paddingTop: "16px",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  marginBottom: "8px",
+                  color: "#111827",
+                }}
+              >
+                Garanti Şartları
+              </p>
+              <div style={{ fontSize: "10px", color: "#374151", lineHeight: "1.6" }}>
+                {shop.ikinciElGarantiSartlari
+                  .split("\n")
+                  .filter((l) => l.trim())
+                  .map((line, i) => (
+                    <p key={i} style={{ margin: "2px 0" }}>
+                      • {line}
+                    </p>
+                  ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-8 flex flex-col items-center gap-2 print:mt-6">
             <Barcode value={row.deviceCode} height={50} width={1.8} fontSize={12} />
