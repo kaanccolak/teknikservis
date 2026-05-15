@@ -305,12 +305,20 @@ export default function DukkanNushasiPage() {
                       alignItems: "center",
                     }}
                   >
-                    <Barcode
-                      value={order.orderNumber.trim()}
-                      width={isLandscape ? 0.8 : 1}
-                      height={isLandscape ? 35 : 40}
-                      fontSize={isLandscape ? 8 : 10}
-                    />
+                    <div
+                      style={{
+                        transform: "rotate(90deg)",
+                        transformOrigin: "center center",
+                        width: isLandscape ? "35px" : undefined,
+                      }}
+                    >
+                      <Barcode
+                        value={order.orderNumber.trim()}
+                        width={isLandscape ? 0.8 : 1}
+                        height={isLandscape ? 50 : 40}
+                        fontSize={isLandscape ? 8 : 10}
+                      />
+                    </div>
                   </div>
                 ) : null}
               </div>
