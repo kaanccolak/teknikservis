@@ -196,7 +196,7 @@ export default function DukkanNushasiPage() {
           const genislik = settings.etiket_genislik ?? "80";
           const brand = order.brand?.name ?? order.brandName ?? "";
           const model = order.deviceModel?.name ?? order.modelName ?? "";
-          const cihaz = [brand, model].filter(Boolean).join(" / ");
+          const cihaz = model || brand || "";
 
           if (isThermal) {
             const isLandscape = Number(genislik) <= 60;
@@ -303,20 +303,26 @@ export default function DukkanNushasiPage() {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
+                      width: isLandscape ? "45px" : undefined,
+                      height: isLandscape ? "45px" : undefined,
+                      overflow: "visible",
                     }}
                   >
                     <div
                       style={{
-                        transform: "rotate(90deg)",
-                        transformOrigin: "center center",
-                        width: isLandscape ? "35px" : undefined,
+                        transform: isLandscape
+                          ? "rotate(90deg) translateX(-50%)"
+                          : undefined,
+                        transformOrigin: isLandscape ? "top left" : undefined,
+                        position: isLandscape ? "relative" : undefined,
+                        top: isLandscape ? "45px" : undefined,
                       }}
                     >
                       <Barcode
                         value={order.orderNumber.trim()}
-                        width={isLandscape ? 0.8 : 1}
-                        height={isLandscape ? 50 : 40}
-                        fontSize={isLandscape ? 8 : 10}
+                        width={isLandscape ? 1 : 1}
+                        height={isLandscape ? 40 : 40}
+                        fontSize={isLandscape ? 9 : 10}
                       />
                     </div>
                   </div>
