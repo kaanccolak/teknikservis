@@ -412,39 +412,112 @@ function IkinciElInner() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
-              <thead>
+            <table
+              className="w-full min-w-[1180px]"
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: "12px",
+                textAlign: "left",
+              }}
+            >
+              <thead
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  background: "white",
+                  zIndex: 1,
+                }}
+              >
                 <tr className="border-b border-slate-200 bg-slate-50/90">
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Kayıt kodu
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Durum
                   </th>
-                  <th className="px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{
+                      padding: "8px 6px",
+                      whiteSpace: "nowrap",
+                      maxWidth: "120px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
                     Satıcı adı
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Telefon
                   </th>
-                  <th className="px-3 py-3 font-medium text-slate-700">Cihaz</th>
-                  <th className="px-3 py-3 font-medium text-slate-700">Seri no</th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{
+                      padding: "8px 6px",
+                      whiteSpace: "nowrap",
+                      maxWidth: "120px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    Cihaz
+                  </th>
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{
+                      padding: "8px 6px",
+                      whiteSpace: "nowrap",
+                      maxWidth: "100px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    Seri no
+                  </th>
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Fatura
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Garanti
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Kutu
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Satın alım
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Tarih
                   </th>
-                  <th className="whitespace-nowrap px-3 py-3 font-medium text-slate-700">
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     İşlemler
                   </th>
                 </tr>
@@ -466,64 +539,127 @@ function IkinciElInner() {
                       i % 2 === 0 ? "bg-white" : "bg-slate-50/50"
                     }`}
                   >
-                    <td className="whitespace-nowrap px-3 py-2.5">
-                      <span className="font-semibold text-violet-700">
-                        {row.deviceCode}
-                      </span>
+                    <td
+                      className="font-medium text-slate-900"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
+                      {row.deviceCode}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5">
+                    <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
                       {row.isSold ? (
-                        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "3px 10px",
+                            borderRadius: "20px",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                            background: "#d1fae5",
+                            color: "#065f46",
+                            border: "1px solid #6ee7b7",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           Satıldı
                         </span>
                       ) : (
-                        <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "3px 10px",
+                            borderRadius: "20px",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                            background: "#dbeafe",
+                            color: "#1e40af",
+                            border: "1px solid #93c5fd",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           Stokta
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-slate-800">{row.sellerName}</td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
+                    <td
+                      className="text-slate-800"
+                      style={{
+                        padding: "8px 6px",
+                        whiteSpace: "nowrap",
+                        maxWidth: "120px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {row.sellerName}
+                    </td>
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
                       {formatPhone(row.sellerPhone)}
                     </td>
-                    <td className="max-w-[220px] truncate px-3 py-2.5 text-slate-700">
+                    <td
+                      className="text-slate-700"
+                      style={{
+                        padding: "8px 6px",
+                        whiteSpace: "nowrap",
+                        maxWidth: "120px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       {deviceSummary(row)}
                     </td>
-                    <td className="max-w-[120px] truncate px-3 py-2.5 text-slate-700">
+                    <td
+                      className="text-slate-700"
+                      style={{
+                        padding: "8px 6px",
+                        maxWidth: "100px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {row.noSerialNo ? "—" : (row.serialNo ?? "—")}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td style={{ padding: "8px 6px", textAlign: "center" }}>
                       {row.hasInvoice ? (
                         <Check className="mx-auto size-5 text-emerald-600" aria-label="Var" />
                       ) : (
                         <X className="mx-auto size-5 text-red-500" aria-label="Yok" />
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td style={{ padding: "8px 6px", textAlign: "center" }}>
                       {row.hasWarranty ? (
                         <Check className="mx-auto size-5 text-emerald-600" aria-label="Var" />
                       ) : (
                         <X className="mx-auto size-5 text-red-500" aria-label="Yok" />
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td style={{ padding: "8px 6px", textAlign: "center" }}>
                       {row.hasBox ? (
                         <Check className="mx-auto size-5 text-emerald-600" aria-label="Var" />
                       ) : (
                         <X className="mx-auto size-5 text-red-500" aria-label="Yok" />
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
+                    <td
+                      className="font-medium text-slate-900"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
                       {formatTry(row.purchasePrice)}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
                       {new Date(row.createdAt).toLocaleDateString("tr-TR", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5">
+                    <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
                       <div className="flex flex-wrap gap-1.5">
                         <Link
                           href={`/ikinci-el/${row.id}`}
