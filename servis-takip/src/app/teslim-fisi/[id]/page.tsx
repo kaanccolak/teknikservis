@@ -264,7 +264,10 @@ export default function TeslimFisiPage() {
             <p className="mb-2 text-[10px] uppercase tracking-[0.1em] text-slate-400">
               ONARIM DETAYI
             </p>
-            <p className="text-[13px] leading-6 text-slate-700">
+            <p
+              className="text-[13px] leading-6 text-slate-700"
+              style={{ whiteSpace: "pre-wrap" }}
+            >
               {dash(order.repairDetails) === "—"
                 ? "Belirtilmemiş"
                 : dash(order.repairDetails)}
