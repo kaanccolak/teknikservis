@@ -55,13 +55,57 @@ export async function GET() {
       updatedAt: true,
       waEnabled: true,
       waPhoneNumberId: true,
-      _count: { select: { orders: true } },
+      userId: true,
+      googleAccessToken: true,
+      _count: {
+        select: {
+          orders: { where: { deletedAt: null } },
+        },
+      },
       orders: {
         where: { deletedAt: null, createdAt: { gte: thisMonthStart } },
         select: { id: true },
       },
     },
   });
+
+  const shopIds = shops.map((s) => s.id);
+
+  const [recentOrdersAll, lastOrdersAll] = await Promise.all([
+    shopIds.length === 0
+      ? Promise.resolve([])
+      : prisma.serviceOrder.findMany({
+          where: {
+            shopId: { in: shopIds },
+            deletedAt: null,
+            createdAt: { gte: sevenDaysAgo },
+          },
+          select: { id: true, shopId: true },
+        }),
+    shopIds.length === 0
+      ? Promise.resolve([])
+      : prisma.serviceOrder.findMany({
+          where: {
+            shopId: { in: shopIds },
+            deletedAt: null,
+          },
+          select: { shopId: true, createdAt: true },
+          orderBy: { createdAt: "desc" },
+          distinct: ["shopId"],
+        }),
+  ]);
+
+  const recentByShop = new Map<string, Array<{ id: string }>>();
+  for (const order of recentOrdersAll) {
+    const list = recentByShop.get(order.shopId) ?? [];
+    list.push({ id: order.id });
+    recentByShop.set(order.shopId, list);
+  }
+
+  const lastByShop = new Map<string, Array<{ createdAt: Date }>>();
+  for (const order of lastOrdersAll) {
+    lastByShop.set(order.shopId, [{ createdAt: order.createdAt }]);
+  }
 
   const [totalOrders, todayOrders] = await Promise.all([
     prisma.serviceOrder.count({ where: { deletedAt: null } }),
@@ -77,9 +121,23 @@ export async function GET() {
     shops.map(async (shop) => {
       try {
         const status = await getSessionStatus(shop.id);
-        return { ...shop, waConnected: status.connected === true };
+        const { googleAccessToken, ...rest } = shop;
+        return {
+          ...rest,
+          recentOrders: recentByShop.get(shop.id) ?? [],
+          lastOrder: lastByShop.get(shop.id) ?? [],
+          waConnected: status.connected === true,
+          googleContactsConnected: !!googleAccessToken,
+        };
       } catch {
-        return { ...shop, waConnected: false };
+        const { googleAccessToken, ...rest } = shop;
+        return {
+          ...rest,
+          recentOrders: recentByShop.get(shop.id) ?? [],
+          lastOrder: lastByShop.get(shop.id) ?? [],
+          waConnected: false,
+          googleContactsConnected: !!googleAccessToken,
+        };
       }
     }),
   );

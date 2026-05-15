@@ -14,8 +14,12 @@ type AdminStatsResponse = {
     waEnabled: boolean;
     waPhoneNumberId: string | null;
     waConnected: boolean;
+    userId: string | null;
+    googleContactsConnected: boolean;
     _count: { orders: number };
     orders: Array<{ id: string }>;
+    recentOrders: Array<{ id: string }>;
+    lastOrder: Array<{ createdAt: string }>;
   }>;
   totalOrders: number;
   todayOrders: number;
@@ -311,6 +315,88 @@ export default function AdminPage() {
                     {new Date(shop.createdAt).toLocaleDateString("tr-TR")} ·
                     Toplam: {shop._count.orders} · Bu ay: {shop.orders.length}
                   </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "6px",
+                      marginTop: "6px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        padding: "2px 7px",
+                        borderRadius: "20px",
+                        background: shop.lastOrder?.[0]
+                          ? new Date(shop.lastOrder[0].createdAt) >=
+                            new Date(Date.now() - 24 * 60 * 60 * 1000)
+                            ? "#dcfce7"
+                            : new Date(shop.lastOrder[0].createdAt) >=
+                                new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                              ? "#fef9c3"
+                              : "#f3f4f6"
+                          : "#f3f4f6",
+                        color: shop.lastOrder?.[0]
+                          ? new Date(shop.lastOrder[0].createdAt) >=
+                            new Date(Date.now() - 24 * 60 * 60 * 1000)
+                            ? "#16a34a"
+                            : new Date(shop.lastOrder[0].createdAt) >=
+                                new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                              ? "#854d0e"
+                              : "#6b7280"
+                          : "#6b7280",
+                      }}
+                    >
+                      {shop.lastOrder?.[0]
+                        ? `Son kayıt: ${new Date(shop.lastOrder[0].createdAt).toLocaleDateString("tr-TR")}`
+                        : "Henüz kayıt yok"}
+                    </span>
+
+                    {shop.recentOrders.length > 0 ? (
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          padding: "2px 7px",
+                          borderRadius: "20px",
+                          background: "#eff6ff",
+                          color: "#2563eb",
+                        }}
+                      >
+                        Bu hafta: {shop.recentOrders.length} kayıt
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          padding: "2px 7px",
+                          borderRadius: "20px",
+                          background: "#f3f4f6",
+                          color: "#9ca3af",
+                        }}
+                      >
+                        Bu hafta kayıt yok
+                      </span>
+                    )}
+
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        padding: "2px 7px",
+                        borderRadius: "20px",
+                        background: shop.googleContactsConnected
+                          ? "#f0fdf4"
+                          : "#f3f4f6",
+                        color: shop.googleContactsConnected
+                          ? "#16a34a"
+                          : "#9ca3af",
+                      }}
+                    >
+                      {shop.googleContactsConnected
+                        ? "📇 Google Bağlı"
+                        : "📇 Google Yok"}
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={{
