@@ -49,8 +49,16 @@ export default function DukkanNushasiPage() {
     const genislik = settings.etiket_genislik ?? "80";
     const fontBoyutu = settings.etiket_font_boyutu ?? "13";
     const thermal = Number(genislik) <= 100;
-    const padding = Number(genislik) <= 60 ? "2mm" : "4mm";
+
     if (thermal) {
+      const w = Number(genislik);
+      // 60x40 gibi yatay etiketler için landscape
+      const isLandscape = w <= 60;
+      const height = isLandscape ? Math.round(w * 0.67) : undefined;
+      const pageSize = isLandscape
+        ? `${w}mm ${height}mm landscape`
+        : `${w}mm auto`;
+
       return `
       body { background: #f3f4f6; }
       @media print {
@@ -60,19 +68,20 @@ export default function DukkanNushasiPage() {
           box-shadow: none !important;
           border-radius: 0 !important;
           margin: 0 !important;
-          width: ${genislik}mm !important;
-          max-width: ${genislik}mm !important;
-          padding: ${padding} !important;
+          width: ${w}mm !important;
+          max-width: ${w}mm !important;
+          padding: ${isLandscape ? "1.5mm" : "3mm"} !important;
           font-size: ${fontBoyutu}px !important;
         }
         @page {
-          size: ${genislik}mm auto;
+          size: ${pageSize};
           margin: 0;
         }
         svg { display: block !important; }
       }
     `;
     }
+
     return `
     body { background: #f3f4f6; }
     @media print {
@@ -185,71 +194,122 @@ export default function DukkanNushasiPage() {
       ) : order ? (
         (() => {
           const genislik = settings.etiket_genislik ?? "80";
-          const fontBoyutu = Number(settings.etiket_font_boyutu ?? 13);
           const brand = order.brand?.name ?? order.brandName ?? "";
           const model = order.deviceModel?.name ?? order.modelName ?? "";
           const cihaz = [brand, model].filter(Boolean).join(" / ");
 
           if (isThermal) {
+            const isLandscape = Number(genislik) <= 60;
+            const fontSize = Number(settings.etiket_font_boyutu ?? 13);
+
             return (
               <div
                 className="fis-card bg-white text-black"
                 style={{
                   fontFamily: "monospace",
-                  fontSize: `${settings.etiket_font_boyutu ?? "13"}px`,
-                  lineHeight: "1.6",
+                  fontSize: `${fontSize}px`,
+                  lineHeight: "1.4",
                   maxWidth: `${genislik}mm`,
                   width: "100%",
                   margin: "0 auto",
-                  padding: "4mm",
+                  padding: isLandscape ? "2mm" : "4mm",
                   boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
                   borderRadius: "4px",
+                  display: isLandscape ? "flex" : "block",
+                  gap: isLandscape ? "3mm" : undefined,
+                  alignItems: isLandscape ? "center" : undefined,
                 }}
               >
-                <p
-                  style={{
-                    fontWeight: 700,
-                    fontSize: `${fontBoyutu + 2}px`,
-                    marginBottom: "2px",
-                  }}
-                >
-                  {textOrFallback(shopProfile?.name ?? order.shop?.name, "Dükkan")}
-                </p>
-                <p
-                  style={{
-                    fontSize: `${fontBoyutu - 2}px`,
-                    color: "#555",
-                    marginBottom: "6px",
-                  }}
-                >
-                  {new Date(order.arrivedAt).toLocaleString("tr-TR")}
-                </p>
-                <div style={{ borderTop: "1px dashed #999", margin: "6px 0" }} />
-                <p style={{ fontWeight: 700, marginBottom: "1px" }}>
-                  {textOrFallback(order.customer?.name, "—")}
-                </p>
-                <p style={{ marginBottom: "1px" }}>
-                  {textOrFallback(order.customer?.phone, "—")}
-                </p>
-                {cihaz ? (
-                  <p style={{ marginBottom: "1px" }}>{cihaz}</p>
-                ) : null}
-                {order.complaint?.trim() ? (
-                  <p style={{ marginBottom: "1px" }}>{order.complaint.trim()}</p>
-                ) : null}
-                {order.totalPrice != null ? (
-                  <p style={{ marginBottom: "1px" }}>
-                    {order.totalPrice.toLocaleString("tr-TR")} ₺
+                <div style={{ flex: isLandscape ? 1 : undefined, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontWeight: 700,
+                      fontSize: `${fontSize + 1}px`,
+                      marginBottom: "1px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {textOrFallback(shopProfile?.name ?? order.shop?.name, "Dükkan")}
                   </p>
-                ) : null}
-                <div style={{ borderTop: "1px dashed #999", margin: "8px 0" }} />
+                  <p
+                    style={{
+                      fontSize: `${fontSize - 2}px`,
+                      color: "#555",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {new Date(order.arrivedAt).toLocaleString("tr-TR")}
+                  </p>
+                  <div style={{ borderTop: "1px dashed #999", margin: "3px 0" }} />
+                  <p
+                    style={{
+                      fontWeight: 700,
+                      marginBottom: "1px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {textOrFallback(order.customer?.name, "—")}
+                  </p>
+                  <p style={{ marginBottom: "1px", fontSize: `${fontSize - 1}px` }}>
+                    {textOrFallback(order.customer?.phone, "—")}
+                  </p>
+                  {cihaz ? (
+                    <p
+                      style={{
+                        marginBottom: "1px",
+                        fontSize: `${fontSize - 1}px`,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {cihaz}
+                    </p>
+                  ) : null}
+                  {order.complaint?.trim() ? (
+                    <p
+                      style={{
+                        marginBottom: "1px",
+                        fontSize: `${fontSize - 1}px`,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {order.complaint.trim()}
+                    </p>
+                  ) : null}
+                  {order.totalPrice != null ? (
+                    <p
+                      style={{
+                        fontSize: `${fontSize}px`,
+                        fontWeight: 700,
+                        marginTop: "2px",
+                      }}
+                    >
+                      {order.totalPrice.toLocaleString("tr-TR")} ₺
+                    </p>
+                  ) : null}
+                </div>
+
                 {order.orderNumber?.trim() ? (
-                  <div style={{ display: "flex", justifyContent: "center" }}>
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
                     <Barcode
                       value={order.orderNumber.trim()}
-                      width={1}
-                      height={40}
-                      fontSize={11}
+                      width={isLandscape ? 0.8 : 1}
+                      height={isLandscape ? 35 : 40}
+                      fontSize={isLandscape ? 8 : 10}
                     />
                   </div>
                 ) : null}
