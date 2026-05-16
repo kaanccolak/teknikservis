@@ -42,6 +42,7 @@ export default function DashboardLayout({
     sessionStorage.setItem("activePersonnelId", personelId);
     sessionStorage.setItem("activePersonnelName", personelAdi);
     sessionStorage.setItem("activePersonnelIsAdmin", isAdmin ? "true" : "false");
+    document.cookie = `personnelIsAdmin=${isAdmin ? "true" : "false"}; path=/`;
     setPersonelSecildi(true);
   }
 

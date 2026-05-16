@@ -61,6 +61,20 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Admin olmayan personel için kısıtlı rotalar
+  const restrictedForNonAdmin = ["/sirketim", "/raporlar", "/planlarim"];
+  const isRestricted = restrictedForNonAdmin.some(
+    (path) =>
+      request.nextUrl.pathname === path ||
+      request.nextUrl.pathname.startsWith(path + "/"),
+  );
+  if (isRestricted && user) {
+    const personnelIsAdmin = request.cookies.get("personnelIsAdmin")?.value;
+    if (personnelIsAdmin === "false") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
   // Korumalı rotalar: giriş yoksa landing
   const isProtected =
     !isPublic && request.nextUrl.pathname !== "/login";
