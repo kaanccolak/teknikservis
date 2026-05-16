@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import CookieBanner from "@/components/CookieBanner";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import { useState } from "react";
@@ -1018,8 +1019,8 @@ export default function LandingPage() {
             >
               Hizmet Şartları
             </a>
-            <a href="#sss" className="text-sm text-slate-500 hover:text-slate-700 transition">
-              SSS
+            <a href="/kvkk" className="text-sm text-slate-500 hover:text-slate-700 transition">
+              KVKK
             </a>
           </div>
           <p className="text-center text-xs text-slate-500 sm:text-right">
@@ -1027,6 +1028,7 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+      <CookieBanner />
     </main>
     </>
   );
