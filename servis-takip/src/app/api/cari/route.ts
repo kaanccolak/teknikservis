@@ -13,18 +13,25 @@ function normalizeDigits(value: string | undefined): string | null {
 }
 
 async function allocateCariCode(shopId: string) {
+  const now = new Date();
+  const year = String(now.getFullYear());
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const prefix = `C${year}${month}`;
+
   const lastCari = await prisma.cari.findFirst({
-    where: { shopId },
+    where: {
+      shopId,
+      cariCode: { startsWith: prefix },
+    },
     orderBy: { cariCode: "desc" },
     select: { cariCode: true },
   });
 
-  let nextNumber = 1;
-  if (lastCari?.cariCode) {
-    const match = lastCari.cariCode.match(/\d+$/);
-    if (match) nextNumber = parseInt(match[0], 10) + 1;
-  }
-  return `C${String(nextNumber).padStart(3, "0")}`;
+  const seq = lastCari?.cariCode
+    ? String(Number.parseInt(lastCari.cariCode.slice(-3), 10) + 1).padStart(3, "0")
+    : "001";
+
+  return `${prefix}${seq}`;
 }
 
 export async function GET(request: Request) {
