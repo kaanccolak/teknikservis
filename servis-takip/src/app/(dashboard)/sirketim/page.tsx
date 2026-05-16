@@ -2385,6 +2385,13 @@ function SirketimPageInner() {
         body: JSON.stringify({ personel_giris_modu: aktif ? "true" : "false" }),
       });
       setPersonelGirisModu(aktif);
+      if (!aktif) {
+        // Mod kapatılınca cookie ve sessionStorage temizle
+        document.cookie = "personnelIsAdmin=; path=/; max-age=0";
+        sessionStorage.removeItem("activePersonnelId");
+        sessionStorage.removeItem("activePersonnelName");
+        sessionStorage.removeItem("activePersonnelIsAdmin");
+      }
       toast.success(
         aktif ? "Personel giriş modu aktif edildi" : "Personel giriş modu kapatıldı",
       );
