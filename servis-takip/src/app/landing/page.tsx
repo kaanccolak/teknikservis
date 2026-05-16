@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Inter } from "next/font/google";
 import Link from "next/link";
@@ -499,29 +499,89 @@ export default function LandingPage() {
       </section>
 
       {/* Fiyatlandırma */}
-      <section id="fiyatlandirma" className="py-16 sm:py-20">
-        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
-            Fiyatlandırma
-          </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Yakında açıklanacak
-          </h2>
-          <p className="mt-4 text-slate-600">
-            Paketler ve ücretlendirme netleştiğinde bu alanda duyurulacaktır.
-            Şimdilik demo ile deneyebilirsiniz.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/login?demo=true")}
-            className="mt-8 rounded-xl border-2 border-indigo-600 bg-white px-6 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
-          >
-            Demo ile incele
-          </button>
+      <section id="fiyatlandirma" className="border-b border-slate-100 py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-indigo-600">
+              Fiyatlandırma
+            </span>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              İhtiyacınıza Uygun Planı Seçin
+            </h2>
+            <p className="mt-3 text-slate-500 text-sm">
+              İlk 30 gün tüm özellikler ücretsiz — kredi kartı gerekmez.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Basic</p>
+                <div className="mt-3 flex items-end gap-1">
+                  <span className="text-4xl font-bold text-slate-900">₺90</span>
+                  <span className="mb-1 text-slate-400 text-sm">/ay</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
+                <p className="mt-4 text-sm text-slate-500">Küçük ve tek kişilik servisler için ideal başlangıç.</p>
+                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz kayıt ve takip</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cihaz sorgula ekranı</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Fiş, etiket ve müşteri nüshası</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>İkinci el modülü</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Dış servisler ve bekleyen cihazlar</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cari ve bayi yönetimi</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Planlarım ve hazır tanımlar</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>WhatsApp ve mesaj şablonları</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Yardım ve Destek AI</li>
+                </ul>
+              </div>
+              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
+            </div>
+            <div className="relative rounded-2xl border-2 border-indigo-600 bg-white p-8 shadow-xl flex flex-col">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                <span className="rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold text-white shadow">En Çok Tercih Edilen</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Premium</p>
+                <div className="mt-3 flex items-end gap-1">
+                  <span className="text-4xl font-bold text-slate-900">₺130</span>
+                  <span className="mb-1 text-slate-400 text-sm">/ay</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
+                <p className="mt-4 text-sm text-slate-500">Büyüyen servisler için ekip ve analiz özellikleri.</p>
+                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Basic paketteki her şey</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Stok yönetimi</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Raporlar ve ciro görünümü</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm AI özellikleri</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Google Contacts entegrasyonu</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>5 personele kadar kullanım</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel giriş modu</li>
+                </ul>
+              </div>
+              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg">Ücretsiz Başla</button>
+            </div>
+            <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Enterprise</p>
+                <div className="mt-3 flex items-end gap-1">
+                  <span className="text-4xl font-bold text-slate-900">₺160</span>
+                  <span className="mb-1 text-slate-400 text-sm">/ay</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
+                <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
+                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Premium paketteki her şey</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Haftalık rapor e-postası</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
+                </ul>
+              </div>
+              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
+            </div>
+          </div>
+          <p className="mt-8 text-center text-xs text-slate-400">Tüm planlar 30 günlük ücretsiz denemeyle başlar. Kredi kartı gerekmez. İstediğiniz zaman iptal edebilirsiniz.</p>
         </div>
-      </section>
-
-      {/* Kimler Kullanabilir Bölümü */}
+      </section>      {/* Kimler Kullanabilir Bölümü */}
       <section
         style={{ padding: "80px 24px", background: "#f9fafb" }}
       >
@@ -883,3 +943,4 @@ export default function LandingPage() {
     </>
   );
 }
+
