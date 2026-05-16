@@ -2984,8 +2984,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("sirket")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "sirket" ? "600" : "400",
                 color: activeTab === "sirket" ? "#111" : "#6b7280",
                 background: "none",
@@ -3006,8 +3006,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("whatsapp")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "whatsapp" ? "600" : "400",
                 color: activeTab === "whatsapp" ? "#25D366" : "#6b7280",
                 background: "none",
@@ -3041,8 +3041,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("durumlar")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "durumlar" ? "600" : "400",
                 color: activeTab === "durumlar" ? "#25D366" : "#6b7280",
                 background: "none",
@@ -3063,8 +3063,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("silinen")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "silinen" ? "600" : "400",
                 color: activeTab === "silinen" ? "#dc2626" : "#6b7280",
                 background: "none",
@@ -3088,8 +3088,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("google")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "google" ? "600" : "400",
                 color: activeTab === "google" ? "#EA4335" : "#6b7280",
                 background: "none",
@@ -3110,8 +3110,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("tanimlar")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "tanimlar" ? "600" : "400",
                 color: activeTab === "tanimlar" ? "#111827" : "#6b7280",
                 background: "none",
@@ -3129,8 +3129,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("fis")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "fis" ? "600" : "400",
                 color: activeTab === "fis" ? "#111827" : "#6b7280",
                 background: "none",
@@ -3151,8 +3151,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("personeller")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "personeller" ? "600" : "400",
                 color: activeTab === "personeller" ? "#111827" : "#6b7280",
                 background: "none",
@@ -3173,8 +3173,8 @@ function SirketimPageInner() {
               type="button"
               onClick={() => selectTab("ikinci-el-belge")}
               style={{
-                padding: "10px 20px",
-                fontSize: "14px",
+                padding: "10px 14px",
+                fontSize: "13px",
                 fontWeight: activeTab === "ikinci-el-belge" ? "600" : "400",
                 color: activeTab === "ikinci-el-belge" ? "#111827" : "#6b7280",
                 background: "none",
