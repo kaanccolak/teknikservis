@@ -54,6 +54,14 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - Silme: önce `AnnouncementRead` cascade silinir, sonra `Announcement` silinir.
 - `Shop` modeline `announcementReads AnnouncementRead[]` ilişkisi eklenmiştir.
 
+### Planlanan: Haftalık Dükkan Raporu E-postası
+
+- Her Pazartesi sabahı cron ile tetiklenecek
+- Önceki haftanın Pazartesi 00:00 — Cumartesi 20:00 aralığındaki kayıtlar analiz edilecek
+- Resend ile dükkan sahibinin e-postasına gönderilecek
+- İçerik: yeni kayıt, teslim, ciro, en çok gelen cihaz, personel bazlı özet
+- Detaylar netleşince implement edilecek
+
 ### Multi-tenant
 
 - Her kullanıcının bir **Shop** kaydı olabilir: **`Shop.userId`** (`String? @unique`) ile kullanıcıya bağlanır.
@@ -666,5 +674,6 @@ src/lib/supabase/
 - [ ] SMS entegrasyonu
 - [x] Mobil uyumlu tasarım (sidebar drawer, grid/form/tablo/şirketim sekmeleri, modallar)
 - [ ] Ödeme linki WhatsApp metni
+- [ ] Haftalık dükkan raporu e-postası — her Pazartesi, önceki haftanın (Pazartesi–Cumartesi 20:00) servis kayıtlarını analiz edip dükkan sahibine mail at (Resend ile). İçerik: yeni kayıt sayısı, teslim edilen, ciro, en çok gelen cihaz, personel bazlı özet. Detaylar ileride netleşecek.
 - [x] Domain bağlama (**tamirtakip.com.tr**)
 - [x] Yasal sayfalar + landing footer (`/gizlilik-politikasi`, `/hizmet-sartlari`)
