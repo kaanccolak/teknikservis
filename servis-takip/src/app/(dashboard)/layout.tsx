@@ -38,9 +38,10 @@ export default function DashboardLayout({
       });
   }, []);
 
-  function handlePersonelSecim(personelId: string, personelAdi: string) {
+  function handlePersonelSecim(personelId: string, personelAdi: string, isAdmin: boolean) {
     sessionStorage.setItem("activePersonnelId", personelId);
     sessionStorage.setItem("activePersonnelName", personelAdi);
+    sessionStorage.setItem("activePersonnelIsAdmin", isAdmin ? "true" : "false");
     setPersonelSecildi(true);
   }
 

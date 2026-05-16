@@ -6,10 +6,11 @@ interface Personel {
   id: string;
   name: string;
   hasPassword: boolean;
+  isAdmin: boolean;
 }
 
 interface Props {
-  onSecim: (personelId: string, personelAdi: string) => void;
+  onSecim: (personelId: string, personelAdi: string, isAdmin: boolean) => void;
 }
 
 export default function PersonelSecimEkrani({ onSecim }: Props) {
@@ -32,7 +33,7 @@ export default function PersonelSecimEkrani({ onSecim }: Props) {
 
   async function handleSecim(p: Personel) {
     if (!p.hasPassword) {
-      onSecim(p.id, p.name);
+      onSecim(p.id, p.name, p.isAdmin);
       return;
     }
     setSecilenId(p.id);
@@ -52,7 +53,7 @@ export default function PersonelSecimEkrani({ onSecim }: Props) {
       });
       if (res.ok) {
         const p = personeller.find((x) => x.id === secilenId)!;
-        onSecim(p.id, p.name);
+        onSecim(p.id, p.name, p.isAdmin);
       } else {
         setHata("Şifre yanlış, tekrar deneyin");
       }

@@ -238,6 +238,7 @@ function CihazKayitServiceInner({
   const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
     [],
   );
+  const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -320,6 +321,11 @@ function CihazKayitServiceInner({
   useEffect(() => {
     window.__formIsDirty = isDirty;
   }, [isDirty]);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+  }, []);
 
   useEffect(() => {
     void fetch("/api/personnel")
@@ -1109,6 +1115,8 @@ function CihazKayitServiceInner({
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {aktifPersonelIsAdmin ? (
+                  <>
                 <Controller
                   name="personnelId"
                   control={control}
@@ -1137,6 +1145,8 @@ function CihazKayitServiceInner({
                   <p className="text-sm text-red-500 mt-1">
                     {errors.personnelId.message}
                   </p>
+                ) : null}
+                  </>
                 ) : null}
               </CardContent>
             </Card>

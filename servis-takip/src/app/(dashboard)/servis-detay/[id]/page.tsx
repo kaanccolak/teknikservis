@@ -320,6 +320,7 @@ export default function ServisDetayPage() {
     [],
   );
   const [secilenPersonelId, setSecilenPersonelId] = useState("");
+  const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
   const [waSending, setWaSending] = useState(false);
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
@@ -693,6 +694,11 @@ export default function ServisDetayPage() {
     }
     return data as ServiceOrderDetail;
   }
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -2860,7 +2866,7 @@ export default function ServisDetayPage() {
             </CardHeader>
             <CardContent className="pt-4">
               <div>
-                {personeller.length > 0 ? (
+                {personeller.length > 0 && aktifPersonelIsAdmin ? (
                   <div style={{ marginBottom: "12px" }}>
                     <label
                       style={{

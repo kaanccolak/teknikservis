@@ -55,9 +55,12 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
   const [shopName, setShopName] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
+  const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
 
   useEffect(() => {
     setAktifPersonelAdi(sessionStorage.getItem("activePersonnelName"));
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
   }, []);
 
   useEffect(() => {
@@ -250,7 +253,12 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
           </p>
         </div>
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => {
+              if (aktifPersonelIsAdmin) return true;
+              return !["/sirketim", "/raporlar", "/planlarim"].includes(item.href);
+            })
+            .map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"
