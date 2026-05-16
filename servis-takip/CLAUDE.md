@@ -37,6 +37,15 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **`src/app/reset-password/page.tsx`** — Kök dizinde, **public**; oturum/hash sonrası **`updateUser({ password })`**. Geçersiz oturumda girişe dönüş butonu (`window.location.href`).
 - Supabase Dashboard → **Authentication → URL Configuration**: **`/reset-password`** redirect URL eklenmeli (prod + localhost).
 
+### Personel Giriş Modu
+
+- **`sessionStorage` anahtarları**: `activePersonnelId`, `activePersonnelName`, `activePersonnelIsAdmin` (`"true"` / `"false"`).
+- **Cookie**: `personnelIsAdmin` — middleware `/sirketim`, `/raporlar`, `/planlarim` rotalarını bu cookie ile korur. Değer `"false"` ise bu rotalara erişim engellenir.
+- **Admin olmayan personelde**: cihaz kayıt ve servis detay sayfalarında personel dropdown'ı gizlenir; `sessionStorage`'daki `activePersonnelId` otomatik atanır.
+- **Sidebar**: `lg:sticky lg:top-0 lg:h-screen` — sayfa kaydırılınca sabit kalır.
+- **Çıkış / personel değiştirme**: `sessionStorage` ve `personnelIsAdmin` cookie'si temizlenir (`handleSignOut`, `handlePersonelDegistir`).
+- **Demo guard**: `POST /api/settings` ve `POST /api/hizli-kurulum` demoGuard ile korunur.
+
 ### Multi-tenant
 
 - Her kullanıcının bir **Shop** kaydı olabilir: **`Shop.userId`** (`String? @unique`) ile kullanıcıya bağlanır.
@@ -55,6 +64,8 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 
 - **`ServiceOrder.orderNumber`**: **dükkan bazında benzersiz** — `@@unique([shopId, orderNumber])` (global `orderNumber` `@unique` kaldırıldı; her dükkan kendi **001** sırasından başlar). Silinmiş kayıtların numaraları da sayılır; **numara tekrar kullanılmaz**.
 - **`Bayi.bayiCode`**: **dükkan bazında benzersiz** — `@@unique([shopId, bayiCode])` (global `@unique` kaldırıldı).
+- **`Cari.cariCode`**: **dükkan bazında benzersiz** — `@@unique([shopId, cariCode])` (global `@unique` kaldırıldı). Format: `C + YYYY + MM + 3 hane` (ör. `C202605001`) — `allocateCariCode(shopId)` ile üretilir.
+- **`Personnel.password`** (`String?`) — bcrypt hash; opsiyonel. **`Personnel.isAdmin`** (`Boolean @default(false)`) — admin yetkisi.
 - **`ServiceOrder.repairFailedReason`** (`String?`) — durum **`repair_failed`** iken servis detayda modal ile girilen tamir olmama nedeni; müşteri **`/sorgula`** sonucunda da gösterilir (durum + dolu neden).
 - **`ServiceOrder.reminderSentAt`** (`DateTime?`) — **cron** hatırlatma gönderilince set edilir; **Bekleyen Cihazlar** listesinde gösterilir.
 - **`ServiceOrder.repairDetails`** (`String?`) — **Onarım Tamamlandı** (`completed`) seçiminde açılan modal ile girilen onarım özeti; servis detayda **Arıza ve Notlar** bölümünde gösterilir ve düzenlenebilir; **Teslim Fişi** sayfasında kullanılır.
@@ -81,6 +92,10 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **Hızlı Kurulum** — Tanımlar sekmesinde; 13 servis türünden seçim yapılınca cihaz türleri, markalar ve modeller otomatik yüklenir. Yükleme geri alınabilir (`POST /api/hizli-kurulum`, `POST /api/hizli-kurulum/geri-al`). Yükleme verisi `Setting` tablosunda `hizli_kurulum_${timestamp}` key ile saklanır.
 - **Cihaz türü / marka cascade silme** — alt kayıtlar varsa çift onay popup'ı ile cascade silinir.
 - **Cihaz Etiketi termal mod** — `etiket_genislik` (mm) ayarı; `≤100mm` ise termal layout aktif (monospace, minimal padding, `@page size: Xmm auto`).
+- **Personel Giriş Modu** — Setting key: `personel_giris_modu` (`"true"` / `"false"`). Aktifken giriş sonrası `PersonelSecimEkrani` (`src/components/PersonelSecimEkrani.tsx`) gösterilir; personel seçimi `sessionStorage` (`activePersonnelId`, `activePersonnelName`, `activePersonnelIsAdmin`) ve `personnelIsAdmin` cookie'sine kaydedilir.
+- **Admin yetkisi**: `isAdmin: true` olan personel tüm menüyü görür. `isAdmin: false` olan personelde sidebar'dan `/sirketim`, `/raporlar`, `/planlarim` gizlenir; URL koruması middleware'de `personnelIsAdmin` cookie'si ile sağlanır.
+- **Personel şifre doğrulama**: `POST /api/personnel/verify` — `personnelId` + `password` alır, bcrypt ile doğrular.
+- Personel giriş modu kapatılınca `personnelIsAdmin` cookie ve sessionStorage otomatik temizlenir.
 
 ### Google Contacts entegrasyonu
 
@@ -152,6 +167,7 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **Bayi**: `bayiCode` (B202605001), `firmaAdi`, `yetkiliKisi`, `phone`, `phoneDigits`, `vergiDairesi`, `tcVergiNo`, **`grup`** (`grup1` %10 | `grup2` %20 | `null`).
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
 - **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
+- **Personnel**: `name`, `password` (`String?`, bcrypt hash), `isAdmin` (`Boolean`, varsayılan `false`), `shopId`.
 - **WhatsAppMessage**: geçmiş / gelen mesaj kayıtları (`shopId`, `from`, `message`, `timestamp`, …); eski Meta webhook akışıyla ilişkili olabilir. Giden bildirimler **Baileys** ile gönderilir.
 
 ### Bayiler Modülü
@@ -209,6 +225,8 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/suggestions` — **GET** (`?field=&q=&deviceTypeId=`); `field`: `complaint` | `accessories` | `physicalCondition` (Prisma’da `physicalDamage` ile eşlenir); `getShop()` ile shop; min 2 karakter; geçmiş `ServiceOrder` metinlerinden frekansa göre öneri
 - `/api/exchange-rates` — **GET** (`src/app/api/exchange-rates/route.ts`). **Kaynak:** TCMB resmi XML **`https://www.tcmb.gov.tr/kurlar/today.xml`** (USD/EUR `ForexBuying` / `ForexSelling` regex ile parse). **Fallback:** **`open.er-api.com`** (`/v6/latest/USD` ve EUR). Dashboard’da ~10 dk’da bir istemci yenilemesi.
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
+- `/api/personnel/verify` — **POST** (`{ personnelId, password }`) — bcrypt şifre doğrulama; başarılıysa `{ ok: true }`.
+- `/api/personnel/[id]` — **PATCH** (`{ name?, password?, isAdmin? }`), **DELETE**
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
 - `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu); **GET** yanıtında `googleContactsConnected`. **PATCH** ile Google token’ları istemciden **ayarlanamaz**; `googleAccessToken: null` gönderilerek bağlantı kesilir (refresh + expiry de temizlenir)
@@ -504,6 +522,7 @@ src/app/landing/                            # SaaS landing (public; metadata: la
 src/app/gizlilik-politikasi/                # Gizlilik Politikası (public)
 src/app/hizmet-sartlari/                    # Hizmet Şartları (public)
 src/components/barcode-scanner.tsx
+src/components/PersonelSecimEkrani.tsx   # Giriş sonrası personel seçim ekranı
 src/components/demo-banner.tsx
 src/lib/demo-guard.ts
 src/app/(dashboard)/                          # Korumalı uygulama
