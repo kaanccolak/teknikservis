@@ -92,6 +92,8 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
     setLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
+    sessionStorage.removeItem("activePersonnelId");
+    sessionStorage.removeItem("activePersonnelName");
     router.refresh();
     router.push("/landing");
     setLoggingOut(false);
