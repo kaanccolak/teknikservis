@@ -138,7 +138,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-8 lg:py-24">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-8 lg:py-16">
           <div className="text-center lg:text-left">
             <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700 ring-1 ring-indigo-100">
               Tüm teknik servisler için
@@ -284,7 +284,7 @@ export default function LandingPage() {
       </section>
 
       {/* Özellikler */}
-      <section className="border-b border-slate-100 py-16 sm:py-20">
+      <section className="border-b border-slate-100 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
             Özellikler
@@ -413,7 +413,7 @@ export default function LandingPage() {
       </section>
 
       {/* Nasıl çalışır */}
-      <section className="border-b border-slate-100 bg-slate-50 py-16 sm:py-20">
+      <section className="border-b border-slate-100 bg-slate-50 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
             Nasıl çalışır
@@ -421,7 +421,7 @@ export default function LandingPage() {
           <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Teknik Servis Programına 3 Adımda Başlayın
           </h2>
-          <div className="mx-auto mt-14 grid max-w-4xl gap-8 sm:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-4xl gap-8 sm:grid-cols-3">
             {[
               {
                 step: "1",
@@ -462,7 +462,7 @@ export default function LandingPage() {
       </section>
 
       {/* Referanslar */}
-      <section className="border-b border-slate-100 py-16 sm:py-20">
+      <section className="border-b border-slate-100 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
             Referanslar
@@ -886,6 +886,9 @@ export default function LandingPage() {
               style={{ color: "#6b7280", fontSize: "13px", textDecoration: "none" }}
             >
               Hizmet Şartları
+            </a>
+            <a href="#sss" className="text-sm text-slate-500 hover:text-slate-700 transition">
+              SSS
             </a>
           </div>
           <p className="text-center text-xs text-slate-500 sm:text-right">
