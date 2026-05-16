@@ -57,6 +57,7 @@ model Personnel {
   shop          Shop           @relation(fields: [shopId], references: [id])
   name          String
   password      String?
+  isAdmin       Boolean        @default(false)
   createdAt     DateTime       @default(now())
   serviceOrders ServiceOrder[]
   statusLogs    StatusLog[]
