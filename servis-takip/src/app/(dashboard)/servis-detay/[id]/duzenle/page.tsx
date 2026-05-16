@@ -29,7 +29,6 @@ import { formatServiceOrderNo } from "@/lib/service-order-number";
 import { normalizeNationalPhoneInput } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 import {
-  createServiceOrderSchema,
   editServiceOrderSchema,
   formEstimatedPriceToDb,
   type CreateServiceOrderFormValues,
