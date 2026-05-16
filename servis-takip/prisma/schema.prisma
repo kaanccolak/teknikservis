@@ -49,6 +49,7 @@ model Shop {
   whatsAppMessages WhatsAppMessage[]
   waTemplates        WaTemplate[]
   personnel          Personnel[]
+  announcementReads  AnnouncementRead[]
 }
 
 model Personnel {
@@ -393,4 +394,23 @@ model SparePartUsage {
   quantity       Int          @default(1)
   costAtTime     Float        @default(0)
   createdAt      DateTime     @default(now())
+}
+
+model Announcement {
+  id        String             @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime           @default(now())
+  reads     AnnouncementRead[]
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  shopId         String
+  announcementId String
+  readAt         DateTime     @default(now())
+  shop           Shop         @relation(fields: [shopId], references: [id])
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+
+  @@unique([shopId, announcementId])
 }
