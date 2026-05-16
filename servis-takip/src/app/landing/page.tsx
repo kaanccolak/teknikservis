@@ -160,7 +160,7 @@ export default function LandingPage() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <button
                 type="button"
-                onClick={scrollToPricing}
+                onClick={() => router.push("/login?register=true")}
                 className="rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500"
               >
                 Kullanmaya Başlayın

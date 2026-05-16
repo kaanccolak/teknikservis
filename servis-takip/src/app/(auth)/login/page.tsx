@@ -18,8 +18,9 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
+  const isRegister = searchParams.get("register") === "true";
 
-  const [mode, setMode] = useState<TabMode>("login");
+  const [mode, setMode] = useState<TabMode>(isRegister ? "register" : "login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
