@@ -698,6 +698,14 @@ export default function ServisDetayPage() {
   useEffect(() => {
     const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
     setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+
+    // Admin değilse aktif personeli otomatik seç
+    if (isAdmin === "false") {
+      const aktifPersonelId = sessionStorage.getItem("activePersonnelId");
+      if (aktifPersonelId) {
+        setSecilenPersonelId(aktifPersonelId);
+      }
+    }
   }, []);
 
   useEffect(() => {
