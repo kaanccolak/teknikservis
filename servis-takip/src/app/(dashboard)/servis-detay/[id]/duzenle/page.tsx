@@ -39,6 +39,7 @@ type IdName = { id: string; name: string };
 type OrderApiRow = {
   id: string;
   orderNumber: string | null;
+  personnelId?: string | null;
   deviceTypeId: string | null;
   brandId: string | null;
   deviceModelId: string | null;
@@ -82,6 +83,7 @@ function mapOrderToFormValues(order: OrderApiRow): CreateServiceOrderFormValues 
   return {
     customerName: order.customer.name,
     phone: normalizeNationalPhoneInput(order.customer.phone ?? ""),
+    personnelId: order.personnelId ?? "",
     arrivedByCargo: order.arrivedByCargo,
     cargoInfo: order.cargoInfo ?? "",
     arrivedAt: toDatetimeLocalValue(new Date(order.arrivedAt)),
@@ -139,6 +141,7 @@ export default function ServisDuzenlePage() {
     defaultValues: {
       customerName: "",
       phone: "",
+      personnelId: "",
       arrivedByCargo: false,
       cargoInfo: "",
       arrivedAt: toDatetimeLocalValue(new Date()),
