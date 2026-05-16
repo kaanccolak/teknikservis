@@ -7,6 +7,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod/v3";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -31,8 +32,9 @@ import { cn } from "@/lib/utils";
 import {
   editServiceOrderSchema,
   formEstimatedPriceToDb,
-  type CreateServiceOrderFormValues,
 } from "@/lib/validation/create-service-order";
+
+type EditServiceOrderFormValues = z.infer<typeof editServiceOrderSchema>;
 
 type IdName = { id: string; name: string };
 
@@ -75,7 +77,7 @@ function formatArrivedAtDisplay(datetimeLocal: string) {
   });
 }
 
-function mapOrderToFormValues(order: OrderApiRow): CreateServiceOrderFormValues {
+function mapOrderToFormValues(order: OrderApiRow): EditServiceOrderFormValues {
   const warranty =
     order.warrantyStatus === "guaranteed" || order.warrantyStatus === "no_warranty"
       ? order.warrantyStatus
@@ -136,7 +138,7 @@ export default function ServisDuzenlePage() {
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<CreateServiceOrderFormValues>({
+  } = useForm<EditServiceOrderFormValues>({
     resolver: zodResolver(editServiceOrderSchema),
     defaultValues: {
       customerName: "",
@@ -323,7 +325,7 @@ export default function ServisDuzenlePage() {
   }, [brandId, setValue]);
 
   const onSubmit = useCallback(
-    async (data: CreateServiceOrderFormValues) => {
+    async (data: EditServiceOrderFormValues) => {
       const parsed = editServiceOrderSchema.parse(data);
       const payload = {
         ...parsed,
