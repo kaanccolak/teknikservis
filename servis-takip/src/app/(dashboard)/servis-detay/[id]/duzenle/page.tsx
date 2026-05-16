@@ -7,7 +7,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod/v3";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -30,18 +29,16 @@ import { formatServiceOrderNo } from "@/lib/service-order-number";
 import { normalizeNationalPhoneInput } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 import {
-  editServiceOrderSchema,
+  createServiceOrderSchema,
   formEstimatedPriceToDb,
+  type CreateServiceOrderFormValues,
 } from "@/lib/validation/create-service-order";
-
-type EditServiceOrderFormValues = z.infer<typeof editServiceOrderSchema>;
 
 type IdName = { id: string; name: string };
 
 type OrderApiRow = {
   id: string;
   orderNumber: string | null;
-  personnelId?: string | null;
   deviceTypeId: string | null;
   brandId: string | null;
   deviceModelId: string | null;
@@ -77,7 +74,7 @@ function formatArrivedAtDisplay(datetimeLocal: string) {
   });
 }
 
-function mapOrderToFormValues(order: OrderApiRow): EditServiceOrderFormValues {
+function mapOrderToFormValues(order: OrderApiRow): CreateServiceOrderFormValues {
   const warranty =
     order.warrantyStatus === "guaranteed" || order.warrantyStatus === "no_warranty"
       ? order.warrantyStatus
@@ -85,7 +82,6 @@ function mapOrderToFormValues(order: OrderApiRow): EditServiceOrderFormValues {
   return {
     customerName: order.customer.name,
     phone: normalizeNationalPhoneInput(order.customer.phone ?? ""),
-    personnelId: order.personnelId ?? "",
     arrivedByCargo: order.arrivedByCargo,
     cargoInfo: order.cargoInfo ?? "",
     arrivedAt: toDatetimeLocalValue(new Date(order.arrivedAt)),
@@ -138,12 +134,11 @@ export default function ServisDuzenlePage() {
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<EditServiceOrderFormValues>({
-    resolver: zodResolver(editServiceOrderSchema),
+  } = useForm<CreateServiceOrderFormValues>({
+    resolver: zodResolver(createServiceOrderSchema),
     defaultValues: {
       customerName: "",
       phone: "",
-      personnelId: "",
       arrivedByCargo: false,
       cargoInfo: "",
       arrivedAt: toDatetimeLocalValue(new Date()),
@@ -325,8 +320,8 @@ export default function ServisDuzenlePage() {
   }, [brandId, setValue]);
 
   const onSubmit = useCallback(
-    async (data: EditServiceOrderFormValues) => {
-      const parsed = editServiceOrderSchema.parse(data);
+    async (data: CreateServiceOrderFormValues) => {
+      const parsed = createServiceOrderSchema.parse(data);
       const payload = {
         ...parsed,
         estimatedPrice: formEstimatedPriceToDb(parsed.estimatedPrice),
