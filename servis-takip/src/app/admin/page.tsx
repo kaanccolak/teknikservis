@@ -101,12 +101,16 @@ export default function AdminPage() {
 
   async function handleDeleteAnnouncement(id: string) {
     if (!confirm("Bu bildirimi silmek istediğinize emin misiniz?")) return;
-    await fetch("/api/admin/announcements", {
+    const res = await fetch("/api/admin/announcements", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    if (res.ok) {
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    } else {
+      alert("Bildirim silinemedi, lütfen tekrar deneyin.");
+    }
   }
 
   if (loading)

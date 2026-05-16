@@ -60,7 +60,14 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   if (!(await isAdmin()))
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  const { id } = (await req.json()) as { id: string };
-  await prisma.announcement.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try {
+    const { id } = (await req.json()) as { id: string };
+    // Önce ilişkili okuma kayıtlarını sil
+    await prisma.announcementRead.deleteMany({ where: { announcementId: id } });
+    await prisma.announcement.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Silinemedi" }, { status: 500 });
+  }
 }
