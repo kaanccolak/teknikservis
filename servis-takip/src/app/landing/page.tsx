@@ -513,6 +513,22 @@ export default function LandingPage() {
             <p className="mt-3 text-slate-500 text-sm">
               İlk 30 gün tüm özellikler ücretsiz — kredi kartı gerekmez.
             </p>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1">
+              <button
+                type="button"
+                onClick={() => setYillikOdeme(false)}
+                className={!yillikOdeme ? "rounded-lg bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-sm" : "px-5 py-2 text-sm font-medium text-slate-500"}
+              >
+                Aylık
+              </button>
+              <button
+                type="button"
+                onClick={() => setYillikOdeme(true)}
+                className={yillikOdeme ? "rounded-lg bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-sm" : "px-5 py-2 text-sm font-medium text-slate-500"}
+              >
+                Yıllık <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">2 ay bedava</span>
+              </button>
+            </div>
           </div>
           {!yillikOdeme && <div className="grid gap-6 lg:grid-cols-3">
             <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
