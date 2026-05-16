@@ -33,6 +33,7 @@ function LoginPageContent() {
   const [registerPasswordRepeat, setRegisterPasswordRepeat] = useState("");
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
+  const [kvkkOnay, setKvkkOnay] = useState(false);
 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -84,6 +85,11 @@ function LoginPageContent() {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!kvkkOnay) {
+      toast.error("Devam etmek için Gizlilik Politikası ve Hizmet Şartlarını kabul etmelisiniz.");
+      return;
+    }
 
     const nameTrim = shopName.trim();
     if (nameTrim.length < 2) {
@@ -578,9 +584,24 @@ function LoginPageContent() {
                 className="border-neutral-300"
               />
             </div>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", margin: "4px 0 8px 0" }}>
+              <input
+                type="checkbox"
+                id="kvkk-onay"
+                checked={kvkkOnay}
+                onChange={(e) => setKvkkOnay(e.target.checked)}
+                style={{ marginTop: "3px", cursor: "pointer", flexShrink: 0 }}
+              />
+              <label htmlFor="kvkk-onay" style={{ fontSize: "12px", color: "#6b7280", cursor: "pointer", lineHeight: "1.5" }}>
+                <a href="/gizlilik-politikasi" target="_blank" style={{ color: "#4f46e5", textDecoration: "underline" }}>Gizlilik Politikası</a>
+                {" "}ve{" "}
+                <a href="/hizmet-sartlari" target="_blank" style={{ color: "#4f46e5", textDecoration: "underline" }}>Hizmet Şartları</a>
+                {"'nı okudum ve kabul ediyorum. Kişisel verilerimin işlenmesine onay veriyorum."}
+              </label>
+            </div>
             <Button
               type="submit"
-              disabled={registerLoading}
+              disabled={registerLoading || !kvkkOnay}
               className="h-11 w-full bg-neutral-900 text-white hover:bg-neutral-800"
             >
               {registerLoading ? "Kaydediliyor…" : "Kayıt Ol"}
