@@ -239,6 +239,7 @@ function CihazKayitServiceInner({
     [],
   );
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
+  const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -325,6 +326,17 @@ function CihazKayitServiceInner({
   useEffect(() => {
     const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
     setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+
+    if (isAdmin === "false") {
+      const aktifPersonelId = sessionStorage.getItem("activePersonnelId");
+      const aktifPersonelAdi = sessionStorage.getItem("activePersonnelName");
+      if (aktifPersonelId) {
+        setValue("personnelId", aktifPersonelId);
+      }
+      if (aktifPersonelAdi) {
+        setAktifPersonelAdi(aktifPersonelAdi);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -1117,36 +1129,75 @@ function CihazKayitServiceInner({
               <CardContent>
                 {aktifPersonelIsAdmin ? (
                   <>
-                <Controller
-                  name="personnelId"
-                  control={control}
-                  render={({ field }) => (
-                    <select
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className={nativeSelectClassName}
-                      disabled={personeller.length === 0}
-                      aria-invalid={!!errors.personnelId}
-                    >
-                      <option value="">
-                        {personeller.length === 0
-                          ? "Yükleniyor..."
-                          : "Personel seçin"}
-                      </option>
-                      {personeller.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                />
-                {errors.personnelId ? (
-                  <p className="text-sm text-red-500 mt-1">
-                    {errors.personnelId.message}
-                  </p>
-                ) : null}
+                    <Controller
+                      name="personnelId"
+                      control={control}
+                      render={({ field }) => (
+                        <select
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          className={nativeSelectClassName}
+                          disabled={personeller.length === 0}
+                          aria-invalid={!!errors.personnelId}
+                        >
+                          <option value="">
+                            {personeller.length === 0
+                              ? "Yükleniyor..."
+                              : "Personel seçin"}
+                          </option>
+                          {personeller.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    />
+                    {errors.personnelId ? (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.personnelId.message}
+                      </p>
+                    ) : null}
                   </>
+                ) : aktifPersonelAdi ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 14px",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "34px",
+                        height: "34px",
+                        borderRadius: "50%",
+                        background: "#111827",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        color: "white",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {aktifPersonelAdi.charAt(0).toUpperCase()}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#111827",
+                      }}
+                    >
+                      {aktifPersonelAdi}
+                    </span>
+                  </div>
                 ) : null}
               </CardContent>
             </Card>
