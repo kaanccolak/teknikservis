@@ -31,6 +31,10 @@ model Shop {
   googleRefreshToken String?
   googleTokenExpiry  DateTime?
   settingsPassword   String?
+  planType           String            @default("trial")
+  trialEndsAt        DateTime?
+  subscriptionStatus String            @default("trial")
+  planStartedAt      DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
