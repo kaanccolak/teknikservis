@@ -237,6 +237,7 @@ export function TopBar() {
                             color: "#4b5563",
                             margin: "0 0 8px 0",
                             lineHeight: "1.5",
+                            whiteSpace: "pre-wrap",
                           }}
                         >
                           {a.content}
