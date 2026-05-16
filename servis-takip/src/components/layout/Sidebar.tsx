@@ -167,6 +167,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
+        <div className="flex h-full flex-col overflow-hidden">
         <div className="border-b border-slate-100 px-5 py-6">
           <div
             style={{
@@ -254,7 +255,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
             {shopName || "TamirTakip"}
           </p>
         </div>
-        <nav className="flex flex-1 flex-col overflow-y-auto p-3 gap-0.5 lg:gap-0">
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3 min-h-0">
           {navItems
             .filter((item) => {
               if (aktifPersonelIsAdmin) return true;
@@ -277,7 +278,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
                   handleNavClick(e, item.href);
                 }}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 xl:py-1.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
                     ? "bg-slate-100 text-slate-900 shadow-sm ring-1 ring-slate-200/60"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
@@ -291,7 +292,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
             );
           })}
         </nav>
-        <div className="border-t border-slate-200/80 p-3">
+        <div className="border-t border-slate-200/80 p-3 space-y-1">
           {aktifPersonelAdi && (
             <div style={{ marginBottom: "4px" }}>
               <div
@@ -379,6 +380,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
             <LogOut className="size-4 shrink-0 opacity-70" aria-hidden />
             {loggingOut ? "Çıkılıyor…" : "Çıkış Yap"}
           </button>
+        </div>
         </div>
       </aside>
 
