@@ -2082,6 +2082,9 @@ function SirketimPageInner() {
   const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
   const [personelKaydediliyor, setPersonelKaydediliyor] = useState(false);
   const [personelSiliniyor, setPersonelSiliniyor] = useState<string | null>(null);
+  const [personelGirisModu, setPersonelGirisModu] = useState(false);
+  const [personelGirisModuKaydediliyor, setPersonelGirisModuKaydediliyor] =
+    useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -2164,6 +2167,9 @@ function SirketimPageInner() {
         );
         setEtiketFontBoyutu(
           (settingsData as Record<string, string>).etiket_font_boyutu ?? "13",
+        );
+        setPersonelGirisModu(
+          (settingsData as Record<string, string>).personel_giris_modu === "true",
         );
       } catch {
         // varsayılan etiketGenislik kalır
@@ -2363,6 +2369,25 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingEtiketFont(false);
+    }
+  }
+
+  async function handlePersonelGirisModu(aktif: boolean) {
+    setPersonelGirisModuKaydediliyor(true);
+    try {
+      await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personel_giris_modu: aktif ? "true" : "false" }),
+      });
+      setPersonelGirisModu(aktif);
+      toast.success(
+        aktif ? "Personel giriş modu aktif edildi" : "Personel giriş modu kapatıldı",
+      );
+    } catch {
+      toast.error("Ayar kaydedilemedi");
+    } finally {
+      setPersonelGirisModuKaydediliyor(false);
     }
   }
 
@@ -4275,6 +4300,55 @@ function SirketimPageInner() {
                 <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
                   Servis kayıtlarında ve durum değişikliklerinde personel takibi yapın
                 </p>
+              </div>
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "16px 20px",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#111827", margin: 0 }}>
+                    Personel Giriş Modu
+                  </p>
+                  <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                    Aktif olduğunda giriş sonrası hangi personel olduğu sorulur
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={personelGirisModuKaydediliyor}
+                  onClick={() => void handlePersonelGirisModu(!personelGirisModu)}
+                  style={{
+                    width: "44px",
+                    height: "24px",
+                    borderRadius: "12px",
+                    border: "none",
+                    background: personelGirisModu ? "#111827" : "#d1d5db",
+                    cursor: "pointer",
+                    position: "relative",
+                    transition: "background 0.2s",
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "2px",
+                      left: personelGirisModu ? "22px" : "2px",
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      background: "white",
+                      transition: "left 0.2s",
+                    }}
+                  />
+                </button>
               </div>
               <div
                 style={{
