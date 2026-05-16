@@ -2,12 +2,13 @@
 
 import { Inter } from "next/font/google";
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function LandingPage() {
-  const [yillikOdeme, setYillikOdeme] = React.useState(false);
+  const [yillikOdeme, setYillikOdeme] = useState(false);
   const router = useRouter();
 
   return (
