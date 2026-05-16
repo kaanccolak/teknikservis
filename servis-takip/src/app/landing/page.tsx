@@ -570,8 +570,12 @@ export default function LandingPage() {
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
                 <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Premium paketteki her şey</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz, ikinci el, stok, cari, bayi</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>WhatsApp, mesaj şablonları, fiş ve etiket</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm AI özellikleri</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Raporlar ve ciro görünümü</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Google Contacts entegrasyonu</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel + giriş modu</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Haftalık rapor e-postası</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
                 </ul>
@@ -943,4 +947,5 @@ export default function LandingPage() {
     </>
   );
 }
+
 
