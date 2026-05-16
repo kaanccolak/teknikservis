@@ -318,7 +318,7 @@ model Cari {
   id            String         @id @default(cuid())
   shopId        String
   shop          Shop           @relation(fields: [shopId], references: [id])
-  cariCode      String?        @unique
+  cariCode      String?
   name          String
   phone         String?
   phoneDigits   String?
@@ -331,6 +331,8 @@ model Cari {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   serviceOrders ServiceOrder[]
+
+  @@unique([shopId, cariCode])
 }
 
 model Setting {
