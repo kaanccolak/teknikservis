@@ -295,24 +295,6 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          {/* Sayaç bandı */}
-          <div className="mb-14 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
-              { sayi: "500+", etiket: "Servis Kaydı" },
-              { sayi: "50+", etiket: "Aktif Dükkan" },
-              { sayi: "10.000+", etiket: "WhatsApp Bildirimi" },
-              { sayi: "5 dk", etiket: "Kurulum Süresi" },
-            ].map((item) => (
-              <div
-                key={item.etiket}
-                className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm"
-              >
-                <p className="text-3xl font-bold text-indigo-600">{item.sayi}</p>
-                <p className="mt-1 text-sm text-slate-500">{item.etiket}</p>
-              </div>
-            ))}
-          </div>
-
           {/* AI Özellikleri */}
           <p className="mb-4 text-xs font-bold uppercase tracking-widest text-indigo-600">
             Yapay Zeka
@@ -320,10 +302,12 @@ export default function LandingPage() {
           <div className="mb-6 grid gap-5 sm:grid-cols-3">
             {/* AI Arıza Teşhisi */}
             <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 p-6 border border-indigo-100">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-2xl shadow-lg">
-                🤖
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-xl shadow-lg">
+                  🤖
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">AI Arıza Teşhisi</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">AI Arıza Teşhisi</h3>
               <p className="mt-2 text-sm text-slate-600 leading-relaxed">
                 Cihaz ve şikayeti girin, yapay zeka olası arızaları ve kontrol adımlarını anında listelesin.
               </p>
@@ -338,10 +322,12 @@ export default function LandingPage() {
 
             {/* Sesli Servis Notu */}
             <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 p-6 border border-pink-100">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500 text-2xl shadow-lg">
-                🎤
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500 text-xl shadow-lg">
+                  🎤
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Sesli Servis Notu</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Sesli Servis Notu</h3>
               <p className="mt-2 text-sm text-slate-600 leading-relaxed">
                 Mikrofona konuşun, AI sözlü notunuzu profesyonel servis raporuna dönüştürsün.
               </p>
@@ -359,17 +345,19 @@ export default function LandingPage() {
 
             {/* Akıllı Fiyat Önerisi */}
             <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 border border-emerald-100">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-2xl shadow-lg">
-                💰
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-xl shadow-lg">
+                  💰
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Akıllı Fiyat Önerisi</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Akıllı Fiyat Önerisi</h3>
               <p className="mt-2 text-sm text-slate-600 leading-relaxed">
                 Geçmiş servis kayıtlarına dayanarak benzer arızalar için fiyat aralığı önerir.
               </p>
               {/* Fiyat animasyonu */}
               <div className="mt-4 rounded-xl bg-white/80 p-3 border border-emerald-100">
                 <p className="text-xs text-slate-500 mb-1">Önerilen fiyat aralığı</p>
-                <p className="text-lg font-bold text-emerald-600">₺800 — ₺1.200</p>
+                <p className="text-lg font-bold text-emerald-600">₺1.500 — ₺2.000</p>
                 <div className="mt-1.5 h-1.5 w-full rounded-full bg-emerald-100">
                   <div className="h-1.5 w-2/3 rounded-full bg-emerald-500" />
                 </div>
