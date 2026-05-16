@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function LandingPage() {
+  const [yillikOdeme, setYillikOdeme] = React.useState(false);
   const router = useRouter();
 
   return (
@@ -512,7 +513,7 @@ export default function LandingPage() {
               İlk 30 gün tüm özellikler ücretsiz — kredi kartı gerekmez.
             </p>
           </div>
-          <div id="aylik-fiyatlar" className="grid gap-6 lg:grid-cols-3">
+          {!yillikOdeme && <div className="grid gap-6 lg:grid-cols-3">
             <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Basic</p>
@@ -578,8 +579,8 @@ export default function LandingPage() {
               </div>
               <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
             </div>
-          </div>
-          <div id="yillik-fiyatlar" className="grid gap-6 lg:grid-cols-3" style={{display:"none"}}>
+          </div>}
+          {yillikOdeme && <div className="grid gap-6 lg:grid-cols-3">
             <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Basic</p>
@@ -648,7 +649,7 @@ export default function LandingPage() {
               </div>
               <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
             </div>
-          </div>
+          </div>}
           <p className="mt-8 text-center text-xs text-slate-400">Tüm planlar 30 günlük ücretsiz denemeyle başlar. Kredi kartı gerekmez. İstediğiniz zaman iptal edebilirsiniz.</p>
         </div>
       </section>      {/* Kimler Kullanabilir Bölümü */}
@@ -1013,6 +1014,10 @@ export default function LandingPage() {
     </>
   );
 }
+
+
+
+
 
 
 
