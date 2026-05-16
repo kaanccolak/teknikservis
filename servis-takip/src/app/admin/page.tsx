@@ -31,15 +31,37 @@ type AdminStatsResponse = {
 export default function AdminPage() {
   const [data, setData] = useState<AdminStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState<
+    {
+      id: string;
+      title: string;
+      content: string;
+      createdAt: string;
+      _count: { reads: number };
+    }[]
+  >([]);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [sending, setSending] = useState(false);
+  const [announcementMsg, setAnnouncementMsg] = useState("");
 
   useEffect(() => {
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((d: AdminStatsResponse) => {
+    void (async () => {
+      try {
+        const d = (await fetch("/api/admin/stats").then((r) =>
+          r.json(),
+        )) as AdminStatsResponse;
         setData(d);
+        const ann = await fetch("/api/admin/announcements").then((r) =>
+          r.json(),
+        );
+        if (Array.isArray(ann)) setAnnouncements(ann);
+      } catch {
+        /* ignore */
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    })();
   }, []);
 
   async function handleDelete(shopId: string, shopName: string) {
@@ -51,6 +73,40 @@ export default function AdminPage() {
       return;
     await fetch(`/api/admin/shops/${shopId}`, { method: "DELETE" });
     window.location.reload();
+  }
+
+  async function handleSendAnnouncement() {
+    if (!newTitle.trim() || !newContent.trim()) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle, content: newContent }),
+      });
+      if (res.ok) {
+        setNewTitle("");
+        setNewContent("");
+        setAnnouncementMsg("Bildirim gönderildi!");
+        const ann = await fetch("/api/admin/announcements").then((r) =>
+          r.json(),
+        );
+        if (Array.isArray(ann)) setAnnouncements(ann);
+        setTimeout(() => setAnnouncementMsg(""), 3000);
+      }
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleDeleteAnnouncement(id: string) {
+    if (!confirm("Bu bildirimi silmek istediğinize emin misiniz?")) return;
+    await fetch("/api/admin/announcements", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
   }
 
   if (loading)
@@ -237,6 +293,178 @@ export default function AdminPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Bildirim Gönder */}
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "24px",
+            marginBottom: "24px",
+            border: "1px solid #e5e7eb",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "16px",
+              fontWeight: 700,
+              color: "#111827",
+              marginBottom: "16px",
+            }}
+          >
+            📢 Tüm Dükkanlara Bildirim Gönder
+          </h2>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              marginBottom: "12px",
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Başlık"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              style={{
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "10px 12px",
+                fontSize: "14px",
+                outline: "none",
+              }}
+            />
+            <textarea
+              placeholder="İçerik"
+              value={newContent}
+              onChange={(e) => setNewContent(e.target.value)}
+              rows={3}
+              style={{
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                padding: "10px 12px",
+                fontSize: "14px",
+                outline: "none",
+                resize: "vertical",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              type="button"
+              onClick={() => void handleSendAnnouncement()}
+              disabled={sending || !newTitle.trim() || !newContent.trim()}
+              style={{
+                padding: "10px 20px",
+                background: "#111827",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              {sending ? "Gönderiliyor..." : "Gönder"}
+            </button>
+            {announcementMsg ? (
+              <span style={{ fontSize: "13px", color: "#16a34a" }}>
+                {announcementMsg}
+              </span>
+            ) : null}
+          </div>
+
+          {announcements.length > 0 ? (
+            <div
+              style={{
+                marginTop: "20px",
+                borderTop: "1px solid #f3f4f6",
+                paddingTop: "16px",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#6b7280",
+                  marginBottom: "10px",
+                }}
+              >
+                Gönderilen Bildirimler
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
+                {announcements.map((a) => (
+                  <div
+                    key={a.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      padding: "10px 12px",
+                      background: "#f9fafb",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div>
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "#111827",
+                          margin: "0 0 2px 0",
+                        }}
+                      >
+                        {a.title}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          margin: "0 0 4px 0",
+                        }}
+                      >
+                        {a.content}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "11px",
+                          color: "#9ca3af",
+                          margin: 0,
+                        }}
+                      >
+                        {new Date(a.createdAt).toLocaleDateString("tr-TR")} ·{" "}
+                        {a._count.reads} dükkan okudu
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteAnnouncement(a.id)}
+                      style={{
+                        padding: "4px 10px",
+                        background: "#fef2f2",
+                        color: "#dc2626",
+                        border: "1px solid #fca5a5",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        marginLeft: "12px",
+                      }}
+                    >
+                      Sil
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div
