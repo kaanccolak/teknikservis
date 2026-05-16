@@ -593,10 +593,12 @@ function LoginPageContent() {
                 style={{ marginTop: "3px", cursor: "pointer", flexShrink: 0 }}
               />
               <label htmlFor="kvkk-onay" style={{ fontSize: "12px", color: "#6b7280", cursor: "pointer", lineHeight: "1.5" }}>
+                <a href="/kvkk" target="_blank" style={{ color: "#4f46e5", textDecoration: "underline" }}>KVKK Aydınlatma Metni</a>
+                {"'ni, "}
                 <a href="/gizlilik-politikasi" target="_blank" style={{ color: "#4f46e5", textDecoration: "underline" }}>Gizlilik Politikası</a>
-                {" "}ve{" "}
+                {" ve "}
                 <a href="/hizmet-sartlari" target="_blank" style={{ color: "#4f46e5", textDecoration: "underline" }}>Hizmet Şartları</a>
-                {"'nı okudum ve kabul ediyorum. Kişisel verilerimin işlenmesine onay veriyorum."}
+                {"'nı okudum ve kabul ediyorum."}
               </label>
             </div>
             <Button
