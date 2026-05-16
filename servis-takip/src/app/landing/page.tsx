@@ -286,128 +286,123 @@ export default function LandingPage() {
       {/* Özellikler */}
       <section className="border-b border-slate-100 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
-            Özellikler
-          </p>
-          <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Yapay Zeka Destekli Teknik Servis Programı
-          </h2>
-          <div className="mt-12">
-            {/* AI Özellikleri — öne çıkan */}
-            <div style={{ marginBottom: "32px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                <span
-                  style={{
-                    background: "#4f46e5",
-                    color: "white",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    padding: "3px 10px",
-                    borderRadius: "20px",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  YAPAY ZEKA
-                </span>
-                <span style={{ fontSize: "13px", color: "#6b7280" }}>
-                  TamirTakip&apos;i rakiplerinden ayıran özellikler
-                </span>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    emoji: "🤖",
-                    title: "AI Arıza Teşhisi",
-                    desc: "Cihaz ve şikayeti girin, yapay zeka olası arızaları ve kontrol adımlarını anında listelesin. Deneyimsiz teknisyenleri bile yönlendirir.",
-                    bg: "bg-purple-50",
-                    border: "#a78bfa",
-                  },
-                  {
-                    emoji: "🎤",
-                    title: "Sesli Servis Notu",
-                    desc: "Mikrofona konuşun, AI sözlü notunuzu profesyonel servis raporuna dönüştürsün. Yazma zamanından tasarruf edin.",
-                    bg: "bg-pink-50",
-                    border: "#f472b6",
-                  },
-                  {
-                    emoji: "💰",
-                    title: "Akıllı Fiyat Önerisi",
-                    desc: "Geçmiş servis kayıtlarınıza dayanarak benzer arızalar için fiyat aralığı önerir. Ne kadar çok kayıt, o kadar isabetli tahmin.",
-                    bg: "bg-green-50",
-                    border: "#4ade80",
-                  },
-                ].map((f) => (
-                  <article
-                    key={f.title}
-                    className={`flex flex-col rounded-xl ${f.bg} p-6`}
-                    style={{ border: `1.5px solid ${f.border}40` }}
-                  >
-                    <span style={{ fontSize: "32px" }}>{f.emoji}</span>
-                    <h3 className="mt-4 text-base font-bold text-slate-900">{f.title}</h3>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{f.desc}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-            {/* Standart Özellikler */}
-            <div>
-              <p
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "#9ca3af",
-                  marginBottom: "12px",
-                  letterSpacing: "0.05em",
-                }}
+          <div className="text-center mb-12">
+            <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-indigo-600">
+              Özellikler
+            </span>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              Yapay Zeka Destekli Teknik Servis Programı
+            </h2>
+          </div>
+
+          {/* Sayaç bandı */}
+          <div className="mb-14 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              { sayi: "500+", etiket: "Servis Kaydı" },
+              { sayi: "50+", etiket: "Aktif Dükkan" },
+              { sayi: "10.000+", etiket: "WhatsApp Bildirimi" },
+              { sayi: "5 dk", etiket: "Kurulum Süresi" },
+            ].map((item) => (
+              <div
+                key={item.etiket}
+                className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm"
               >
-                DİĞER ÖZELLİKLER
+                <p className="text-3xl font-bold text-indigo-600">{item.sayi}</p>
+                <p className="mt-1 text-sm text-slate-500">{item.etiket}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* AI Özellikleri */}
+          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-indigo-600">
+            Yapay Zeka
+          </p>
+          <div className="mb-6 grid gap-5 sm:grid-cols-3">
+            {/* AI Arıza Teşhisi */}
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 to-indigo-50 p-6 border border-indigo-100">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-2xl shadow-lg">
+                🤖
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">AI Arıza Teşhisi</h3>
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                Cihaz ve şikayeti girin, yapay zeka olası arızaları ve kontrol adımlarını anında listelesin.
               </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {[
-                  {
-                    emoji: "🔧",
-                    title: "Cihaz kayıt ve takip",
-                    desc: "Otomatik kayıt numarası, durum akışı ve geçmiş. Her cihazın nerede olduğunu anında görün.",
-                  },
-                  {
-                    emoji: "📦",
-                    title: "Stok yönetimi",
-                    desc: "Yedek parça stok takibi, uyarılar ve servis kaydına bağlı otomatik stok düşümü.",
-                  },
-                  {
-                    emoji: "💬",
-                    title: "WhatsApp bildirimi",
-                    desc: "Fiyat ve durum güncellemelerini müşteriye tek tıkla veya otomatik şablonlarla iletin.",
-                  },
-                  {
-                    emoji: "📊",
-                    title: "Raporlar ve ciro",
-                    desc: "Aylık özetler, teslim edilen işler ve gelir takibi — kararlarınızı veriye dayandırın.",
-                  },
-                  {
-                    emoji: "🖨️",
-                    title: "Fiş ve etiket",
-                    desc: "Müşteri nüshası, teslim fişi ve cihaz etiketi; barkodlu yazdırma ile profesyonel çıktı.",
-                  },
-                  {
-                    emoji: "📱",
-                    title: "İkinci el modülü",
-                    desc: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun.",
-                  },
-                ].map((f) => (
-                  <article
-                    key={f.title}
-                    className="flex items-start gap-3 rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm"
-                  >
-                    <span style={{ fontSize: "20px", flexShrink: 0, marginTop: "2px" }}>{f.emoji}</span>
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900">{f.title}</h3>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-500">{f.desc}</p>
-                    </div>
-                  </article>
-                ))}
+              {/* Animasyonlu demo */}
+              <div className="mt-4 rounded-xl bg-white/80 p-3 text-xs font-mono text-slate-700 border border-indigo-100">
+                <p className="text-indigo-500 mb-1">● Analiz ediliyor...</p>
+                <p>1. Batarya bağlantısını kontrol et</p>
+                <p>2. Şarj portunu incele</p>
+                <p className="animate-pulse text-slate-400">3. ▌</p>
               </div>
             </div>
+
+            {/* Sesli Servis Notu */}
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 p-6 border border-pink-100">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500 text-2xl shadow-lg">
+                🎤
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Sesli Servis Notu</h3>
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                Mikrofona konuşun, AI sözlü notunuzu profesyonel servis raporuna dönüştürsün.
+              </p>
+              {/* Ses dalgası animasyonu */}
+              <div className="mt-4 rounded-xl bg-white/80 p-3 border border-pink-100 flex items-center gap-1.5">
+                <div className="h-3 w-1 rounded-full bg-rose-400 animate-[bounce_0.6s_ease-in-out_infinite]" />
+                <div className="h-5 w-1 rounded-full bg-rose-500 animate-[bounce_0.6s_ease-in-out_0.1s_infinite]" />
+                <div className="h-7 w-1 rounded-full bg-rose-600 animate-[bounce_0.6s_ease-in-out_0.2s_infinite]" />
+                <div className="h-4 w-1 rounded-full bg-rose-500 animate-[bounce_0.6s_ease-in-out_0.3s_infinite]" />
+                <div className="h-6 w-1 rounded-full bg-rose-400 animate-[bounce_0.6s_ease-in-out_0.4s_infinite]" />
+                <div className="h-3 w-1 rounded-full bg-rose-300 animate-[bounce_0.6s_ease-in-out_0.5s_infinite]" />
+                <span className="ml-2 text-xs text-slate-500">Dinleniyor...</span>
+              </div>
+            </div>
+
+            {/* Akıllı Fiyat Önerisi */}
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 border border-emerald-100">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-2xl shadow-lg">
+                💰
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Akıllı Fiyat Önerisi</h3>
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                Geçmiş servis kayıtlarına dayanarak benzer arızalar için fiyat aralığı önerir.
+              </p>
+              {/* Fiyat animasyonu */}
+              <div className="mt-4 rounded-xl bg-white/80 p-3 border border-emerald-100">
+                <p className="text-xs text-slate-500 mb-1">Önerilen fiyat aralığı</p>
+                <p className="text-lg font-bold text-emerald-600">₺800 — ₺1.200</p>
+                <div className="mt-1.5 h-1.5 w-full rounded-full bg-emerald-100">
+                  <div className="h-1.5 w-2/3 rounded-full bg-emerald-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Diğer Özellikler */}
+          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+            Diğer Özellikler
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { ikon: "📋", baslik: "Cihaz kayıt ve takip", aciklama: "Otomatik kayıt numarası, durum akışı ve geçmiş. Her cihazın nerede olduğunu anında görün." },
+              { ikon: "📦", baslik: "Stok yönetimi", aciklama: "Yedek parça stok takibi, uyarılar ve servis kaydına bağlı otomatik stok düşümü." },
+              { ikon: "💬", baslik: "WhatsApp bildirimi", aciklama: "Fiyat ve durum güncellemelerini müşteriye tek tıkla veya otomatik şablonlarla iletin." },
+              { ikon: "📊", baslik: "Raporlar ve ciro", aciklama: "Aylık özetler, teslim edilen işler ve gelir takibi — kararlarınızı veriye dayandırın." },
+              { ikon: "🧾", baslik: "Fiş ve etiket", aciklama: "Müşteri nüshası, teslim fişi ve cihaz etiketi; barkodlu yazdırma ile profesyonel çıktı." },
+              { ikon: "🔄", baslik: "İkinci el modülü", aciklama: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun." },
+            ].map((item) => (
+              <div
+                key={item.baslik}
+                className="flex gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-xl">
+                  {item.ikon}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{item.baslik}</p>
+                  <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">{item.aciklama}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
