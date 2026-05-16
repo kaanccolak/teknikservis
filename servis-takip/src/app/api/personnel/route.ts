@@ -14,9 +14,16 @@ export async function GET() {
     const personnel = await prisma.personnel.findMany({
       where: { shopId: shop.id },
       orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, createdAt: true },
+      select: { id: true, name: true, createdAt: true, password: true },
     });
-    return NextResponse.json(personnel);
+    return NextResponse.json(
+      personnel.map((p) => ({
+        id: p.id,
+        name: p.name,
+        createdAt: p.createdAt,
+        hasPassword: !!p.password,
+      })),
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
