@@ -14,7 +14,7 @@ export async function GET() {
     const personnel = await prisma.personnel.findMany({
       where: { shopId: shop.id },
       orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, createdAt: true, password: true },
+      select: { id: true, name: true, createdAt: true, password: true, isAdmin: true },
     });
     return NextResponse.json(
       personnel.map((p) => ({
@@ -22,6 +22,7 @@ export async function GET() {
         name: p.name,
         createdAt: p.createdAt,
         hasPassword: !!p.password,
+        isAdmin: p.isAdmin,
       })),
     );
   } catch (error) {
@@ -36,7 +37,11 @@ export async function POST(req: Request) {
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-    const { name, password } = (await req.json()) as { name: string; password?: string };
+    const { name, password, isAdmin } = (await req.json()) as {
+      name: string;
+      password?: string;
+      isAdmin?: boolean;
+    };
     if (!name?.trim()) {
       return NextResponse.json({ error: "İsim zorunludur" }, { status: 400 });
     }
@@ -44,12 +49,18 @@ export async function POST(req: Request) {
       ? await bcrypt.hash(password.trim(), 10)
       : null;
     const personnel = await prisma.personnel.create({
-      data: { shopId: shop.id, name: name.trim(), password: hashedPassword },
+      data: {
+        shopId: shop.id,
+        name: name.trim(),
+        password: hashedPassword,
+        isAdmin: isAdmin ?? false,
+      },
     });
     return NextResponse.json({
       id: personnel.id,
       name: personnel.name,
       createdAt: personnel.createdAt,
+      isAdmin: personnel.isAdmin,
     });
   } catch (error) {
     console.error(error);

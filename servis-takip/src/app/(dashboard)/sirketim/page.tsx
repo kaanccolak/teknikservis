@@ -2071,14 +2071,16 @@ function SirketimPageInner() {
   const [ikinciElSatisFiyatGoster, setIkinciElSatisFiyatGoster] = useState(true);
   const [savingIkinciElSatisFiyat, setSavingIkinciElSatisFiyat] = useState(false);
 
-  const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
-    [],
-  );
+  const [personeller, setPersoneller] = useState<
+    { id: string; name: string; hasPassword: boolean; isAdmin: boolean }[]
+  >([]);
   const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
   const [yeniPersonelSifre, setYeniPersonelSifre] = useState("");
+  const [yeniPersonelAdmin, setYeniPersonelAdmin] = useState(false);
   const [duzenleId, setDuzenleId] = useState<string | null>(null);
   const [duzenleAd, setDuzenleAd] = useState("");
   const [duzenleSifre, setDuzenleSifre] = useState("");
+  const [duzenleAdmin, setDuzenleAdmin] = useState(false);
   const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
   const [personelKaydediliyor, setPersonelKaydediliyor] = useState(false);
   const [personelSiliniyor, setPersonelSiliniyor] = useState<string | null>(null);
@@ -2222,9 +2224,11 @@ function SirketimPageInner() {
     if (activeTab === "personeller") {
       void fetch("/api/personnel")
         .then((r) => r.json())
-        .then((data: { id: string; name: string }[]) => {
-          if (Array.isArray(data)) setPersoneller(data);
-        })
+        .then(
+          (data: { id: string; name: string; hasPassword: boolean; isAdmin: boolean }[]) => {
+            if (Array.isArray(data)) setPersoneller(data);
+          },
+        )
         .catch(() => null);
     }
   }, [activeTab]);
@@ -2460,16 +2464,26 @@ function SirketimPageInner() {
         body: JSON.stringify({
           name: yeniPersonelAdi.trim(),
           password: yeniPersonelSifre || undefined,
+          isAdmin: yeniPersonelAdmin,
         }),
       });
-      const data = (await res.json()) as { id: string; name: string; error?: string };
+      const data = (await res.json()) as {
+        id: string;
+        name: string;
+        isAdmin: boolean;
+        error?: string;
+      };
       if (!res.ok) {
         toast.error(data.error ?? "Eklenemedi");
         return;
       }
-      setPersoneller((prev) => [...prev, data]);
+      setPersoneller((prev) => [
+        ...prev,
+        { ...data, hasPassword: !!yeniPersonelSifre },
+      ]);
       setYeniPersonelAdi("");
       setYeniPersonelSifre("");
+      setYeniPersonelAdmin(false);
       toast.success("Personel eklendi");
     } catch {
       toast.error("Bağlantı hatası");
@@ -2478,35 +2492,58 @@ function SirketimPageInner() {
     }
   }
 
-  function handlePersonelDuzenleBaslat(p: { id: string; name: string }) {
+  function handlePersonelDuzenleBaslat(p: {
+    id: string;
+    name: string;
+    isAdmin: boolean;
+  }) {
     setDuzenleId(p.id);
     setDuzenleAd(p.name);
     setDuzenleSifre("");
+    setDuzenleAdmin(p.isAdmin);
   }
 
   function handlePersonelDuzenleIptal() {
     setDuzenleId(null);
     setDuzenleAd("");
     setDuzenleSifre("");
+    setDuzenleAdmin(false);
   }
 
   async function handlePersonelKaydet() {
     if (!duzenleId || !duzenleAd.trim()) return;
     setPersonelKaydediliyor(true);
     try {
-      const body: { name: string; password?: string } = { name: duzenleAd.trim() };
+      const body: { name: string; password?: string; isAdmin: boolean } = {
+        name: duzenleAd.trim(),
+        isAdmin: duzenleAdmin,
+      };
       if (duzenleSifre) body.password = duzenleSifre;
       const res = await fetch(`/api/personnel/${duzenleId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as { id: string; name: string; error?: string };
+      const data = (await res.json()) as {
+        id: string;
+        name: string;
+        isAdmin: boolean;
+        error?: string;
+      };
       if (!res.ok) {
         toast.error(data.error ?? "Güncellenemedi");
         return;
       }
-      setPersoneller((prev) => prev.map((p) => (p.id === duzenleId ? data : p)));
+      setPersoneller((prev) =>
+        prev.map((p) =>
+          p.id === duzenleId
+            ? {
+                ...data,
+                hasPassword: p.hasPassword || !!duzenleSifre,
+              }
+            : p,
+        ),
+      );
       handlePersonelDuzenleIptal();
       toast.success("Personel güncellendi");
     } catch {
@@ -4409,6 +4446,20 @@ function SirketimPageInner() {
                     onChange={(e) => setYeniPersonelSifre(e.target.value)}
                     className="border rounded px-3 py-2 text-sm w-full"
                   />
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 0" }}>
+                    <input
+                      type="checkbox"
+                      id="yeni-personel-admin"
+                      checked={yeniPersonelAdmin}
+                      onChange={(e) => setYeniPersonelAdmin(e.target.checked)}
+                    />
+                    <label
+                      htmlFor="yeni-personel-admin"
+                      style={{ fontSize: "13px", color: "#374151", cursor: "pointer" }}
+                    >
+                      Admin yetkisi ver
+                    </label>
+                  </div>
               </div>
               <div
                 style={{
@@ -4459,6 +4510,20 @@ function SirketimPageInner() {
                             placeholder="Yeni şifre (boş bırak = değişmez)"
                             className="border rounded px-3 py-2 text-sm w-full"
                           />
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}>
+                            <input
+                              type="checkbox"
+                              id={`admin-${p.id}`}
+                              checked={duzenleAdmin}
+                              onChange={(e) => setDuzenleAdmin(e.target.checked)}
+                            />
+                            <label
+                              htmlFor={`admin-${p.id}`}
+                              style={{ fontSize: "13px", color: "#374151", cursor: "pointer" }}
+                            >
+                              Admin yetkisi
+                            </label>
+                          </div>
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button
                               type="button"
@@ -4521,6 +4586,20 @@ function SirketimPageInner() {
                             </div>
                             <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
                               {p.name}
+                              {p.isAdmin && (
+                                <span
+                                  style={{
+                                    fontSize: "11px",
+                                    background: "#111827",
+                                    color: "white",
+                                    padding: "2px 7px",
+                                    borderRadius: "10px",
+                                    marginLeft: "6px",
+                                  }}
+                                >
+                                  Admin
+                                </span>
+                              )}
                             </span>
                           </div>
                           <div style={{ display: "flex", gap: "6px" }}>
