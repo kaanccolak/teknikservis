@@ -94,6 +94,14 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - DATABASE_URL: Transaction pooler (port 6543) + ?pgbouncer=true&connection_limit=1
 - DIRECT_URL: Session pooler (port 5432)
 
+### Shop Plan Alanları
+
+- `planType` — `"trial"` / `"basic"` / `"premium"` / `"enterprise"` (varsayılan: `"trial"`)
+- `trialEndsAt` — trial bitiş tarihi (DateTime?)
+- `subscriptionStatus` — `"trial"` / `"active"` / `"expired"` / `"cancelled"` (varsayılan: `"trial"`)
+- `planStartedAt` — ödeme planının başladığı tarih (DateTime?)
+- Şu an tüm dükkanlar trial modunda, kısıtlamalar henüz aktif değil
+
 ### Şirketim sayfası
 
 - **Parola koruması**: ilk girişte **şirket ayarları parolası** oluşturma; sonraki girişlerde parola sorulur. **`sessionStorage`** ile aynı tarayıcı oturumunda tekrar sorulmaz.
@@ -616,6 +624,26 @@ src/lib/supabase/
 - Sesli not için tarayıcı **Chrome veya Edge** gerekir (Web Speech API).
 - Demo hesapta AI özellikleri `demoGuard` ile engellenebilir.
 
+## Fiyatlandırma
+
+### Paketler
+| Paket | Aylık | Açıklama |
+|-------|-------|----------|
+| Basic | ₺90 +KDV | Tek kişilik servisler |
+| Premium | ₺130 +KDV | 5 personel, stok, raporlar, AI |
+| Enterprise | ₺160 +KDV | Sınırsız personel, haftalık rapor |
+
+### Paket İçerikleri
+- **Basic**: Sınırsız cihaz kayıt, ikinci el, bekleyen, dış servis, cari, bayi, planlarım, WhatsApp, mesaj şablonları, Yardım&Destek AI
+- **Premium**: Basic + stok yönetimi, raporlar, ciro görünümü, tüm AI özellikleri, Google Contacts, 5 personel, personel yetki ve giriş yönetimi
+- **Enterprise**: Premium + sınırsız personel, haftalık rapor e-postası, öncelikli destek
+
+### Önemli Notlar
+- İlk 30 gün tüm özellikler ücretsiz, kredi kartı gerekmez
+- Beta döneminde tüm dükkanlar sınırsız kullanım hakkına sahip
+- Ödeme altyapısı şirket kurulunca (iyzico) implement edilecek
+- Landing page fiyatlandırma bölümü: `src/app/landing/page.tsx` satır 501 civarı
+
 ## Yapılacaklar (TODO)
 
 - [x] Hızlı Kurulum (13 servis türü, otomatik tanım/marka/model yükleme + geri alma)
@@ -668,7 +696,10 @@ src/lib/supabase/
 - [x] Tanım cache shopId anahtarları + liste `force-dynamic` / silme sonrası `no-store` + timestamp
 - [x] `orderNumber` / `bayiCode` dükkan bazlı unique + `allocateServiceOrderNumber(shopId)` (silinmiş numaralar sayılır)
 - [x] Resend e-posta (**EU region**) + `/email-dogrulama` (doğrulama landing)
-- [ ] iyzico ödeme entegrasyonu
+- [ ] Paket kısıtlamaları — planType'a göre Basic'te stok/raporlar/ciro gizlensin, şirket kurulunca ve iyzico entegrasyonu tamamlanınca implement edilecek
+- [ ] iyzico ödeme entegrasyonu — şirket kurulunca
+- [ ] Trial/abonelik akışı — kayıt olunca 30 günlük trial başlasın, süre dolunca paket seçim ekranı
+- [ ] Otomatik ödeme hatırlatma e-postası — Resend ile
 - [x] Google OAuth — Google Cloud Console uygulama doğrulaması tamamlandı
 - [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
 - [ ] SMS entegrasyonu
