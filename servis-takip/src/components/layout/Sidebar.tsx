@@ -163,7 +163,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
       <aside
         className={cn(
           "fixed left-0 top-0 z-40 flex h-full w-60 flex-col border-r border-slate-200/80 bg-white transition-transform duration-300",
-          "lg:static lg:z-auto lg:h-auto lg:translate-x-0 lg:shrink-0",
+          "lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:shrink-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
