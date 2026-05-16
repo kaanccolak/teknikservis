@@ -35,7 +35,6 @@ export function TopBar() {
 
   async function handleOpen() {
     setOpen((v) => !v);
-    // Açılınca okunmamışları okundu yap
     const unread = announcements.filter((a) => !a.isRead);
     if (unread.length > 0) {
       await Promise.all(
@@ -58,37 +57,47 @@ export function TopBar() {
       <p className="text-sm text-slate-500">
         Hoş geldiniz — bugünkü işlemlerinizi buradan takip edebilirsiniz.
       </p>
+
       <div ref={ref} style={{ position: "relative" }}>
         <button
           type="button"
           onClick={() => void handleOpen()}
           style={{
             position: "relative",
-            background: "none",
-            border: "none",
+            background: unreadCount > 0 ? "#111827" : "none",
+            border: unreadCount > 0 ? "none" : "1px solid #e5e7eb",
             cursor: "pointer",
-            padding: "6px",
-            borderRadius: "8px",
-            color: "#6b7280",
+            padding: unreadCount > 0 ? "8px 16px" : "8px 12px",
+            borderRadius: "20px",
+            color: unreadCount > 0 ? "white" : "#6b7280",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            gap: "6px",
+            fontSize: "13px",
+            fontWeight: 500,
+            transition: "all 0.2s",
           }}
         >
-          <Bell size={20} />
+          <Bell size={16} />
+          {unreadCount > 0 ? (
+            <span>{unreadCount} yeni bildirim</span>
+          ) : (
+            <span>Bildirimler</span>
+          )}
           {unreadCount > 0 && (
             <span
               style={{
-                position: "absolute",
-                top: "2px",
-                right: "2px",
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
                 background: "#ef4444",
-                border: "2px solid white",
+                color: "white",
+                fontSize: "11px",
+                fontWeight: 700,
+                padding: "1px 6px",
+                borderRadius: "10px",
+                marginLeft: "2px",
               }}
-            />
+            >
+              {unreadCount}
+            </span>
           )}
         </button>
 
@@ -97,107 +106,136 @@ export function TopBar() {
             style={{
               position: "absolute",
               right: 0,
-              top: "calc(100% + 8px)",
-              width: "340px",
+              top: "calc(100% + 10px)",
+              width: "380px",
               background: "white",
               border: "1px solid #e5e7eb",
-              borderRadius: "12px",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
+              borderRadius: "16px",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
               zIndex: 50,
               overflow: "hidden",
             }}
           >
+            {/* Header */}
             <div
               style={{
-                padding: "14px 16px",
+                padding: "16px 20px",
                 borderBottom: "1px solid #f3f4f6",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
+                background: "#f9fafb",
               }}
             >
-              <p
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#111827",
-                  margin: 0,
-                }}
-              >
-                Bildirimler
-              </p>
-              {unreadCount > 0 && (
-                <span
-                  style={{
-                    fontSize: "11px",
-                    background: "#ef4444",
-                    color: "white",
-                    padding: "2px 8px",
-                    borderRadius: "10px",
-                  }}
-                >
-                  {unreadCount} yeni
-                </span>
-              )}
-            </div>
-            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-              {announcements.length === 0 ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Bell size={16} color="#111827" />
                 <p
                   style={{
-                    padding: "24px",
-                    textAlign: "center",
-                    color: "#9ca3af",
-                    fontSize: "13px",
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: "#111827",
                     margin: 0,
                   }}
                 >
-                  Henüz bildirim yok
+                  Bildirimler
                 </p>
+              </div>
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    fontSize: "12px",
+                    background: "#111827",
+                    color: "white",
+                    padding: "3px 10px",
+                    borderRadius: "12px",
+                    fontWeight: 600,
+                  }}
+                >
+                  {unreadCount} okunmamış
+                </span>
+              )}
+            </div>
+
+            {/* Liste */}
+            <div style={{ maxHeight: "440px", overflowY: "auto" }}>
+              {announcements.length === 0 ? (
+                <div style={{ padding: "40px 24px", textAlign: "center" }}>
+                  <Bell
+                    size={32}
+                    color="#d1d5db"
+                    style={{ margin: "0 auto 12px" }}
+                  />
+                  <p style={{ color: "#9ca3af", fontSize: "14px", margin: 0 }}>
+                    Henüz bildirim yok
+                  </p>
+                </div>
               ) : (
-                announcements.map((a) => (
+                announcements.map((a, i) => (
                   <div
                     key={a.id}
                     style={{
-                      padding: "14px 16px",
-                      borderBottom: "1px solid #f9fafb",
-                      background: a.isRead ? "white" : "#fefce8",
+                      padding: "16px 20px",
+                      borderBottom:
+                        i < announcements.length - 1
+                          ? "1px solid #f3f4f6"
+                          : "none",
+                      background: a.isRead ? "white" : "#fffbeb",
+                      transition: "background 0.2s",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: "8px",
-                      }}
-                    >
-                      {!a.isRead && (
-                        <span
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "10px",
+                          background: a.isRead ? "#f3f4f6" : "#fef3c7",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          fontSize: "16px",
+                        }}
+                      >
+                        {a.isRead ? "📌" : "🔔"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
                           style={{
-                            width: "7px",
-                            height: "7px",
-                            borderRadius: "50%",
-                            background: "#f59e0b",
-                            flexShrink: 0,
-                            marginTop: "5px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            marginBottom: "4px",
                           }}
-                        />
-                      )}
-                      <div style={{ flex: 1 }}>
+                        >
+                          <p
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: 700,
+                              color: "#111827",
+                              margin: 0,
+                            }}
+                          >
+                            {a.title}
+                          </p>
+                          {!a.isRead && (
+                            <span
+                              style={{
+                                width: "7px",
+                                height: "7px",
+                                borderRadius: "50%",
+                                background: "#f59e0b",
+                                flexShrink: 0,
+                                display: "inline-block",
+                              }}
+                            />
+                          )}
+                        </div>
                         <p
                           style={{
                             fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#111827",
-                            margin: "0 0 4px 0",
-                          }}
-                        >
-                          {a.title}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: "12px",
-                            color: "#6b7280",
-                            margin: "0 0 6px 0",
+                            color: "#4b5563",
+                            margin: "0 0 8px 0",
                             lineHeight: "1.5",
                           }}
                         >
