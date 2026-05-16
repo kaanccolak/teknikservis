@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { demoGuard } from "@/lib/demo-guard";
 import { getShop } from "@/lib/getShop";
 import { KURULUM_TURLERI } from "@/lib/hizli-kurulum-data";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +8,9 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const guard = await demoGuard();
+  if (guard) return guard;
+
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
