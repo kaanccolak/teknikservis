@@ -15,11 +15,6 @@ export default function CookieBanner() {
     setGoster(false);
   }
 
-  function reddet() {
-    localStorage.setItem("cerez-onay", "reddet");
-    setGoster(false);
-  }
-
   if (!goster) return null;
 
   return (
@@ -55,21 +50,6 @@ export default function CookieBanner() {
       <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
         <button
           type="button"
-          onClick={reddet}
-          style={{
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "1px solid #374151",
-            background: "transparent",
-            color: "#9ca3af",
-            fontSize: "13px",
-            cursor: "pointer",
-          }}
-        >
-          Reddet
-        </button>
-        <button
-          type="button"
           onClick={kabul}
           style={{
             padding: "8px 16px",
@@ -82,7 +62,7 @@ export default function CookieBanner() {
             cursor: "pointer",
           }}
         >
-          Kabul Et
+          Anladım
         </button>
       </div>
     </div>
