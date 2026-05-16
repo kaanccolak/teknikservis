@@ -54,6 +54,11 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [shopName, setShopName] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAktifPersonelAdi(sessionStorage.getItem("activePersonnelName"));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,6 +102,13 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
     router.refresh();
     router.push("/landing");
     setLoggingOut(false);
+  }
+
+  function handlePersonelDegistir() {
+    sessionStorage.removeItem("activePersonnelId");
+    sessionStorage.removeItem("activePersonnelName");
+    setMobileOpen(false);
+    window.location.reload();
   }
 
   return (
@@ -270,6 +282,60 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
           })}
         </nav>
         <div className="border-t border-slate-200/80 p-3">
+          {aktifPersonelAdi && (
+            <div style={{ marginBottom: "4px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 16px",
+                  fontSize: "13px",
+                  color: "#374151",
+                }}
+              >
+                <div
+                  style={{
+                    width: "26px",
+                    height: "26px",
+                    borderRadius: "50%",
+                    background: "#f3f4f6",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    color: "#374151",
+                    flexShrink: 0,
+                  }}
+                >
+                  {aktifPersonelAdi.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontWeight: 500 }}>{aktifPersonelAdi}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handlePersonelDegistir}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  width: "100%",
+                  padding: "8px 16px",
+                  background: "none",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  color: "#6b7280",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ fontSize: "14px" }}>🔄</span>
+                Personeli Değiştir
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => onOneriOpen()}
