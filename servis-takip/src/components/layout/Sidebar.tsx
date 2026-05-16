@@ -254,7 +254,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
             {shopName || "TamirTakip"}
           </p>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
+        <nav className="flex flex-1 flex-col overflow-y-auto p-3 gap-0.5 lg:gap-0">
           {navItems
             .filter((item) => {
               if (aktifPersonelIsAdmin) return true;
@@ -277,7 +277,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
                   handleNavClick(e, item.href);
                 }}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-2 rounded-lg px-3 py-2 xl:py-1.5 text-sm font-medium transition-colors",
                   active
                     ? "bg-slate-100 text-slate-900 shadow-sm ring-1 ring-slate-200/60"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
