@@ -2075,7 +2075,12 @@ function SirketimPageInner() {
     [],
   );
   const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
+  const [yeniPersonelSifre, setYeniPersonelSifre] = useState("");
+  const [duzenleId, setDuzenleId] = useState<string | null>(null);
+  const [duzenleAd, setDuzenleAd] = useState("");
+  const [duzenleSifre, setDuzenleSifre] = useState("");
   const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
+  const [personelKaydediliyor, setPersonelKaydediliyor] = useState(false);
   const [personelSiliniyor, setPersonelSiliniyor] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -2427,7 +2432,10 @@ function SirketimPageInner() {
       const res = await fetch("/api/personnel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: yeniPersonelAdi.trim() }),
+        body: JSON.stringify({
+          name: yeniPersonelAdi.trim(),
+          password: yeniPersonelSifre || undefined,
+        }),
       });
       const data = (await res.json()) as { id: string; name: string; error?: string };
       if (!res.ok) {
@@ -2436,11 +2444,50 @@ function SirketimPageInner() {
       }
       setPersoneller((prev) => [...prev, data]);
       setYeniPersonelAdi("");
+      setYeniPersonelSifre("");
       toast.success("Personel eklendi");
     } catch {
       toast.error("Bağlantı hatası");
     } finally {
       setPersonelEkleniyor(false);
+    }
+  }
+
+  function handlePersonelDuzenleBaslat(p: { id: string; name: string }) {
+    setDuzenleId(p.id);
+    setDuzenleAd(p.name);
+    setDuzenleSifre("");
+  }
+
+  function handlePersonelDuzenleIptal() {
+    setDuzenleId(null);
+    setDuzenleAd("");
+    setDuzenleSifre("");
+  }
+
+  async function handlePersonelKaydet() {
+    if (!duzenleId || !duzenleAd.trim()) return;
+    setPersonelKaydediliyor(true);
+    try {
+      const body: { name: string; password?: string } = { name: duzenleAd.trim() };
+      if (duzenleSifre) body.password = duzenleSifre;
+      const res = await fetch(`/api/personnel/${duzenleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json()) as { id: string; name: string; error?: string };
+      if (!res.ok) {
+        toast.error(data.error ?? "Güncellenemedi");
+        return;
+      }
+      setPersoneller((prev) => prev.map((p) => (p.id === duzenleId ? data : p)));
+      handlePersonelDuzenleIptal();
+      toast.success("Personel güncellendi");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setPersonelKaydediliyor(false);
     }
   }
 
@@ -4280,7 +4327,14 @@ function SirketimPageInner() {
                   >
                     {personelEkleniyor ? "Ekleniyor..." : "Ekle"}
                   </button>
-                </div>
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="Şifre (opsiyonel)"
+                    value={yeniPersonelSifre}
+                    onChange={(e) => setYeniPersonelSifre(e.target.value)}
+                    className="border rounded px-3 py-2 text-sm w-full"
+                  />
               </div>
               <div
                 style={{
@@ -4305,50 +4359,131 @@ function SirketimPageInner() {
                     <div
                       key={p.id}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
                         padding: "12px 16px",
                         borderBottom: "1px solid #f3f4f6",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      {duzenleId === p.id ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <input
+                            type="text"
+                            value={duzenleAd}
+                            onChange={(e) => setDuzenleAd(e.target.value)}
+                            placeholder="İsim soyisim"
+                            style={{
+                              border: "1px solid #d1d5db",
+                              borderRadius: "8px",
+                              padding: "8px 12px",
+                              fontSize: "14px",
+                              outline: "none",
+                            }}
+                          />
+                          <input
+                            type="password"
+                            value={duzenleSifre}
+                            onChange={(e) => setDuzenleSifre(e.target.value)}
+                            placeholder="Yeni şifre (boş bırak = değişmez)"
+                            className="border rounded px-3 py-2 text-sm w-full"
+                          />
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button
+                              type="button"
+                              onClick={() => void handlePersonelKaydet()}
+                              disabled={personelKaydediliyor || !duzenleAd.trim()}
+                              style={{
+                                padding: "6px 14px",
+                                background: "#111827",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {personelKaydediliyor ? "Kaydediliyor..." : "Kaydet"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handlePersonelDuzenleIptal}
+                              disabled={personelKaydediliyor}
+                              style={{
+                                padding: "6px 14px",
+                                background: "white",
+                                color: "#374151",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              İptal
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
                         <div
                           style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            background: "#f3f4f6",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#374151",
+                            justifyContent: "space-between",
                           }}
                         >
-                          {p.name.charAt(0).toUpperCase()}
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div
+                              style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
+                                background: "#f3f4f6",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                color: "#374151",
+                              }}
+                            >
+                              {p.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
+                              {p.name}
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button
+                              type="button"
+                              onClick={() => handlePersonelDuzenleBaslat(p)}
+                              style={{
+                                padding: "4px 10px",
+                                background: "#f3f4f6",
+                                color: "#374151",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Düzenle
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handlePersonelSil(p.id)}
+                              disabled={personelSiliniyor === p.id}
+                              style={{
+                                padding: "4px 10px",
+                                background: "#fef2f2",
+                                color: "#dc2626",
+                                border: "1px solid #fca5a5",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {personelSiliniyor === p.id ? "Siliniyor..." : "Sil"}
+                            </button>
+                          </div>
                         </div>
-                        <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
-                          {p.name}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => void handlePersonelSil(p.id)}
-                        disabled={personelSiliniyor === p.id}
-                        style={{
-                          padding: "4px 10px",
-                          background: "#fef2f2",
-                          color: "#dc2626",
-                          border: "1px solid #fca5a5",
-                          borderRadius: "6px",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {personelSiliniyor === p.id ? "Siliniyor..." : "Sil"}
-                      </button>
+                      )}
                     </div>
                   ))
                 )}

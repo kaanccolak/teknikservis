@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { demoGuard } from "@/lib/demo-guard";
@@ -28,14 +29,21 @@ export async function POST(req: Request) {
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-    const { name } = (await req.json()) as { name: string };
+    const { name, password } = (await req.json()) as { name: string; password?: string };
     if (!name?.trim()) {
       return NextResponse.json({ error: "İsim zorunludur" }, { status: 400 });
     }
+    const hashedPassword = password?.trim()
+      ? await bcrypt.hash(password.trim(), 10)
+      : null;
     const personnel = await prisma.personnel.create({
-      data: { shopId: shop.id, name: name.trim() },
+      data: { shopId: shop.id, name: name.trim(), password: hashedPassword },
     });
-    return NextResponse.json(personnel);
+    return NextResponse.json({
+      id: personnel.id,
+      name: personnel.name,
+      createdAt: personnel.createdAt,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
