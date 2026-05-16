@@ -526,7 +526,7 @@ export default function LandingPage() {
                 onClick={() => setYillikOdeme(true)}
                 className={yillikOdeme ? "rounded-lg bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-sm" : "px-5 py-2 text-sm font-medium text-slate-500"}
               >
-                Yıllık <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">2 ay bedava</span>
+                Yıllık <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">2 ay ücretsiz</span>
               </button>
             </div>
           </div>
@@ -606,7 +606,7 @@ export default function LandingPage() {
                   <span className="mb-1 text-slate-400 text-sm">/yıl</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺75 — 2 ay bedava</p>
+                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺75 — 2 ay ücretsiz</p>
                 <p className="mt-4 text-sm text-slate-500">Küçük ve tek kişilik servisler için ideal başlangıç.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz kayıt ve takip</li>
@@ -633,7 +633,7 @@ export default function LandingPage() {
                   <span className="mb-1 text-slate-400 text-sm">/yıl</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺108 — 2 ay bedava</p>
+                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺108 — 2 ay ücretsiz</p>
                 <p className="mt-4 text-sm text-slate-500">Büyüyen servisler için ekip ve analiz özellikleri.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm Basic Paket İçeriği</li>
@@ -655,7 +655,7 @@ export default function LandingPage() {
                   <span className="mb-1 text-slate-400 text-sm">/yıl</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺133 — 2 ay bedava</p>
+                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺133 — 2 ay ücretsiz</p>
                 <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm Premium Paket İçeriği</li>
