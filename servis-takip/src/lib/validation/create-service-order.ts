@@ -18,7 +18,7 @@ export const createServiceOrderSchema = z
       .min(2, "En az 2 karakter girin"),
     cariId: z.string().optional(),
     bayiId: z.string().optional(),
-    personnelId: z.string().optional(),
+    personnelId: z.string().min(1, "Personel seçimi zorunludur"),
     phone: z.string(),
     arrivedByCargo: z.boolean().default(false),
     cargoInfo: z.string().optional(),
@@ -95,6 +95,13 @@ export function formEstimatedPriceToDb(
   if (Number.isNaN(n) || n <= 0) return null;
   return n;
 }
+
+/** Kayıt düzenleme — mevcut kayıtlarda personel boş olabilir. */
+export const editServiceOrderSchema = createServiceOrderSchema
+  .omit({ personnelId: true })
+  .extend({
+    personnelId: z.string().optional(),
+  });
 
 export type CreateServiceOrderFormValues = z.input<
   typeof createServiceOrderSchema

@@ -30,6 +30,7 @@ import { normalizeNationalPhoneInput } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 import {
   createServiceOrderSchema,
+  editServiceOrderSchema,
   formEstimatedPriceToDb,
   type CreateServiceOrderFormValues,
 } from "@/lib/validation/create-service-order";
@@ -39,6 +40,7 @@ type IdName = { id: string; name: string };
 type OrderApiRow = {
   id: string;
   orderNumber: string | null;
+  personnelId?: string | null;
   deviceTypeId: string | null;
   brandId: string | null;
   deviceModelId: string | null;
@@ -82,6 +84,7 @@ function mapOrderToFormValues(order: OrderApiRow): CreateServiceOrderFormValues 
   return {
     customerName: order.customer.name,
     phone: normalizeNationalPhoneInput(order.customer.phone ?? ""),
+    personnelId: order.personnelId ?? "",
     arrivedByCargo: order.arrivedByCargo,
     cargoInfo: order.cargoInfo ?? "",
     arrivedAt: toDatetimeLocalValue(new Date(order.arrivedAt)),
@@ -135,10 +138,11 @@ export default function ServisDuzenlePage() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CreateServiceOrderFormValues>({
-    resolver: zodResolver(createServiceOrderSchema),
+    resolver: zodResolver(editServiceOrderSchema),
     defaultValues: {
       customerName: "",
       phone: "",
+      personnelId: "",
       arrivedByCargo: false,
       cargoInfo: "",
       arrivedAt: toDatetimeLocalValue(new Date()),
@@ -321,7 +325,7 @@ export default function ServisDuzenlePage() {
 
   const onSubmit = useCallback(
     async (data: CreateServiceOrderFormValues) => {
-      const parsed = createServiceOrderSchema.parse(data);
+      const parsed = editServiceOrderSchema.parse(data);
       const payload = {
         ...parsed,
         estimatedPrice: formEstimatedPriceToDb(parsed.estimatedPrice),

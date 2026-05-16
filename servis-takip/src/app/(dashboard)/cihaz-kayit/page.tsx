@@ -594,7 +594,7 @@ function CihazKayitServiceInner({
           ...payload,
           cariId: selectedCariId ?? undefined,
           bayiId: selectedBayiId ?? undefined,
-          personnelId: data.personnelId || undefined,
+          personnelId: data.personnelId,
           isReturn,
         }),
       });
@@ -1101,36 +1101,45 @@ function CihazKayitServiceInner({
             </CardContent>
             </Card>
 
-            {personeller.length > 0 ? (
-              <Card className="border-slate-200/80 bg-white shadow-sm">
-                <CardHeader>
-                  <CardTitle>Kaydı yapan personel</CardTitle>
-                  <CardDescription>
-                    Opsiyonel — bu kaydı hangi personel oluşturdu?
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Controller
-                    name="personnelId"
-                    control={control}
-                    render={({ field }) => (
-                      <select
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        className={nativeSelectClassName}
-                      >
-                        <option value="">Personel seçin (opsiyonel)</option>
-                        {personeller.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            ) : null}
+            <Card className="border-slate-200/80 bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle>Kaydı yapan personel</CardTitle>
+                <CardDescription>
+                  Bu kaydı hangi personel oluşturdu?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Controller
+                  name="personnelId"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className={nativeSelectClassName}
+                      disabled={personeller.length === 0}
+                      aria-invalid={!!errors.personnelId}
+                    >
+                      <option value="">
+                        {personeller.length === 0
+                          ? "Yükleniyor..."
+                          : "Personel seçin"}
+                      </option>
+                      {personeller.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {errors.personnelId ? (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.personnelId.message}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
 
             <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
