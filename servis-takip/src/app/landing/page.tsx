@@ -530,7 +530,7 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Dış servisler ve bekleyen cihazlar</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cari ve bayi yönetimi</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Planlarım ve hazır tanımlar</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>WhatsApp ve mesaj şablonları</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız WhatsApp mesajı ve şablonları</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Yardım ve Destek AI</li>
                 </ul>
               </div>
@@ -549,13 +549,13 @@ export default function LandingPage() {
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
                 <p className="mt-4 text-sm text-slate-500">Büyüyen servisler için ekip ve analiz özellikleri.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Basic paketteki her şey</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm Basic Paket İçeriği</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Stok yönetimi</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Raporlar ve ciro görünümü</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm AI özellikleri</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Google Contacts entegrasyonu</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>5 personele kadar kullanım</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel giriş modu</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel yetki ve giriş yönetimi</li>
                 </ul>
               </div>
               <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg">Ücretsiz Başla</button>
@@ -570,12 +570,8 @@ export default function LandingPage() {
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
                 <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz, ikinci el, stok, cari, bayi</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>WhatsApp, mesaj şablonları, fiş ve etiket</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm AI özellikleri</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Raporlar ve ciro görünümü</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Google Contacts entegrasyonu</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel + giriş modu</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm Premium Paket İçeriği</li>
+                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Haftalık rapor e-postası</li>
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
                 </ul>
@@ -947,5 +943,7 @@ export default function LandingPage() {
     </>
   );
 }
+
+
 
 
