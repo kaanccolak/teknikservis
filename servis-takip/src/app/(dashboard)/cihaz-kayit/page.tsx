@@ -337,7 +337,7 @@ function CihazKayitServiceInner({
         setAktifPersonelAdi(aktifPersonelAdi);
       }
     }
-  }, []);
+  }, [setValue]);
 
   useEffect(() => {
     void fetch("/api/personnel")

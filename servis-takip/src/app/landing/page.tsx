@@ -9,12 +9,6 @@ const inter = Inter({ subsets: ["latin"] });
 export default function LandingPage() {
   const router = useRouter();
 
-  function scrollToPricing() {
-    document
-      .getElementById("fiyatlandirma")
-      ?.scrollIntoView({ behavior: "smooth" });
-  }
-
   return (
     <>
       <a
