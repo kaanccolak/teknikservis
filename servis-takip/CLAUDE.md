@@ -46,6 +46,14 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **Çıkış / personel değiştirme**: `sessionStorage` ve `personnelIsAdmin` cookie'si temizlenir (`handleSignOut`, `handlePersonelDegistir`).
 - **Demo guard**: `POST /api/settings` ve `POST /api/hizli-kurulum` demoGuard ile korunur.
 
+### Bildirim Sistemi (Announcements)
+
+- Admin panelinden (`/admin`) tüm dükkanlara bildirim gönderilebilir.
+- `TopBar` (`src/components/layout/TopBar.tsx`) — sağ üstte zil ikonu; okunmamış bildirim varsa koyu buton + sayı gösterir. Tıklayınca dropdown açılır, okunmamışlar otomatik okundu işaretlenir.
+- Bildirim içeriğinde `whiteSpace: "pre-wrap"` — enter ile satır sonları korunur.
+- Silme: önce `AnnouncementRead` cascade silinir, sonra `Announcement` silinir.
+- `Shop` modeline `announcementReads AnnouncementRead[]` ilişkisi eklenmiştir.
+
 ### Multi-tenant
 
 - Her kullanıcının bir **Shop** kaydı olabilir: **`Shop.userId`** (`String? @unique`) ile kullanıcıya bağlanır.
@@ -96,6 +104,7 @@ Teknik servis dükkanları için Next.js 14 tabanlı web uygulaması. **Multi-te
 - **Admin yetkisi**: `isAdmin: true` olan personel tüm menüyü görür. `isAdmin: false` olan personelde sidebar'dan `/sirketim`, `/raporlar`, `/planlarim` gizlenir; URL koruması middleware'de `personnelIsAdmin` cookie'si ile sağlanır.
 - **Personel şifre doğrulama**: `POST /api/personnel/verify` — `personnelId` + `password` alır, bcrypt ile doğrular.
 - Personel giriş modu kapatılınca `personnelIsAdmin` cookie ve sessionStorage otomatik temizlenir.
+- Sekme butonları `padding: "10px 14px"`, `fontSize: "13px"` — tüm sekmeler ekrana sığar.
 
 ### Google Contacts entegrasyonu
 
@@ -168,6 +177,8 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - **Setting**: key-value ayar tablosu (`shopId + key` unique).
 - **ExternalService**: dış servis firması (`shopId`, `name`, `contactName`, `phone`, `address`, `notes`); `ServiceOrder` üzerinden `externalServiceId` (opsiyonel) ve `externalNote` ile bağlanır.
 - **Personnel**: `name`, `password` (`String?`, bcrypt hash), `isAdmin` (`Boolean`, varsayılan `false`), `shopId`.
+- **Announcement**: `title`, `content`, `createdAt` — admin tarafından oluşturulan uygulama bildirimleri.
+- **AnnouncementRead**: `shopId`, `announcementId`, `readAt` — hangi dükkanın hangi bildirimi okuduğu; `@@unique([shopId, announcementId])`.
 - **WhatsAppMessage**: geçmiş / gelen mesaj kayıtları (`shopId`, `from`, `message`, `timestamp`, …); eski Meta webhook akışıyla ilişkili olabilir. Giden bildirimler **Baileys** ile gönderilir.
 
 ### Bayiler Modülü
@@ -227,6 +238,9 @@ Geçerli durum anahtarları (`ServiceOrder.status`) — yalnızca `src/lib/servi
 - `/api/settings` — **GET**, **PATCH** (yazdırma ayarları vb.)
 - `/api/personnel/verify` — **POST** (`{ personnelId, password }`) — bcrypt şifre doğrulama; başarılıysa `{ ok: true }`.
 - `/api/personnel/[id]` — **PATCH** (`{ name?, password?, isAdmin? }`), **DELETE**
+- `/api/announcements` — **GET** — o dükkanın tüm bildirimleri + `isRead` durumu.
+- `/api/announcements/read` — **POST** (`{ announcementId }`) — bildirimi okundu işaretle.
+- `/api/admin/announcements` — **GET** (tüm bildirimler + kaç dükkan okudu), **POST** (`{ title, content }`), **DELETE** (`{ id }`, cascade ile AnnouncementRead da silinir).
 - `/api/external-services` — **GET** (`?search=`), **POST**
 - `/api/external-services/[id]` — **PATCH**, **DELETE** (bağlı `ServiceOrder` varsa 400 + `linkedCount`)
 - `/api/shop` — **GET** (`getOrCreateDefaultShop`), **PATCH** (şirket bilgileri; `name` zorunlu); **GET** yanıtında `googleContactsConnected`. **PATCH** ile Google token’ları istemciden **ayarlanamaz**; `googleAccessToken: null` gönderilerek bağlantı kesilir (refresh + expiry de temizlenir)
@@ -556,6 +570,8 @@ src/app/teslim-fisi/[id]/
 src/app/(auth)/login/
 src/app/sorgula/                         # Müşteri sorgula (public)
 src/app/reset-password/                  # Şifre sıfırlama (public)
+src/app/api/announcements/           # Bildirim listesi + okundu işaretleme
+src/app/api/admin/announcements/     # Admin bildirim yönetimi
 src/app/api/
 src/app/api/auth/register/                    # Kayıt sonrası Shop oluşturma
 src/app/api/auth/google/callback/             # Google Contacts OAuth callback
@@ -572,6 +588,7 @@ src/lib/supabase/
 - **Sürekli API isteği**: useEffect dependency array'ini kontrol et
 - **shadcn Select bozuk görünüm**: Native HTML select kullan
 - **Prisma .env okumaz**: .env dosyasına da DATABASE_URL yaz
+- **Sidebar scroll sorunu**: `lg:sticky lg:top-0 lg:h-screen` + nav'a `min-h-0` ile çözüldü.
 
 ## Yapay Zeka Özellikleri
 
