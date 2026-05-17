@@ -503,16 +503,16 @@ export default function LandingPage() {
 
       {/* Fiyatlandırma */}
       <section id="fiyatlandirma" className="border-b border-slate-100 py-12 sm:py-16">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-indigo-600">
               Fiyatlandırma
             </span>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              İhtiyacınıza Uygun Planı Seçin
+              Sade Fiyat, Tüm Özellikler
             </h2>
             <p className="mt-3 text-slate-500 text-sm">
-              İlk 30 gün tüm özellikler ücretsiz — kredi kartı gerekmez.
+              Tek paket, sınırsız kullanım. İlk 30 gün ücretsiz — kredi kartı gerekmez.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1">
               <button
@@ -531,146 +531,75 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
-          {!yillikOdeme && <div className="grid gap-6 lg:grid-cols-3">
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
+
+          {/* Tek paket kartı */}
+          <div className="relative rounded-2xl border-2 border-indigo-600 bg-white p-10 shadow-xl">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+              <span className="rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold text-white shadow">
+                Tüm Özellikler Dahil
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Basic</p>
+                <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">TamirTakip</p>
                 <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">₺90</span>
-                  <span className="mb-1 text-slate-400 text-sm">/ay</span>
+                  <span className="text-5xl font-bold text-slate-900">
+                    {yillikOdeme ? "₺1.000" : "₺100"}
+                  </span>
+                  <span className="mb-1 text-slate-400 text-sm">
+                    {yillikOdeme ? "/yıl" : "/ay"}
+                  </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-4 text-sm text-slate-500">Küçük ve tek kişilik servisler için ideal başlangıç.</p>
-                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz kayıt ve takip</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cihaz sorgula ekranı</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Fiş, etiket ve müşteri nüshası</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>İkinci el modülü</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Dış servisler ve bekleyen cihazlar</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cari ve bayi yönetimi</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Planlarım ve hazır tanımlar</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız WhatsApp mesajı ve şablonları</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Yardım ve Destek AI</li>
-                </ul>
+                {yillikOdeme && (
+                  <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺83 — 2 ay ücretsiz</p>
+                )}
+                <p className="mt-3 text-sm text-slate-500">
+                  Tüm teknik servisler için eksiksiz çözüm.
+                </p>
               </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
+              <button
+                type="button"
+                onClick={() => router.push("/login?register=true")}
+                className="shrink-0 rounded-xl bg-indigo-600 px-8 py-4 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg"
+              >
+                Ücretsiz Başla
+              </button>
             </div>
-            <div className="relative rounded-2xl border-2 border-indigo-600 bg-white p-8 shadow-xl flex flex-col">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold text-white shadow">En Çok Tercih Edilen</span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Premium</p>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">₺130</span>
-                  <span className="mb-1 text-slate-400 text-sm">/ay</span>
+
+            <div className="mt-8 border-t border-slate-100 pt-8 grid gap-3 sm:grid-cols-2">
+              {[
+                "Sınırsız cihaz kayıt ve takip",
+                "Cihaz sorgula ekranı",
+                "Fiş, etiket ve müşteri nüshası",
+                "İkinci el modülü",
+                "Dış servisler ve bekleyen cihazlar",
+                "Cari ve bayi yönetimi",
+                "Stok yönetimi",
+                "Raporlar ve ciro görünümü",
+                "Tüm AI özellikleri",
+                "WhatsApp ve mesaj şablonları",
+                "Google Contacts entegrasyonu",
+                "Sınırsız personel yönetimi",
+                "Personel yetki ve giriş modu",
+                "Planlarım ve hazır tanımlar",
+                "Haftalık rapor e-postası",
+                "Yardım ve Destek AI",
+              ].map((f) => (
+                <div key={f} className="flex items-center gap-2">
+                  <span className="text-emerald-500 font-bold">✓</span>
+                  <span className="text-sm text-slate-600">{f}</span>
                 </div>
-                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-4 text-sm text-slate-500">Büyüyen servisler için ekip ve analiz özellikleri.</p>
-                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm Basic Paket İçeriği</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Stok yönetimi</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Raporlar ve ciro görünümü</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm AI özellikleri</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Google Contacts entegrasyonu</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>5 personele kadar kullanım</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel yetki ve giriş yönetimi</li>
-                </ul>
-              </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg">Ücretsiz Başla</button>
+              ))}
             </div>
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Enterprise</p>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">₺160</span>
-                  <span className="mb-1 text-slate-400 text-sm">/ay</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
-                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm Premium Paket İçeriği</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Haftalık rapor e-postası</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
-                </ul>
-              </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
-            </div>
-          </div>}
-          {yillikOdeme && <div className="grid gap-6 lg:grid-cols-3">
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Basic</p>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">₺900</span>
-                  <span className="mb-1 text-slate-400 text-sm">/yıl</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺75 — 2 ay ücretsiz</p>
-                <p className="mt-4 text-sm text-slate-500">Küçük ve tek kişilik servisler için ideal başlangıç.</p>
-                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz kayıt ve takip</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cihaz sorgula ekranı</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Fiş, etiket ve müşteri nüshası</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>İkinci el modülü</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Dış servisler ve bekleyen cihazlar</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Cari ve bayi yönetimi</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Planlarım ve hazır tanımlar</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız WhatsApp mesajı ve şablonları</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Yardım ve Destek AI</li>
-                </ul>
-              </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
-            </div>
-            <div className="relative rounded-2xl border-2 border-indigo-600 bg-white p-8 shadow-xl flex flex-col">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-indigo-600 px-4 py-1 text-xs font-bold text-white shadow">En Çok Tercih Edilen</span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Premium</p>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">₺1.300</span>
-                  <span className="mb-1 text-slate-400 text-sm">/yıl</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺108 — 2 ay ücretsiz</p>
-                <p className="mt-4 text-sm text-slate-500">Büyüyen servisler için ekip ve analiz özellikleri.</p>
-                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm Basic Paket İçeriği</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Stok yönetimi</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Raporlar ve ciro görünümü</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm AI özellikleri</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Google Contacts entegrasyonu</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>5 personele kadar kullanım</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel yetki ve giriş yönetimi</li>
-                </ul>
-              </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg">Ücretsiz Başla</button>
-            </div>
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Enterprise</p>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">₺1.600</span>
-                  <span className="mb-1 text-slate-400 text-sm">/yıl</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-400">+KDV (%20)</p>
-                <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺133 — 2 ay ücretsiz</p>
-                <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
-                <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm Premium Paket İçeriği</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız personel</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Haftalık rapor e-postası</li>
-                  <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
-                </ul>
-              </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
-            </div>
-          </div>}
-          <p className="mt-8 text-center text-xs text-slate-400">Tüm planlar 30 günlük ücretsiz denemeyle başlar. Kredi kartı gerekmez. İstediğiniz zaman iptal edebilirsiniz.</p>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-slate-400">
+            30 günlük ücretsiz deneme. Kredi kartı gerekmez. İstediğiniz zaman iptal edebilirsiniz.
+          </p>
         </div>
-      </section>      {/* Kimler Kullanabilir Bölümü */}
+      </section>
+      {/* Kimler Kullanabilir Bölümü */}
       <section
         style={{ padding: "80px 24px", background: "#f9fafb" }}
       >
