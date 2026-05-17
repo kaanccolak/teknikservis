@@ -490,7 +490,7 @@ export default function LandingPage() {
                   {t.quote}
                 </p>
                 <footer className="mt-6 border-t border-slate-100 pt-4 text-sm font-medium text-slate-900">
-                  — {t.author}
+                  {t.author}
                   <span className="block text-xs font-normal text-slate-500">
                     {t.city}
                   </span>
