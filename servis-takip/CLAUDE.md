@@ -708,3 +708,31 @@ src/lib/supabase/
 - [ ] Haftalık dükkan raporu e-postası — her Pazartesi, önceki haftanın (Pazartesi–Cumartesi 20:00) servis kayıtlarını analiz edip dükkan sahibine mail at (Resend ile). İçerik: yeni kayıt sayısı, teslim edilen, ciro, en çok gelen cihaz, personel bazlı özet. Detaylar ileride netleşecek.
 - [x] Domain bağlama (**tamirtakip.com.tr**)
 - [x] Yasal sayfalar + landing footer (`/gizlilik-politikasi`, `/hizmet-sartlari`)
+
+## Güvenlik
+
+### HTTP Güvenlik Başlıkları
+`next.config.mjs` dosyasına eklendi:
+- `X-Frame-Options: SAMEORIGIN`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+- `Content-Security-Policy` — Supabase, Anthropic API bağlantılarına izin verir
+
+### DNS / Mail Güvenliği
+- **SPF**: `tamirtakip.com.tr` için `v=spf1 include:amazonses.com ~all` (isimtescil'de TXT)
+- **DKIM**: `resend._domainkey.tamirtakip.com.tr` — Resend tarafından doğrulanmış
+- **DMARC**: `_dmarc.tamirtakip.com.tr` — `v=DMARC1; p=quarantine;`
+
+### KVKK
+- `/kvkk` sayfası oluşturuldu
+- Cookie banner eklendi (`src/components/CookieBanner.tsx`) — localStorage'da `cerez-onay` anahtarı
+- Kayıt formuna KVKK onay checkbox'ı eklendi — işaretlenmeden kayıt olunamaz
+- Footer'a KVKK linki eklendi
+
+## SEO
+- `src/app/landing/layout.tsx` — title, description, keywords, OpenGraph, Twitter Card, canonical URL
+- `src/app/landing/page.tsx` — JSON-LD structured data (SoftwareApplication schema)
+- `src/app/sitemap.ts` — www ile 6 URL (landing, login, sorgula, kvkk, gizlilik, hizmet şartları)
+- Google Search Console — hem www hem www'suz mülk eklendi, sitemap gönderildi
+- Referanslar gerçek dükkan isimleriyle güncellendi (Atarici, Konsol Plus, MOTSAN)
