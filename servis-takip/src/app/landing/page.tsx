@@ -465,20 +465,20 @@ export default function LandingPage() {
               {
                 quote:
                   "Artık kağıt defter kullanmıyoruz. Müşteri aradığında saniyeler içinde cihazın durumunu söylüyoruz; WhatsApp bildirimi iş yükünü ciddi azalttı.",
-                author: "Teknik servis sahibi",
+                author: "Atarici — Oyun Konsolları Teknik Servisi",
                 city: "İzmir",
               },
               {
                 quote:
                   "Stok ve servis kayıtları tek yerde. Parça çıkışı yapınca stok düşüyor; ay sonu ciroyu Excel’de toplamakla uğraşmıyoruz.",
-                author: "Atölye müdürü",
-                city: "Ankara",
+                author: "Konsol Plus — Oyun Konsolları Teknik Servisi",
+                city: "İzmir",
               },
               {
                 quote:
                   "Müşteri sorgu ekranı sayesinde telefon trafiği yarıya indi. Kayıt numarasıyla hem biz hem müşteri aynı bilgiyi görüyor.",
-                author: "Mobil servis koordinatörü",
-                city: "İstanbul",
+                author: "MOTSAN — Cep Telefonu Teknik Servisi",
+                city: "İzmir",
               },
             ].map((t) => (
               <blockquote
@@ -577,7 +577,7 @@ export default function LandingPage() {
                 "Cari ve bayi yönetimi",
                 "Stok yönetimi",
                 "Raporlar ve ciro görünümü",
-                "Tüm AI özellikleri",
+                "Tüm yapay zeka özellikleri",
                 "WhatsApp ve mesaj şablonları",
                 "Google Contacts entegrasyonu",
                 "Sınırsız personel yönetimi",
