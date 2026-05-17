@@ -1029,6 +1029,38 @@ export default function LandingPage() {
         </div>
       </footer>
       <CookieBanner />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "TamirTakip",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            description:
+              "Türkiye'nin yapay zeka destekli teknik servis takip programı. Cihaz kayıt, WhatsApp bildirimi, stok yönetimi tek platformda.",
+            url: "https://www.tamirtakip.com.tr",
+            offers: {
+              "@type": "Offer",
+              price: "90",
+              priceCurrency: "TRY",
+              priceSpecification: {
+                "@type": "UnitPriceSpecification",
+                price: "90",
+                priceCurrency: "TRY",
+                unitText: "MONTH",
+              },
+            },
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: "4.9",
+              reviewCount: "50",
+            },
+            inLanguage: "tr",
+          }),
+        }}
+      />
     </main>
     </>
   );
