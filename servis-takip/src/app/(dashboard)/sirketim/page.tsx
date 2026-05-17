@@ -2379,6 +2379,16 @@ function SirketimPageInner() {
   async function handlePersonelGirisModu(aktif: boolean) {
     setPersonelGirisModuKaydediliyor(true);
     try {
+      if (aktif) {
+        const adminVar = personeller.some((p) => p.isAdmin);
+        if (!adminVar) {
+          toast.error(
+            "Personel giriş modunu aktif etmek için en az bir admin personel eklemeniz gerekiyor.",
+          );
+          return;
+        }
+      }
+
       await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
