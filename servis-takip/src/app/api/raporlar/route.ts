@@ -163,6 +163,7 @@ export async function GET(request: Request) {
       prisma.serviceOrder.findMany({
         where: {
           shopId,
+          deletedAt: null,
           arrivedAt: { gte: fetchStart, lte: fetchEnd },
         },
         select: {
@@ -175,7 +176,7 @@ export async function GET(request: Request) {
       }),
       prisma.statusLog.findMany({
         where: {
-          serviceOrder: { shopId },
+          serviceOrder: { shopId, deletedAt: null },
           newStatus: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
           createdAt: { gte: fetchStart, lte: fetchEnd },
         },
@@ -261,6 +262,7 @@ export async function GET(request: Request) {
         ? await prisma.serviceOrder.findMany({
             where: {
               shopId,
+              deletedAt: null,
               id: { in: deliveredOrderIds },
               status: { in: [...SERVICE_ORDER_DELIVERED_STATUSES] },
               totalPrice: { gt: 0 },
