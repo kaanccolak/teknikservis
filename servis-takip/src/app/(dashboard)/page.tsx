@@ -282,14 +282,15 @@ const CIRO_PERIOD_LABELS: { id: RevenuePeriod; label: string }[] = [
 function StatCard({
   def,
   counts,
+  yetkiVar = true,
 }: {
   def: StatCardDef;
   counts: DashboardPayload;
+  yetkiVar?: boolean;
 }) {
   const n = counts[def.valueKey];
   const Icon = def.icon;
-  return (
-    <Link href={def.href} className="block min-h-0">
+  const card = (
       <div
         style={{
           border: "1px solid #e5e7eb",
@@ -297,14 +298,14 @@ function StatCard({
           padding: "16px 20px",
           background: "white",
           borderLeft: `3px solid ${def.accentColor}`,
-          cursor: "pointer",
+          cursor: yetkiVar === false ? "not-allowed" : "pointer",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: "12px",
           transition: "box-shadow 0.15s",
         }}
-        className="hover:shadow-md"
+        className={yetkiVar === false ? undefined : "hover:shadow-md"}
       >
         <div className="min-w-0">
           <div
@@ -348,6 +349,17 @@ function StatCard({
           <Icon size={20} strokeWidth={2} />
         </div>
       </div>
+  );
+  if (yetkiVar === false) {
+    return (
+      <div className="block min-h-0" style={{ cursor: "not-allowed" }}>
+        {card}
+      </div>
+    );
+  }
+  return (
+    <Link href={def.href} className="block min-h-0">
+      {card}
     </Link>
   );
 }
@@ -671,7 +683,7 @@ function UpcomingPaymentsCard() {
     }
     try {
       const perms = JSON.parse(permsRaw) as Record<string, boolean>;
-      setPlanlarimYetkiVar(!!perms.canViewPlanlarim);
+      setPlanlarimYetkiVar(!!perms["canViewPlanlarim"]);
     } catch {
       setPlanlarimYetkiVar(false);
     }
@@ -916,6 +928,23 @@ export default function DashboardPage() {
   const [ratesLoading, setRatesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cihazSorgulaYetkiVar, setCihazSorgulaYetkiVar] = useState(true);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setCihazSorgulaYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setCihazSorgulaYetkiVar(!!perms["canViewCihazSorgula"]);
+    } catch {
+      setCihazSorgulaYetkiVar(false);
+    }
+  }, []);
 
   const todayLabel = useMemo(() => formatTodayHeader(new Date()), []);
 
@@ -1233,12 +1262,21 @@ export default function DashboardPage() {
 
       <div className="dash-grid-r1">
         {statCardsRow1.map((def) => (
-          <StatCard key={def.title} def={def} counts={data} />
+          <StatCard
+            key={def.title}
+            def={def}
+            counts={data}
+            yetkiVar={cihazSorgulaYetkiVar}
+          />
         ))}
       </div>
 
       <div className="dash-grid-r2">
-        <StatCard def={statCardCompletedToday} counts={data} />
+        <StatCard
+          def={statCardCompletedToday}
+          counts={data}
+          yetkiVar={cihazSorgulaYetkiVar}
+        />
         <div className="min-w-0">
           <RevenueCiroCard
             revenue={data.revenue}
@@ -1246,7 +1284,11 @@ export default function DashboardPage() {
             dailyRevenueFromDashboard={data.revenue}
           />
         </div>
-        <StatCard def={statCardExternal} counts={data} />
+        <StatCard
+          def={statCardExternal}
+          counts={data}
+          yetkiVar={cihazSorgulaYetkiVar}
+        />
       </div>
 
       <div className="dash-grid-bottom">
@@ -1258,8 +1300,38 @@ export default function DashboardPage() {
               borderRadius: "10px",
               background: "white",
               overflow: "hidden",
+              position: "relative",
             }}
           >
+            {!cihazSorgulaYetkiVar && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backdropFilter: "blur(6px)",
+                  background: "rgba(255,255,255,0.6)",
+                  zIndex: 10,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  borderRadius: "10px",
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🔒</span>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    margin: 0,
+                  }}
+                >
+                  Bu alana erişim yetkiniz yok
+                </p>
+              </div>
+            )}
             <div
               style={{
                 display: "flex",
