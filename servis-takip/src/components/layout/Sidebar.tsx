@@ -112,6 +112,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
     await supabase.auth.signOut();
     sessionStorage.removeItem("activePersonnelId");
     sessionStorage.removeItem("activePersonnelName");
+    sessionStorage.removeItem("activePersonnelPermissions");
     document.cookie = "personnelIsAdmin=; path=/; max-age=0";
     router.refresh();
     router.push("/landing");
@@ -121,6 +122,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
   function handlePersonelDegistir() {
     sessionStorage.removeItem("activePersonnelId");
     sessionStorage.removeItem("activePersonnelName");
+    sessionStorage.removeItem("activePersonnelPermissions");
     document.cookie = "personnelIsAdmin=; path=/; max-age=0";
     setMobileOpen(false);
     window.location.reload();

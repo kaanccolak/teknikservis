@@ -2443,6 +2443,7 @@ function SirketimPageInner() {
         sessionStorage.removeItem("activePersonnelId");
         sessionStorage.removeItem("activePersonnelName");
         sessionStorage.removeItem("activePersonnelIsAdmin");
+        sessionStorage.removeItem("activePersonnelPermissions");
       }
       toast.success(
         aktif ? "Personel giriş modu aktif edildi" : "Personel giriş modu kapatıldı",
