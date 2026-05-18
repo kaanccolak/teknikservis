@@ -10,7 +10,13 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 
-type ShopRow = { name: string; ikinciElAlimBelgeNotu?: string | null };
+type ShopRow = {
+  name: string;
+  phone?: string | null;
+  address?: string | null;
+  taxOrTcNo?: string | null;
+  ikinciElAlimBelgeNotu?: string | null;
+};
 
 type DeviceRow = {
   deviceCode: string;
@@ -108,6 +114,18 @@ export default function IkinciElAlimFisPage() {
         typeof sJson.name === "string"
           ? {
               name: sJson.name,
+              phone:
+                typeof sJson.phone === "string" && sJson.phone.trim()
+                  ? sJson.phone
+                  : null,
+              address:
+                typeof sJson.address === "string" && sJson.address.trim()
+                  ? sJson.address
+                  : null,
+              taxOrTcNo:
+                typeof sJson.taxOrTcNo === "string" && sJson.taxOrTcNo.trim()
+                  ? sJson.taxOrTcNo
+                  : null,
               ikinciElAlimBelgeNotu:
                 typeof sJson.ikinciElAlimBelgeNotu === "string"
                   ? sJson.ikinciElAlimBelgeNotu
@@ -209,6 +227,45 @@ export default function IkinciElAlimFisPage() {
               </p>
             </div>
           </div>
+
+          {shop ? (
+            <div style={{ marginBottom: "20px" }}>
+              <h2
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "#4f46e5",
+                  marginBottom: "8px",
+                }}
+              >
+                Alıcı Bilgileri
+              </h2>
+              <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                <span style={{ color: "#6b7280" }}>Dükkan adı: </span>
+                {shop.name}
+              </p>
+              {shop.phone ? (
+                <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                  <span style={{ color: "#6b7280" }}>Telefon: </span>
+                  {shop.phone}
+                </p>
+              ) : null}
+              {shop.address ? (
+                <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                  <span style={{ color: "#6b7280" }}>Adres: </span>
+                  {shop.address}
+                </p>
+              ) : null}
+              {shop.taxOrTcNo ? (
+                <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                  <span style={{ color: "#6b7280" }}>Vergi/TC No: </span>
+                  {shop.taxOrTcNo}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="mt-4 border-b border-slate-100 pb-4">
             <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
