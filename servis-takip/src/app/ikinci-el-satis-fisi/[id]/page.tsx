@@ -12,8 +12,11 @@ import { cn } from "@/lib/utils";
 
 type ShopRow = {
   name: string;
-  ikinciElGarantiSartlari?: string | null;
-  ikinciElSatisFiyatGoster?: boolean;
+  phone: string | null;
+  address: string | null;
+  taxOrTcNo: string | null;
+  ikinciElGarantiSartlari: string | null;
+  ikinciElSatisFiyatGoster: boolean;
 };
 
 type DeviceRow = {
@@ -119,13 +122,32 @@ export default function IkinciElSatisFisPage() {
         typeof sJson.name === "string"
           ? {
               name: sJson.name,
+              phone:
+                typeof sJson.phone === "string" && sJson.phone.trim()
+                  ? sJson.phone
+                  : null,
+              address:
+                typeof sJson.address === "string" && sJson.address.trim()
+                  ? sJson.address
+                  : null,
+              taxOrTcNo:
+                typeof sJson.taxOrTcNo === "string" && sJson.taxOrTcNo.trim()
+                  ? sJson.taxOrTcNo
+                  : null,
               ikinciElGarantiSartlari:
                 typeof sJson.ikinciElGarantiSartlari === "string"
                   ? sJson.ikinciElGarantiSartlari
                   : null,
               ikinciElSatisFiyatGoster: sJson.ikinciElSatisFiyatGoster !== false,
             }
-          : { name: "—" },
+          : {
+              name: "—",
+              phone: null,
+              address: null,
+              taxOrTcNo: null,
+              ikinciElGarantiSartlari: null,
+              ikinciElSatisFiyatGoster: true,
+            },
       );
     } catch {
       setError("Bağlantı hatası");
@@ -201,6 +223,43 @@ export default function IkinciElSatisFisPage() {
               <span className="font-medium text-slate-600">Kayıt No:</span>{" "}
               <span className="font-semibold text-violet-700">{row.deviceCode}</span>
             </p>
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <h2
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "#4f46e5",
+                marginBottom: "8px",
+              }}
+            >
+              Satıcı Bilgileri
+            </h2>
+            <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+              <span style={{ color: "#6b7280" }}>İşletme Adı: </span>
+              {shop?.name}
+            </p>
+            {shop?.phone ? (
+              <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                <span style={{ color: "#6b7280" }}>Telefon: </span>
+                {shop.phone}
+              </p>
+            ) : null}
+            {shop?.address ? (
+              <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                <span style={{ color: "#6b7280" }}>Adres: </span>
+                {shop.address}
+              </p>
+            ) : null}
+            {shop?.taxOrTcNo ? (
+              <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
+                <span style={{ color: "#6b7280" }}>Vergi/TC No: </span>
+                {shop.taxOrTcNo}
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-4 border-b border-slate-100 pb-4">
