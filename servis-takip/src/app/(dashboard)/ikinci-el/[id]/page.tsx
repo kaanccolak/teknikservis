@@ -298,7 +298,7 @@ export default function IkinciElDetayPage() {
       });
       if (res.ok) {
         toast.success("Satış iptal edildi, cihaz stoğa geri döndü.");
-        router.refresh();
+        void load();
       } else {
         toast.error("Satış iptal edilemedi.");
       }

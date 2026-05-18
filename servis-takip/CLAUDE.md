@@ -699,6 +699,11 @@ src/lib/supabase/
 - [ ] Paket kısıtlamaları — planType'a göre Basic'te stok/raporlar/ciro gizlensin, şirket kurulunca ve iyzico entegrasyonu tamamlanınca implement edilecek
 - [ ] iyzico ödeme entegrasyonu — şirket kurulunca
 - [ ] Trial/abonelik akışı — kayıt olunca 30 günlük trial başlasın, süre dolunca paket seçim ekranı
+- [ ] Trial süresi uyarı sistemi — şirket kurulunca ve iyzico entegrasyonu tamamlanınca:
+  - Kayıt olunca `trialEndsAt = şimdi + 30 gün` set edilecek
+  - Süre bitişine 3 gün kala dashboard'da sarı banner: "Deneme süreniz 3 gün içinde bitiyor. Planınızı seçin."
+  - Süre bitince dashboard yerine "Süreniz doldu" ekranı — ödeme yapana kadar kilitli
+  - Resend ile otomatik hatırlatma e-postası (3 gün kala, 1 gün kala, bitince)
 - [ ] Otomatik ödeme hatırlatma e-postası — Resend ile
 - [x] Google OAuth — Google Cloud Console uygulama doğrulaması tamamlandı
 - [ ] Google yorum linki / metin ince ayarı (`buildMessage` / `teslim_edildi`)
