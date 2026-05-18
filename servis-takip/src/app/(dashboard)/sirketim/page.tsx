@@ -2653,8 +2653,20 @@ function SirketimPageInner() {
         prev.map((p) =>
           p.id === duzenleId
             ? {
-                ...data,
-                hasPassword: p.hasPassword || !!duzenleSifre,
+                ...p,
+                name: duzenleAd,
+                isAdmin: duzenleAdmin,
+                canViewSirketim: duzenleYetkiler.canViewSirketim,
+                canViewRaporlar: duzenleYetkiler.canViewRaporlar,
+                canViewPlanlarim: duzenleYetkiler.canViewPlanlarim,
+                canViewBayiler: duzenleYetkiler.canViewBayiler,
+                canViewCari: duzenleYetkiler.canViewCari,
+                canViewStok: duzenleYetkiler.canViewStok,
+                canViewDisServis: duzenleYetkiler.canViewDisServis,
+                canViewBekleyen: duzenleYetkiler.canViewBekleyen,
+                canViewIkinciEl: duzenleYetkiler.canViewIkinciEl,
+                canViewCihazSorgula: duzenleYetkiler.canViewCihazSorgula,
+                canViewCihazKayit: duzenleYetkiler.canViewCihazKayit,
               }
             : p,
         ),
