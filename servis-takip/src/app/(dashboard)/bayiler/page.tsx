@@ -269,9 +269,19 @@ export default function BayilerPage() {
     }
   }
 
-  function askDelete(row: Bayi) {
+  async function askDelete(row: Bayi) {
     setDeleteRow(row);
     setDeleteLinkedCount(0);
+    // Bağlı aktif servis kaydı sayısını önceden çek
+    try {
+      const res = await fetch(`/api/bayiler/${row.id}`);
+      if (res.ok) {
+        const data = (await res.json()) as { totalOrders?: number };
+        setDeleteLinkedCount(data.totalOrders ?? 0);
+      }
+    } catch {
+      // hata olursa 0 kalır
+    }
   }
 
   async function ensureHasSettingsPassword(): Promise<boolean> {

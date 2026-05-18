@@ -202,7 +202,7 @@ export async function DELETE(
     }
     if (linkedCount > 0) {
       await prisma.serviceOrder.updateMany({
-        where: { shopId: shop.id, bayiId: id },
+        where: { shopId: shop.id, bayiId: id, deletedAt: null },
         data: { bayiId: null },
       });
     }
