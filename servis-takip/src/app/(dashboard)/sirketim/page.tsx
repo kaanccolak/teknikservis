@@ -2072,15 +2072,57 @@ function SirketimPageInner() {
   const [savingIkinciElSatisFiyat, setSavingIkinciElSatisFiyat] = useState(false);
 
   const [personeller, setPersoneller] = useState<
-    { id: string; name: string; hasPassword: boolean; isAdmin: boolean }[]
+    {
+      id: string;
+      name: string;
+      hasPassword: boolean;
+      isAdmin: boolean;
+      canViewSirketim: boolean;
+      canViewRaporlar: boolean;
+      canViewPlanlarim: boolean;
+      canViewBayiler: boolean;
+      canViewCari: boolean;
+      canViewStok: boolean;
+      canViewDisServis: boolean;
+      canViewBekleyen: boolean;
+      canViewIkinciEl: boolean;
+      canViewCihazSorgula: boolean;
+      canViewCihazKayit: boolean;
+    }[]
   >([]);
   const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
   const [yeniPersonelSifre, setYeniPersonelSifre] = useState("");
   const [yeniPersonelAdmin, setYeniPersonelAdmin] = useState(false);
+  const [yeniPersonelYetkiler, setYeniPersonelYetkiler] = useState({
+    canViewSirketim: false,
+    canViewRaporlar: false,
+    canViewPlanlarim: false,
+    canViewBayiler: false,
+    canViewCari: false,
+    canViewStok: false,
+    canViewDisServis: false,
+    canViewBekleyen: false,
+    canViewIkinciEl: false,
+    canViewCihazSorgula: false,
+    canViewCihazKayit: false,
+  });
   const [duzenleId, setDuzenleId] = useState<string | null>(null);
   const [duzenleAd, setDuzenleAd] = useState("");
   const [duzenleSifre, setDuzenleSifre] = useState("");
   const [duzenleAdmin, setDuzenleAdmin] = useState(false);
+  const [duzenleYetkiler, setDuzenleYetkiler] = useState({
+    canViewSirketim: false,
+    canViewRaporlar: false,
+    canViewPlanlarim: false,
+    canViewBayiler: false,
+    canViewCari: false,
+    canViewStok: false,
+    canViewDisServis: false,
+    canViewBekleyen: false,
+    canViewIkinciEl: false,
+    canViewCihazSorgula: false,
+    canViewCihazKayit: false,
+  });
   const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
   const [personelKaydediliyor, setPersonelKaydediliyor] = useState(false);
   const [personelSiliniyor, setPersonelSiliniyor] = useState<string | null>(null);
@@ -2471,6 +2513,20 @@ function SirketimPageInner() {
     }
   }
 
+  const yetkiLabels = [
+    { key: "canViewCihazKayit", label: "Cihaz Kayıt" },
+    { key: "canViewCihazSorgula", label: "Cihaz Sorgula" },
+    { key: "canViewBekleyen", label: "Bekleyen Cihazlar" },
+    { key: "canViewIkinciEl", label: "İkinci El Cihazlar" },
+    { key: "canViewDisServis", label: "Dış Servisler" },
+    { key: "canViewStok", label: "Stok Yönetimi" },
+    { key: "canViewCari", label: "Cari Yönetimi" },
+    { key: "canViewBayiler", label: "Bayiler" },
+    { key: "canViewPlanlarim", label: "Planlarım" },
+    { key: "canViewRaporlar", label: "Raporlar" },
+    { key: "canViewSirketim", label: "Şirketim" },
+  ];
+
   async function handlePersonelEkle() {
     if (!yeniPersonelAdi.trim()) return;
     setPersonelEkleniyor(true);
@@ -2482,6 +2538,7 @@ function SirketimPageInner() {
           name: yeniPersonelAdi.trim(),
           password: yeniPersonelSifre || undefined,
           isAdmin: yeniPersonelAdmin,
+          ...yeniPersonelYetkiler,
         }),
       });
       const data = (await res.json()) as {
@@ -2496,11 +2553,28 @@ function SirketimPageInner() {
       }
       setPersoneller((prev) => [
         ...prev,
-        { ...data, hasPassword: !!yeniPersonelSifre },
+        {
+          ...data,
+          hasPassword: !!yeniPersonelSifre,
+          ...yeniPersonelYetkiler,
+        },
       ]);
       setYeniPersonelAdi("");
       setYeniPersonelSifre("");
       setYeniPersonelAdmin(false);
+      setYeniPersonelYetkiler({
+        canViewSirketim: false,
+        canViewRaporlar: false,
+        canViewPlanlarim: false,
+        canViewBayiler: false,
+        canViewCari: false,
+        canViewStok: false,
+        canViewDisServis: false,
+        canViewBekleyen: false,
+        canViewIkinciEl: false,
+        canViewCihazSorgula: false,
+        canViewCihazKayit: false,
+      });
       toast.success("Personel eklendi");
     } catch {
       toast.error("Bağlantı hatası");
@@ -2513,11 +2587,35 @@ function SirketimPageInner() {
     id: string;
     name: string;
     isAdmin: boolean;
+    canViewSirketim: boolean;
+    canViewRaporlar: boolean;
+    canViewPlanlarim: boolean;
+    canViewBayiler: boolean;
+    canViewCari: boolean;
+    canViewStok: boolean;
+    canViewDisServis: boolean;
+    canViewBekleyen: boolean;
+    canViewIkinciEl: boolean;
+    canViewCihazSorgula: boolean;
+    canViewCihazKayit: boolean;
   }) {
     setDuzenleId(p.id);
     setDuzenleAd(p.name);
     setDuzenleSifre("");
     setDuzenleAdmin(p.isAdmin);
+    setDuzenleYetkiler({
+      canViewSirketim: p.canViewSirketim ?? false,
+      canViewRaporlar: p.canViewRaporlar ?? false,
+      canViewPlanlarim: p.canViewPlanlarim ?? false,
+      canViewBayiler: p.canViewBayiler ?? false,
+      canViewCari: p.canViewCari ?? false,
+      canViewStok: p.canViewStok ?? false,
+      canViewDisServis: p.canViewDisServis ?? false,
+      canViewBekleyen: p.canViewBekleyen ?? false,
+      canViewIkinciEl: p.canViewIkinciEl ?? false,
+      canViewCihazSorgula: p.canViewCihazSorgula ?? false,
+      canViewCihazKayit: p.canViewCihazKayit ?? false,
+    });
   }
 
   function handlePersonelDuzenleIptal() {
@@ -2531,15 +2629,15 @@ function SirketimPageInner() {
     if (!duzenleId || !duzenleAd.trim()) return;
     setPersonelKaydediliyor(true);
     try {
-      const body: { name: string; password?: string; isAdmin: boolean } = {
-        name: duzenleAd.trim(),
-        isAdmin: duzenleAdmin,
-      };
-      if (duzenleSifre) body.password = duzenleSifre;
       const res = await fetch(`/api/personnel/${duzenleId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          name: duzenleAd.trim(),
+          password: duzenleSifre || undefined,
+          isAdmin: duzenleAdmin,
+          ...duzenleYetkiler,
+        }),
       });
       const data = (await res.json()) as {
         id: string;
@@ -4477,6 +4575,57 @@ function SirketimPageInner() {
                       Admin yetkisi ver
                     </label>
                   </div>
+                  {!yeniPersonelAdmin && (
+                    <div style={{ marginTop: "12px" }}>
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          color: "#374151",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        Erişim Yetkileri
+                      </p>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "6px",
+                        }}
+                      >
+                        {yetkiLabels.map(({ key, label }) => (
+                          <label
+                            key={key}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "13px",
+                              color: "#374151",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={
+                                yeniPersonelYetkiler[
+                                  key as keyof typeof yeniPersonelYetkiler
+                                ]
+                              }
+                              onChange={(e) =>
+                                setYeniPersonelYetkiler((prev) => ({
+                                  ...prev,
+                                  [key]: e.target.checked,
+                                }))
+                              }
+                            />
+                            {label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </div>
               <div
                 style={{
@@ -4541,6 +4690,57 @@ function SirketimPageInner() {
                               Admin yetkisi
                             </label>
                           </div>
+                          {!duzenleAdmin && (
+                            <div style={{ marginTop: "12px" }}>
+                              <p
+                                style={{
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  color: "#374151",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                Erişim Yetkileri
+                              </p>
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1fr 1fr",
+                                  gap: "6px",
+                                }}
+                              >
+                                {yetkiLabels.map(({ key, label }) => (
+                                  <label
+                                    key={key}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "6px",
+                                      fontSize: "13px",
+                                      color: "#374151",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={
+                                        duzenleYetkiler[
+                                          key as keyof typeof duzenleYetkiler
+                                        ]
+                                      }
+                                      onChange={(e) =>
+                                        setDuzenleYetkiler((prev) => ({
+                                          ...prev,
+                                          [key]: e.target.checked,
+                                        }))
+                                      }
+                                    />
+                                    {label}
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button
                               type="button"
