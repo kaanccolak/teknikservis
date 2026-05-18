@@ -230,20 +230,11 @@ export default function IkinciElAlimFisPage() {
 
           {shop ? (
             <div style={{ marginBottom: "20px" }}>
-              <h2
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "#4f46e5",
-                  marginBottom: "8px",
-                }}
-              >
+              <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
                 Alıcı Bilgileri
               </h2>
               <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
-                <span style={{ color: "#6b7280" }}>Dükkan adı: </span>
+                <span style={{ color: "#6b7280" }}>İşletme Adı: </span>
                 {shop.name}
               </p>
               {shop.phone ? (
