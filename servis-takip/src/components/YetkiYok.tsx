@@ -17,12 +17,12 @@ export default function YetkiYok() {
         padding: "24px",
       }}
     >
-      <motion.div style={{ fontSize: "48px" }}>??</motion.div>
+      <div style={{ fontSize: "48px" }}>ğŸ”’</div>
       <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111827", margin: 0 }}>
-        Bu sayfaya eri?im yetkiniz yok
+        Bu sayfaya eriÅŸim yetkiniz yok
       </h1>
       <p style={{ fontSize: "14px", color: "#6b7280", margin: 0, maxWidth: "400px" }}>
-        Bu sayfay? görüntülemek için gerekli yetkiniz bulunmuyor. Yöneticinizle ileti?ime geçin.
+        Bu sayfayÄ± gÃ¶rÃ¼ntÃ¼lemek iÃ§in gerekli yetkiniz bulunmuyor. YÃ¶neticinizle iletiÅŸime geÃ§in.
       </p>
       <button
         type="button"
@@ -38,7 +38,7 @@ export default function YetkiYok() {
           cursor: "pointer",
         }}
       >
-        Gösterge Paneline Dön
+        GÃ¶sterge Paneline DÃ¶n
       </button>
     </div>
   );
