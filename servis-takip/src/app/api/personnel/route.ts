@@ -14,7 +14,24 @@ export async function GET() {
     const personnel = await prisma.personnel.findMany({
       where: { shopId: shop.id },
       orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, createdAt: true, password: true, isAdmin: true },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        password: true,
+        isAdmin: true,
+        canViewSirketim: true,
+        canViewRaporlar: true,
+        canViewPlanlarim: true,
+        canViewBayiler: true,
+        canViewCari: true,
+        canViewStok: true,
+        canViewDisServis: true,
+        canViewBekleyen: true,
+        canViewIkinciEl: true,
+        canViewCihazSorgula: true,
+        canViewCihazKayit: true,
+      },
     });
     return NextResponse.json(
       personnel.map((p) => ({
@@ -23,6 +40,17 @@ export async function GET() {
         createdAt: p.createdAt,
         hasPassword: !!p.password,
         isAdmin: p.isAdmin,
+        canViewSirketim: p.canViewSirketim,
+        canViewRaporlar: p.canViewRaporlar,
+        canViewPlanlarim: p.canViewPlanlarim,
+        canViewBayiler: p.canViewBayiler,
+        canViewCari: p.canViewCari,
+        canViewStok: p.canViewStok,
+        canViewDisServis: p.canViewDisServis,
+        canViewBekleyen: p.canViewBekleyen,
+        canViewIkinciEl: p.canViewIkinciEl,
+        canViewCihazSorgula: p.canViewCihazSorgula,
+        canViewCihazKayit: p.canViewCihazKayit,
       })),
     );
   } catch (error) {
@@ -37,10 +65,36 @@ export async function POST(req: Request) {
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-    const { name, password, isAdmin } = (await req.json()) as {
+    const {
+      name,
+      password,
+      isAdmin,
+      canViewSirketim,
+      canViewRaporlar,
+      canViewPlanlarim,
+      canViewBayiler,
+      canViewCari,
+      canViewStok,
+      canViewDisServis,
+      canViewBekleyen,
+      canViewIkinciEl,
+      canViewCihazSorgula,
+      canViewCihazKayit,
+    } = (await req.json()) as {
       name: string;
       password?: string;
       isAdmin?: boolean;
+      canViewSirketim?: boolean;
+      canViewRaporlar?: boolean;
+      canViewPlanlarim?: boolean;
+      canViewBayiler?: boolean;
+      canViewCari?: boolean;
+      canViewStok?: boolean;
+      canViewDisServis?: boolean;
+      canViewBekleyen?: boolean;
+      canViewIkinciEl?: boolean;
+      canViewCihazSorgula?: boolean;
+      canViewCihazKayit?: boolean;
     };
     if (!name?.trim()) {
       return NextResponse.json({ error: "İsim zorunludur" }, { status: 400 });
@@ -54,6 +108,17 @@ export async function POST(req: Request) {
         name: name.trim(),
         password: hashedPassword,
         isAdmin: isAdmin ?? false,
+        canViewSirketim: canViewSirketim ?? false,
+        canViewRaporlar: canViewRaporlar ?? false,
+        canViewPlanlarim: canViewPlanlarim ?? false,
+        canViewBayiler: canViewBayiler ?? false,
+        canViewCari: canViewCari ?? false,
+        canViewStok: canViewStok ?? false,
+        canViewDisServis: canViewDisServis ?? false,
+        canViewBekleyen: canViewBekleyen ?? false,
+        canViewIkinciEl: canViewIkinciEl ?? false,
+        canViewCihazSorgula: canViewCihazSorgula ?? false,
+        canViewCihazKayit: canViewCihazKayit ?? false,
       },
     });
     return NextResponse.json({

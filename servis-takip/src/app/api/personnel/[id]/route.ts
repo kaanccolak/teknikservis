@@ -17,10 +17,36 @@ export async function PATCH(
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
     const { id } = await params;
-    const { name, password, isAdmin } = (await req.json()) as {
+    const {
+      name,
+      password,
+      isAdmin,
+      canViewSirketim,
+      canViewRaporlar,
+      canViewPlanlarim,
+      canViewBayiler,
+      canViewCari,
+      canViewStok,
+      canViewDisServis,
+      canViewBekleyen,
+      canViewIkinciEl,
+      canViewCihazSorgula,
+      canViewCihazKayit,
+    } = (await req.json()) as {
       name?: string;
       password?: string;
       isAdmin?: boolean;
+      canViewSirketim?: boolean;
+      canViewRaporlar?: boolean;
+      canViewPlanlarim?: boolean;
+      canViewBayiler?: boolean;
+      canViewCari?: boolean;
+      canViewStok?: boolean;
+      canViewDisServis?: boolean;
+      canViewBekleyen?: boolean;
+      canViewIkinciEl?: boolean;
+      canViewCihazSorgula?: boolean;
+      canViewCihazKayit?: boolean;
     };
 
     const existing = await prisma.personnel.findFirst({
@@ -28,9 +54,43 @@ export async function PATCH(
     });
     if (!existing) return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
 
-    const updateData: { name?: string; password?: string | null; isAdmin?: boolean } = {};
+    const updateData: {
+      name?: string;
+      password?: string | null;
+      isAdmin?: boolean;
+      canViewSirketim?: boolean;
+      canViewRaporlar?: boolean;
+      canViewPlanlarim?: boolean;
+      canViewBayiler?: boolean;
+      canViewCari?: boolean;
+      canViewStok?: boolean;
+      canViewDisServis?: boolean;
+      canViewBekleyen?: boolean;
+      canViewIkinciEl?: boolean;
+      canViewCihazSorgula?: boolean;
+      canViewCihazKayit?: boolean;
+    } = {};
     if (name?.trim()) updateData.name = name.trim();
     if (typeof isAdmin === "boolean") updateData.isAdmin = isAdmin;
+    if (typeof canViewSirketim === "boolean")
+      updateData.canViewSirketim = canViewSirketim;
+    if (typeof canViewRaporlar === "boolean")
+      updateData.canViewRaporlar = canViewRaporlar;
+    if (typeof canViewPlanlarim === "boolean")
+      updateData.canViewPlanlarim = canViewPlanlarim;
+    if (typeof canViewBayiler === "boolean") updateData.canViewBayiler = canViewBayiler;
+    if (typeof canViewCari === "boolean") updateData.canViewCari = canViewCari;
+    if (typeof canViewStok === "boolean") updateData.canViewStok = canViewStok;
+    if (typeof canViewDisServis === "boolean")
+      updateData.canViewDisServis = canViewDisServis;
+    if (typeof canViewBekleyen === "boolean")
+      updateData.canViewBekleyen = canViewBekleyen;
+    if (typeof canViewIkinciEl === "boolean")
+      updateData.canViewIkinciEl = canViewIkinciEl;
+    if (typeof canViewCihazSorgula === "boolean")
+      updateData.canViewCihazSorgula = canViewCihazSorgula;
+    if (typeof canViewCihazKayit === "boolean")
+      updateData.canViewCihazKayit = canViewCihazKayit;
     if (password?.trim()) {
       updateData.password = await bcrypt.hash(password.trim(), 10);
     } else if (password === "") {
@@ -40,7 +100,23 @@ export async function PATCH(
     const updated = await prisma.personnel.update({
       where: { id },
       data: updateData,
-      select: { id: true, name: true, createdAt: true, isAdmin: true },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        isAdmin: true,
+        canViewSirketim: true,
+        canViewRaporlar: true,
+        canViewPlanlarim: true,
+        canViewBayiler: true,
+        canViewCari: true,
+        canViewStok: true,
+        canViewDisServis: true,
+        canViewBekleyen: true,
+        canViewIkinciEl: true,
+        canViewCihazSorgula: true,
+        canViewCihazKayit: true,
+      },
     });
     return NextResponse.json(updated);
   } catch (error) {
