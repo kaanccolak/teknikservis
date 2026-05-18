@@ -38,6 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 type ExternalRow = {
   id: string;
@@ -91,6 +92,7 @@ function phoneToDisplayField(stored: string | null | undefined): string {
 }
 
 function DisServisContent() {
+  const { yetkiVar } = usePersonelYetki();
   const router = useRouter();
   const searchParams = useSearchParams();
   const duzenleId = searchParams.get("duzenle");
@@ -337,10 +339,12 @@ function DisServisContent() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-slate-900">Dış Servisler</h1>
-        <Button type="button" onClick={openCreate}>
-          <Plus className="mr-2 size-4" aria-hidden />
-          Yeni Dış Servis Ekle
-        </Button>
+        {yetkiVar("canAddDisServis") && (
+          <Button type="button" onClick={openCreate}>
+            <Plus className="mr-2 size-4" aria-hidden />
+            Yeni Dış Servis Ekle
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -427,22 +431,26 @@ function DisServisContent() {
                       >
                         Detay
                       </Link>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEdit(row)}
-                      >
-                        Düzenle
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => askDelete(row)}
-                      >
-                        Sil
-                      </Button>
+                      {yetkiVar("canEditDisServis") && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEdit(row)}
+                        >
+                          Düzenle
+                        </Button>
+                      )}
+                      {yetkiVar("canDeleteDisServis") && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => askDelete(row)}
+                        >
+                          Sil
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

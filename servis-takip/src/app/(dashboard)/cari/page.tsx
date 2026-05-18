@@ -39,6 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatPhone } from "@/lib/formatPhone";
 import { cn } from "@/lib/utils";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 function handleEnterKey(
   e: KeyboardEvent<
@@ -80,7 +81,8 @@ const emptyForm: CariForm = {
 };
 
 export default function CariPage() {
-  const [yetkiVar, setYetkiVar] = useState(true);
+  const { yetkiVar } = usePersonelYetki();
+  const [sayfaYetkisiVar, setSayfaYetkisiVar] = useState(true);
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Cari[]>([]);
   const [loading, setLoading] = useState(true);
@@ -298,18 +300,18 @@ export default function CariPage() {
     if (isAdmin === null || isAdmin === "true") return;
     const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
     if (!permsRaw) {
-      setYetkiVar(false);
+      setSayfaYetkisiVar(false);
       return;
     }
     try {
       const perms = JSON.parse(permsRaw) as Record<string, boolean>;
-      setYetkiVar(!!perms.canViewCari);
+      setSayfaYetkisiVar(!!perms.canViewCari);
     } catch {
-      setYetkiVar(false);
+      setSayfaYetkisiVar(false);
     }
   }, []);
 
-  if (!yetkiVar) return <YetkiYok />;
+  if (!sayfaYetkisiVar) return <YetkiYok />;
 
   return (
     <div className="space-y-6">
@@ -326,9 +328,11 @@ export default function CariPage() {
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-slate-900">Cari Yönetimi</h1>
-        <Button type="button" onClick={openCreate}>
-          <Plus className="mr-2 size-4" /> Yeni Cari Ekle
-        </Button>
+        {yetkiVar("canAddCari") && (
+          <Button type="button" onClick={openCreate}>
+            <Plus className="mr-2 size-4" /> Yeni Cari Ekle
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -388,9 +392,11 @@ export default function CariPage() {
                       >
                         Detay
                       </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => openEdit(row)}>
-                        Düzenle
-                      </Button>
+                      {yetkiVar("canEditCari") && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => openEdit(row)}>
+                          Düzenle
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="outline"
@@ -400,9 +406,11 @@ export default function CariPage() {
                       >
                         Kargo Fişi
                       </Button>
-                      <Button type="button" variant="destructive" size="sm" onClick={() => void askDelete(row)}>
-                        Sil
-                      </Button>
+                      {yetkiVar("canDeleteCari") && (
+                        <Button type="button" variant="destructive" size="sm" onClick={() => void askDelete(row)}>
+                          Sil
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -556,13 +564,14 @@ export default function CariPage() {
                   </div>
                 ))}
 
-              <div style={{ marginTop: "8px" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    openEdit(selectedCari);
-                  }}
+              {yetkiVar("canEditCari") && (
+                <div style={{ marginTop: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      openEdit(selectedCari);
+                    }}
                   style={{
                     width: "100%",
                     padding: "10px",
@@ -576,6 +585,7 @@ export default function CariPage() {
                   Düzenle
                 </button>
               </div>
+              )}
             </div>
           ) : null}
         </DialogContent>

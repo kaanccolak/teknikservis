@@ -36,6 +36,7 @@ import {
   getCategoryLabel,
   getDaysColor,
 } from "@/lib/payment-plan-helpers";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 type FilterTab = "all" | "pending" | "completed";
 
@@ -62,6 +63,7 @@ function PlanListSkeleton() {
 }
 
 export default function PlanlarimPage() {
+  const { yetkiVar } = usePersonelYetki();
   const [plans, setPlans] = useState<PaymentPlanRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -372,10 +374,12 @@ export default function PlanlarimPage() {
             Ödeme ve görev hatırlatıcıları
           </p>
         </div>
-        <Button type="button" onClick={openCreate}>
-          <Plus className="mr-2 size-4" aria-hidden />
-          Yeni Plan Ekle
-        </Button>
+        {yetkiVar("canAddPlan") && (
+          <Button type="button" onClick={openCreate}>
+            <Plus className="mr-2 size-4" aria-hidden />
+            Yeni Plan Ekle
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -560,26 +564,30 @@ export default function PlanlarimPage() {
                       Geri Al
                     </button>
                   ) : null}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    onClick={() => openEdit(plan)}
-                    aria-label="Düzenle"
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-destructive hover:text-destructive"
-                    onClick={() => setDeleteTarget(plan)}
-                    aria-label="Sil"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  {yetkiVar("canEditPlan") && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      onClick={() => openEdit(plan)}
+                      aria-label="Düzenle"
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  )}
+                  {yetkiVar("canDeletePlan") && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteTarget(plan)}
+                      aria-label="Sil"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             );

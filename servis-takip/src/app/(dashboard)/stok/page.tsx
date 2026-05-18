@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
 import YetkiYok from "@/components/YetkiYok";
 import { cn } from "@/lib/utils";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 type IdName = { id: string; name: string };
 
@@ -73,7 +74,8 @@ function deviceChainLabel(p: SparePartRow): string {
 }
 
 export default function StokPage() {
-  const [yetkiVar, setYetkiVar] = useState(true);
+  const { yetkiVar } = usePersonelYetki();
+  const [sayfaYetkisiVar, setSayfaYetkisiVar] = useState(true);
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
@@ -501,18 +503,18 @@ export default function StokPage() {
     if (isAdmin === null || isAdmin === "true") return;
     const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
     if (!permsRaw) {
-      setYetkiVar(false);
+      setSayfaYetkisiVar(false);
       return;
     }
     try {
       const perms = JSON.parse(permsRaw) as Record<string, boolean>;
-      setYetkiVar(!!perms.canViewStok);
+      setSayfaYetkisiVar(!!perms.canViewStok);
     } catch {
-      setYetkiVar(false);
+      setSayfaYetkisiVar(false);
     }
   }, []);
 
-  if (!yetkiVar) return <YetkiYok />;
+  if (!sayfaYetkisiVar) return <YetkiYok />;
 
   return (
     <div className="space-y-6">
@@ -537,10 +539,12 @@ export default function StokPage() {
             Parça tanımları, stok ve cihaz uyumluluğunu buradan yönetin.
           </p>
         </div>
-        <Button type="button" onClick={openCreate} className="shrink-0 gap-2">
-          <Package className="size-4" aria-hidden />
-          Yeni Parça Ekle
-        </Button>
+        {yetkiVar("canAddStok") && (
+          <Button type="button" onClick={openCreate} className="shrink-0 gap-2">
+            <Package className="size-4" aria-hidden />
+            Yeni Parça Ekle
+          </Button>
+        )}
       </div>
 
       {metaError ? (
@@ -694,39 +698,45 @@ export default function StokPage() {
                     </td>
                     <td className="whitespace-nowrap px-3 py-2.5">
                       <div className="flex flex-wrap gap-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-1 px-2"
-                          onClick={() => {
-                            setStockPart(p);
-                            setStockQty("1");
-                          }}
-                        >
-                          <Plus className="size-3.5" aria-hidden />
-                          Stok
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-1 px-2"
-                          onClick={() => openEdit(p)}
-                        >
-                          <Pencil className="size-3.5" aria-hidden />
-                          Düzenle
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-1 px-2 text-destructive hover:text-destructive"
-                          onClick={() => setDeletePart(p)}
-                        >
-                          <Trash2 className="size-3.5" aria-hidden />
-                          Sil
-                        </Button>
+                        {yetkiVar("canEditStok") && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-1 px-2"
+                            onClick={() => {
+                              setStockPart(p);
+                              setStockQty("1");
+                            }}
+                          >
+                            <Plus className="size-3.5" aria-hidden />
+                            Stok
+                          </Button>
+                        )}
+                        {yetkiVar("canEditStok") && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-1 px-2"
+                            onClick={() => openEdit(p)}
+                          >
+                            <Pencil className="size-3.5" aria-hidden />
+                            Düzenle
+                          </Button>
+                        )}
+                        {yetkiVar("canDeleteStok") && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 gap-1 px-2 text-destructive hover:text-destructive"
+                            onClick={() => setDeletePart(p)}
+                          >
+                            <Trash2 className="size-3.5" aria-hidden />
+                            Sil
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

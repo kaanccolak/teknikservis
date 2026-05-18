@@ -39,6 +39,7 @@ import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatPhone } from "@/lib/formatPhone";
 import { getStatusBadge } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 function handleEnterKey(
   e: KeyboardEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -107,7 +108,8 @@ function formatTry(value: number) {
 }
 
 export default function BayilerPage() {
-  const [yetkiVar, setYetkiVar] = useState(true);
+  const { yetkiVar } = usePersonelYetki();
+  const [sayfaYetkisiVar, setSayfaYetkisiVar] = useState(true);
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Bayi[]>([]);
   const [loading, setLoading] = useState(true);
@@ -355,18 +357,18 @@ export default function BayilerPage() {
     if (isAdmin === null || isAdmin === "true") return;
     const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
     if (!permsRaw) {
-      setYetkiVar(false);
+      setSayfaYetkisiVar(false);
       return;
     }
     try {
       const perms = JSON.parse(permsRaw) as Record<string, boolean>;
-      setYetkiVar(!!perms.canViewBayiler);
+      setSayfaYetkisiVar(!!perms.canViewBayiler);
     } catch {
-      setYetkiVar(false);
+      setSayfaYetkisiVar(false);
     }
   }, []);
 
-  if (!yetkiVar) return <YetkiYok />;
+  if (!sayfaYetkisiVar) return <YetkiYok />;
 
   return (
     <div className="space-y-6">
@@ -383,9 +385,11 @@ export default function BayilerPage() {
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-slate-900">Bayiler</h1>
-        <Button type="button" onClick={openCreate}>
-          <Plus className="mr-2 size-4" /> Yeni Bayi
-        </Button>
+        {yetkiVar("canAddBayi") && (
+          <Button type="button" onClick={openCreate}>
+            <Plus className="mr-2 size-4" /> Yeni Bayi
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -488,12 +492,16 @@ export default function BayilerPage() {
                       >
                         Detay
                       </button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => openEdit(row)}>
-                        Düzenle
-                      </Button>
-                      <Button type="button" variant="destructive" size="sm" onClick={() => askDelete(row)}>
-                        Sil
-                      </Button>
+                      {yetkiVar("canEditBayi") && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => openEdit(row)}>
+                          Düzenle
+                        </Button>
+                      )}
+                      {yetkiVar("canDeleteBayi") && (
+                        <Button type="button" variant="destructive" size="sm" onClick={() => askDelete(row)}>
+                          Sil
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
