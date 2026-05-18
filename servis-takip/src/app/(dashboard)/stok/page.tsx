@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import { cn } from "@/lib/utils";
 
 type IdName = { id: string; name: string };
@@ -72,6 +73,7 @@ function deviceChainLabel(p: SparePartRow): string {
 }
 
 export default function StokPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
   const [models, setModels] = useState<IdName[]>([]);
@@ -493,6 +495,24 @@ export default function StokPage() {
     }
     await runStokDelete(deletePassword.trim());
   }
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewStok);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
 
   return (
     <div className="space-y-6">

@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -106,6 +107,7 @@ function formatTry(value: number) {
 }
 
 export default function BayilerPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Bayi[]>([]);
   const [loading, setLoading] = useState(true);
@@ -347,6 +349,24 @@ export default function BayilerPage() {
     }
     await runBayiDelete(deletePassword.trim());
   }
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewBayiler);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
 
   return (
     <div className="space-y-6">

@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -762,6 +763,26 @@ function DisServisContent() {
 }
 
 export default function DisServisPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewDisServis);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
+
   return (
     <>
       <PageGuideModal

@@ -21,6 +21,7 @@ import {
 } from "./second-hand-form";
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import { WhatsAppBrandIcon } from "@/components/whatsapp-brand-icon";
 import { Button } from "@/components/ui/button";
 import {
@@ -3011,6 +3012,26 @@ function CihazKayitRoot() {
 }
 
 export default function CihazKayitPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewCihazKayit);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
+
   return (
     <>
       <PageGuideModal

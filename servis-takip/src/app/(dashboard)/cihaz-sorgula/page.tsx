@@ -10,6 +10,7 @@ const BarcodeScanner = dynamic(() => import("@/components/barcode-scanner"), {
 });
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -912,6 +913,26 @@ function CihazSorgulaInner() {
 }
 
 export default function CihazSorgulaPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewCihazSorgula);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
+
   return (
     <>
       <PageGuideModal

@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,6 +80,7 @@ const emptyForm: CariForm = {
 };
 
 export default function CariPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Cari[]>([]);
   const [loading, setLoading] = useState(true);
@@ -290,6 +292,24 @@ export default function CariPage() {
     }
     await runCariDelete(hasSettingsPassword === false ? "" : deletePassword);
   }
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewCari);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
 
   return (
     <div className="space-y-6">

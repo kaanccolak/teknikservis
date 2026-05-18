@@ -1,6 +1,7 @@
 "use client";
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import YetkiYok from "@/components/YetkiYok";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -152,6 +153,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function RaporlarPage() {
+  const [yetkiVar, setYetkiVar] = useState(true);
   const [year, setYear] = useState(() => {
     const y = new Date().getFullYear();
     if (y >= 2024 && y <= 2026) return y;
@@ -240,6 +242,24 @@ export default function RaporlarPage() {
       degisim: row.prevChangePercent,
     }));
   }, [finansalData]);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setYetkiVar(!!perms.canViewRaporlar);
+    } catch {
+      setYetkiVar(false);
+    }
+  }, []);
+
+  if (!yetkiVar) return <YetkiYok />;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-1 sm:px-0">
