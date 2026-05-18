@@ -190,7 +190,7 @@ model SecondHandDevice {
   id                String       @id @default(cuid())
   shopId            String
   shop              Shop         @relation(fields: [shopId], references: [id])
-  deviceCode        String       @unique
+  deviceCode        String
 
   sellerName        String
   sellerPhone       String?
@@ -225,6 +225,7 @@ model SecondHandDevice {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
+  @@unique([shopId, deviceCode])
   @@index([shopId])
 }
 
