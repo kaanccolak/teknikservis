@@ -64,6 +64,21 @@ export async function DELETE(
     });
     if (!existing) return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
     await prisma.personnel.delete({ where: { id } });
+
+    // Silme sonrası kalan personel sayısını kontrol et
+    const kalanPersonel = await prisma.personnel.count({
+      where: { shopId: shop.id },
+    });
+
+    // Hiç personel kalmadıysa personel giriş modunu kapat
+    if (kalanPersonel === 0) {
+      await prisma.setting.upsert({
+        where: { shopId_key: { shopId: shop.id, key: "personel_giris_modu" } },
+        update: { value: "false" },
+        create: { shopId: shop.id, key: "personel_giris_modu", value: "false" },
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(error);
