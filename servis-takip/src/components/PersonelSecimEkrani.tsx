@@ -7,10 +7,26 @@ interface Personel {
   name: string;
   hasPassword: boolean;
   isAdmin: boolean;
+  canViewSirketim: boolean;
+  canViewRaporlar: boolean;
+  canViewPlanlarim: boolean;
+  canViewBayiler: boolean;
+  canViewCari: boolean;
+  canViewStok: boolean;
+  canViewDisServis: boolean;
+  canViewBekleyen: boolean;
+  canViewIkinciEl: boolean;
+  canViewCihazSorgula: boolean;
+  canViewCihazKayit: boolean;
 }
 
 interface Props {
-  onSecim: (personelId: string, personelAdi: string, isAdmin: boolean) => void;
+  onSecim: (
+    personelId: string,
+    personelAdi: string,
+    isAdmin: boolean,
+    yetkiler: Omit<Personel, "id" | "name" | "hasPassword" | "isAdmin">,
+  ) => void;
 }
 
 export default function PersonelSecimEkrani({ onSecim }: Props) {
@@ -33,7 +49,19 @@ export default function PersonelSecimEkrani({ onSecim }: Props) {
 
   async function handleSecim(p: Personel) {
     if (!p.hasPassword) {
-      onSecim(p.id, p.name, p.isAdmin);
+      onSecim(p.id, p.name, p.isAdmin, {
+        canViewSirketim: p.canViewSirketim,
+        canViewRaporlar: p.canViewRaporlar,
+        canViewPlanlarim: p.canViewPlanlarim,
+        canViewBayiler: p.canViewBayiler,
+        canViewCari: p.canViewCari,
+        canViewStok: p.canViewStok,
+        canViewDisServis: p.canViewDisServis,
+        canViewBekleyen: p.canViewBekleyen,
+        canViewIkinciEl: p.canViewIkinciEl,
+        canViewCihazSorgula: p.canViewCihazSorgula,
+        canViewCihazKayit: p.canViewCihazKayit,
+      });
       return;
     }
     setSecilenId(p.id);
@@ -53,7 +81,19 @@ export default function PersonelSecimEkrani({ onSecim }: Props) {
       });
       if (res.ok) {
         const p = personeller.find((x) => x.id === secilenId)!;
-        onSecim(p.id, p.name, p.isAdmin);
+        onSecim(p.id, p.name, p.isAdmin, {
+          canViewSirketim: p.canViewSirketim,
+          canViewRaporlar: p.canViewRaporlar,
+          canViewPlanlarim: p.canViewPlanlarim,
+          canViewBayiler: p.canViewBayiler,
+          canViewCari: p.canViewCari,
+          canViewStok: p.canViewStok,
+          canViewDisServis: p.canViewDisServis,
+          canViewBekleyen: p.canViewBekleyen,
+          canViewIkinciEl: p.canViewIkinciEl,
+          canViewCihazSorgula: p.canViewCihazSorgula,
+          canViewCihazKayit: p.canViewCihazKayit,
+        });
       } else {
         setHata("Şifre yanlış, tekrar deneyin");
       }

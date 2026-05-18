@@ -38,10 +38,28 @@ export default function DashboardLayout({
       });
   }, []);
 
-  function handlePersonelSecim(personelId: string, personelAdi: string, isAdmin: boolean) {
+  function handlePersonelSecim(
+    personelId: string,
+    personelAdi: string,
+    isAdmin: boolean,
+    yetkiler: {
+      canViewSirketim: boolean;
+      canViewRaporlar: boolean;
+      canViewPlanlarim: boolean;
+      canViewBayiler: boolean;
+      canViewCari: boolean;
+      canViewStok: boolean;
+      canViewDisServis: boolean;
+      canViewBekleyen: boolean;
+      canViewIkinciEl: boolean;
+      canViewCihazSorgula: boolean;
+      canViewCihazKayit: boolean;
+    },
+  ) {
     sessionStorage.setItem("activePersonnelId", personelId);
     sessionStorage.setItem("activePersonnelName", personelAdi);
     sessionStorage.setItem("activePersonnelIsAdmin", isAdmin ? "true" : "false");
+    sessionStorage.setItem("activePersonnelPermissions", JSON.stringify(yetkiler));
     document.cookie = `personnelIsAdmin=${isAdmin ? "true" : "false"}; path=/`;
     setPersonelSecildi(true);
   }
