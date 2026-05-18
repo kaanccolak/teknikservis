@@ -4637,450 +4637,196 @@ function SirketimPageInner() {
               ) : null}
             </div>
           ) : activeTab === "personeller" ? (
-            <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+            <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+              {/* Başlık */}
               <div style={{ marginBottom: "24px" }}>
-                <h1 style={{ fontSize: "20px", fontWeight: 600 }}>Personeller</h1>
+                <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#111827" }}>Personeller</h1>
                 <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
                   Servis kayıtlarında ve durum değişikliklerinde personel takibi yapın
                 </p>
               </div>
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "10px",
-                  padding: "16px 20px",
-                  marginBottom: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
+
+              {/* Personel Giriş Modu Toggle */}
+              <div style={{
+                border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px 20px",
+                marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between",
+                background: "white",
+              }}>
                 <div>
-                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#111827", margin: 0 }}>
-                    Personel Giriş Modu
-                  </p>
-                  <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
-                    Aktif olduğunda giriş sonrası hangi personel olduğu sorulur
-                  </p>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#111827", margin: 0 }}>Personel Giriş Modu</p>
+                  <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>Aktif olduğunda giriş sonrası hangi personel olduğu sorulur</p>
                 </div>
                 <button
                   type="button"
                   disabled={personelGirisModuKaydediliyor}
                   onClick={() => void handlePersonelGirisModu(!personelGirisModu)}
                   style={{
-                    width: "44px",
-                    height: "24px",
-                    borderRadius: "12px",
-                    border: "none",
+                    width: "44px", height: "24px", borderRadius: "12px", border: "none",
                     background: personelGirisModu ? "#111827" : "#d1d5db",
-                    cursor: "pointer",
-                    position: "relative",
-                    transition: "background 0.2s",
-                    flexShrink: 0,
+                    cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0,
                   }}
                 >
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "2px",
-                      left: personelGirisModu ? "22px" : "2px",
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "50%",
-                      background: "white",
-                      transition: "left 0.2s",
-                    }}
-                  />
+                  <span style={{
+                    position: "absolute", top: "2px",
+                    left: personelGirisModu ? "22px" : "2px",
+                    width: "20px", height: "20px", borderRadius: "50%",
+                    background: "white", transition: "left 0.2s",
+                  }} />
                 </button>
               </div>
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "10px",
-                  padding: "20px",
-                  marginBottom: "24px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#374151",
-                    display: "block",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Yeni Personel Ekle
-                </label>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <input
-                    type="text"
-                    value={yeniPersonelAdi}
-                    onChange={(e) => setYeniPersonelAdi(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && void handlePersonelEkle()}
-                    placeholder="İsim soyisim"
-                    style={{
-                      flex: 1,
-                      border: "1px solid #d1d5db",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
-                      fontSize: "14px",
-                      outline: "none",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void handlePersonelEkle()}
-                    disabled={personelEkleniyor || !yeniPersonelAdi.trim()}
-                    style={{
-                      padding: "8px 20px",
-                      background: "#111827",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {personelEkleniyor ? "Ekleniyor..." : "Ekle"}
-                  </button>
+
+              {/* İki kolon layout */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "20px", alignItems: "start" }}>
+
+                {/* Sol — Personel Ekle Formu */}
+                <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", background: "white", overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid #f3f4f6", background: "#f9fafb" }}>
+                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#111827", margin: 0 }}>
+                      {duzenleId ? "✏️ Personeli Düzenle" : "➕ Yeni Personel Ekle"}
+                    </p>
                   </div>
-                  <input
-                    type="password"
-                    placeholder="Şifre (opsiyonel)"
-                    value={yeniPersonelSifre}
-                    onChange={(e) => setYeniPersonelSifre(e.target.value)}
-                    className="border rounded px-3 py-2 text-sm w-full"
-                  />
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 0" }}>
+                  <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
                     <input
-                      type="checkbox"
-                      id="yeni-personel-admin"
-                      checked={yeniPersonelAdmin}
-                      onChange={(e) => setYeniPersonelAdmin(e.target.checked)}
+                      type="text"
+                      value={duzenleId ? duzenleAd : yeniPersonelAdi}
+                      onChange={(e) => duzenleId ? setDuzenleAd(e.target.value) : setYeniPersonelAdi(e.target.value)}
+                      placeholder="İsim soyisim"
+                      style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "9px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
                     />
-                    <label
-                      htmlFor="yeni-personel-admin"
-                      style={{ fontSize: "13px", color: "#374151", cursor: "pointer" }}
-                    >
+                    <input
+                      type="password"
+                      value={duzenleId ? duzenleSifre : yeniPersonelSifre}
+                      onChange={(e) => duzenleId ? setDuzenleSifre(e.target.value) : setYeniPersonelSifre(e.target.value)}
+                      placeholder={duzenleId ? "Yeni şifre (boş bırak = değişmez)" : "Şifre (opsiyonel)"}
+                      style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "9px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                    />
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#374151", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={duzenleId ? duzenleAdmin : yeniPersonelAdmin}
+                        onChange={(e) => duzenleId ? setDuzenleAdmin(e.target.checked) : setYeniPersonelAdmin(e.target.checked)}
+                      />
                       Admin yetkisi ver
                     </label>
-                  </div>
-                  {!yeniPersonelAdmin && (
-                    <div
-                      style={{
-                        marginTop: "16px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
-                    >
-                      {yetkiGruplari.map((grup) => (
-                        <div
-                          key={grup.baslik}
-                          style={{
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              background: "#f9fafb",
-                              padding: "8px 12px",
-                              borderBottom: "1px solid #e5e7eb",
-                              fontSize: "12px",
-                              fontWeight: 700,
-                              color: "#374151",
-                            }}
-                          >
-                            {grup.baslik}
-                          </div>
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "1fr 1fr",
-                              gap: "0",
-                            }}
-                          >
-                            {grup.yetkiler.map(({ key, label }, i) => (
-                              <label
-                                key={key}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                  padding: "8px 12px",
-                                  fontSize: "12px",
-                                  color: "#374151",
-                                  cursor: "pointer",
-                                  borderBottom:
-                                    i < grup.yetkiler.length - 2
-                                      ? "1px solid #f3f4f6"
-                                      : "none",
-                                  borderRight:
-                                    i % 2 === 0 ? "1px solid #f3f4f6" : "none",
+
+                    {!(duzenleId ? duzenleAdmin : yeniPersonelAdmin) && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" }}>
+                        {yetkiGruplari.map((grup) => (
+                          <div key={grup.baslik} style={{ border: "1px solid #e5e7eb", borderRadius: "8px", overflow: "hidden" }}>
+                            <div style={{ background: "#f9fafb", padding: "7px 12px", borderBottom: "1px solid #e5e7eb", fontSize: "11px", fontWeight: 700, color: "#374151", letterSpacing: "0.03em" }}>
+                              {grup.baslik}
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                              {grup.yetkiler.map(({ key, label }, i) => (
+                                <label key={key} style={{
+                                  display: "flex", alignItems: "center", gap: "6px",
+                                  padding: "7px 10px", fontSize: "11px", color: "#374151", cursor: "pointer",
+                                  borderBottom: i < grup.yetkiler.length - 2 ? "1px solid #f3f4f6" : "none",
+                                  borderRight: i % 2 === 0 ? "1px solid #f3f4f6" : "none",
                                   background: "white",
-                                }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    yeniPersonelYetkiler[
-                                      key as keyof typeof yeniPersonelYetkiler
-                                    ] ?? false
-                                  }
-                                  onChange={(e) =>
-                                    setYeniPersonelYetkiler((prev) => ({
-                                      ...prev,
-                                      [key]: e.target.checked,
-                                    }))
-                                  }
-                                  style={{ flexShrink: 0 }}
-                                />
-                                {label}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-              </div>
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                }}
-              >
-                {personeller.length === 0 ? (
-                  <p
-                    style={{
-                      padding: "24px",
-                      textAlign: "center",
-                      color: "#9ca3af",
-                      fontSize: "13px",
-                    }}
-                  >
-                    Henüz personel eklenmedi
-                  </p>
-                ) : (
-                  personeller.map((p) => (
-                    <div
-                      key={p.id}
-                      style={{
-                        padding: "12px 16px",
-                        borderBottom: "1px solid #f3f4f6",
-                      }}
-                    >
-                      {duzenleId === p.id ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                          <input
-                            type="text"
-                            value={duzenleAd}
-                            onChange={(e) => setDuzenleAd(e.target.value)}
-                            placeholder="İsim soyisim"
-                            style={{
-                              border: "1px solid #d1d5db",
-                              borderRadius: "8px",
-                              padding: "8px 12px",
-                              fontSize: "14px",
-                              outline: "none",
-                            }}
-                          />
-                          <input
-                            type="password"
-                            value={duzenleSifre}
-                            onChange={(e) => setDuzenleSifre(e.target.value)}
-                            placeholder="Yeni şifre (boş bırak = değişmez)"
-                            className="border rounded px-3 py-2 text-sm w-full"
-                          />
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 0" }}>
-                            <input
-                              type="checkbox"
-                              id={`admin-${p.id}`}
-                              checked={duzenleAdmin}
-                              onChange={(e) => setDuzenleAdmin(e.target.checked)}
-                            />
-                            <label
-                              htmlFor={`admin-${p.id}`}
-                              style={{ fontSize: "13px", color: "#374151", cursor: "pointer" }}
-                            >
-                              Admin yetkisi
-                            </label>
-                          </div>
-                          {!duzenleAdmin && (
-                            <div
-                              style={{
-                                marginTop: "16px",
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "16px",
-                              }}
-                            >
-                              {yetkiGruplari.map((grup) => (
-                                <div
-                                  key={grup.baslik}
-                                  style={{
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "8px",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      background: "#f9fafb",
-                                      padding: "8px 12px",
-                                      borderBottom: "1px solid #e5e7eb",
-                                      fontSize: "12px",
-                                      fontWeight: 700,
-                                      color: "#374151",
+                                }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={(duzenleId ? duzenleYetkiler : yeniPersonelYetkiler)[key as keyof typeof yeniPersonelYetkiler] ?? false}
+                                    onChange={(e) => {
+                                      if (duzenleId) {
+                                        setDuzenleYetkiler(prev => ({ ...prev, [key]: e.target.checked }));
+                                      } else {
+                                        setYeniPersonelYetkiler(prev => ({ ...prev, [key]: e.target.checked }));
+                                      }
                                     }}
-                                  >
-                                    {grup.baslik}
-                                  </div>
-                                  <div
-                                    style={{
-                                      display: "grid",
-                                      gridTemplateColumns: "1fr 1fr",
-                                      gap: "0",
-                                    }}
-                                  >
-                                    {grup.yetkiler.map(({ key, label }, i) => (
-                                      <label
-                                        key={key}
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "8px",
-                                          padding: "8px 12px",
-                                          fontSize: "12px",
-                                          color: "#374151",
-                                          cursor: "pointer",
-                                          borderBottom:
-                                                    i < grup.yetkiler.length - 2
-                                                      ? "1px solid #f3f4f6"
-                                                      : "none",
-                                          borderRight:
-                                                    i % 2 === 0 ? "1px solid #f3f4f6" : "none",
-                                          background: "white",
-                                        }}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={
-                                                    duzenleYetkiler[
-                                                      key as keyof typeof duzenleYetkiler
-                                                    ] ?? false
-                                          }
-                                          onChange={(e) =>
-                                                    setDuzenleYetkiler((prev) => ({
-                                                      ...prev,
-                                                      [key]: e.target.checked,
-                                                    }))
-                                          }
-                                          style={{ flexShrink: 0 }}
-                                        />
-                                        {label}
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
+                                    style={{ flexShrink: 0 }}
+                                  />
+                                  {label}
+                                </label>
                               ))}
                             </div>
-                          )}
-                          <div style={{ display: "flex", gap: "8px" }}>
-                            <button
-                              type="button"
-                              onClick={() => void handlePersonelKaydet()}
-                              disabled={personelKaydediliyor || !duzenleAd.trim()}
-                              style={{
-                                padding: "6px 14px",
-                                background: "#111827",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                                cursor: "pointer",
-                              }}
-                            >
-                              {personelKaydediliyor ? "Kaydediliyor..." : "Kaydet"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handlePersonelDuzenleIptal}
-                              disabled={personelKaydediliyor}
-                              style={{
-                                padding: "6px 14px",
-                                background: "white",
-                                color: "#374151",
-                                border: "1px solid #d1d5db",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                                cursor: "pointer",
-                              }}
-                            >
-                              İptal
-                            </button>
                           </div>
-                        </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                      {duzenleId ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => void handlePersonelKaydet()}
+                            disabled={personelKaydediliyor || !duzenleAd.trim()}
+                            style={{ flex: 1, padding: "9px", background: "#111827", color: "white", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}
+                          >
+                            {personelKaydediliyor ? "Kaydediliyor..." : "Kaydet"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handlePersonelDuzenleIptal}
+                            style={{ padding: "9px 16px", background: "white", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "13px", cursor: "pointer" }}
+                          >
+                            İptal
+                          </button>
+                        </>
                       ) : (
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          }}
+                        <button
+                          type="button"
+                          onClick={() => void handlePersonelEkle()}
+                          disabled={personelEkleniyor || !yeniPersonelAdi.trim()}
+                          style={{ flex: 1, padding: "9px", background: "#111827", color: "white", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            <div
-                              style={{
-                                width: "32px",
-                                height: "32px",
-                                borderRadius: "50%",
-                                background: "#f3f4f6",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "13px",
-                                fontWeight: 600,
-                                color: "#374151",
-                              }}
-                            >
+                          {personelEkleniyor ? "Ekleniyor..." : "Personel Ekle"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sağ — Personel Listesi */}
+                <div style={{ border: "1px solid #e5e7eb", borderRadius: "12px", background: "white", overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid #f3f4f6", background: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#111827", margin: 0 }}>Personel Listesi</p>
+                    <span style={{ fontSize: "12px", color: "#6b7280", background: "#e5e7eb", padding: "2px 8px", borderRadius: "10px" }}>
+                      {personeller.length} personel
+                    </span>
+                  </div>
+                  {personeller.length === 0 ? (
+                    <div style={{ padding: "40px 24px", textAlign: "center" }}>
+                      <p style={{ color: "#9ca3af", fontSize: "14px", margin: 0 }}>Henüz personel eklenmedi</p>
+                    </div>
+                  ) : (
+                    <div>
+                      {personeller.map((p) => (
+                        <div key={p.id} style={{ padding: "14px 20px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                            <div style={{
+                              width: "36px", height: "36px", borderRadius: "50%",
+                              background: p.isAdmin ? "#111827" : "#f3f4f6",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              fontSize: "14px", fontWeight: 700,
+                              color: p.isAdmin ? "white" : "#374151", flexShrink: 0,
+                            }}>
                               {p.name.charAt(0).toUpperCase()}
                             </div>
-                            <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>
-                              {p.name}
-                              {p.isAdmin && (
-                                <span
-                                  style={{
-                                    fontSize: "11px",
-                                    background: "#111827",
-                                    color: "white",
-                                    padding: "2px 7px",
-                                    borderRadius: "10px",
-                                    marginLeft: "6px",
-                                  }}
-                                >
-                                  Admin
-                                </span>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>{p.name}</span>
+                                {p.isAdmin && (
+                                  <span style={{ fontSize: "10px", background: "#111827", color: "white", padding: "1px 6px", borderRadius: "10px" }}>Admin</span>
+                                )}
+                                {p.hasPassword && (
+                                  <span style={{ fontSize: "10px", background: "#dbeafe", color: "#1d4ed8", padding: "1px 6px", borderRadius: "10px" }}>🔒 Şifreli</span>
+                                )}
+                              </div>
+                              {!p.isAdmin && (
+                                <p style={{ fontSize: "11px", color: "#9ca3af", margin: "2px 0 0 0" }}>
+                                  {Object.entries(p).filter(([k, v]) => k.startsWith("canView") && v === true).length} sayfa · {Object.entries(p).filter(([k, v]) => !k.startsWith("canView") && k.startsWith("can") && v === true).length} işlem yetkisi
+                                </p>
                               )}
-                            </span>
+                            </div>
                           </div>
-                          <div style={{ display: "flex", gap: "6px" }}>
+                          <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                             <button
                               type="button"
                               onClick={() => handlePersonelDuzenleBaslat(p)}
-                              style={{
-                                padding: "4px 10px",
-                                background: "#f3f4f6",
-                                color: "#374151",
-                                border: "1px solid #d1d5db",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                                cursor: "pointer",
-                              }}
+                              style={{ padding: "5px 12px", background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb", borderRadius: "6px", fontSize: "12px", cursor: "pointer" }}
                             >
                               Düzenle
                             </button>
@@ -5088,24 +4834,16 @@ function SirketimPageInner() {
                               type="button"
                               onClick={() => void handlePersonelSil(p.id)}
                               disabled={personelSiliniyor === p.id}
-                              style={{
-                                padding: "4px 10px",
-                                background: "#fef2f2",
-                                color: "#dc2626",
-                                border: "1px solid #fca5a5",
-                                borderRadius: "6px",
-                                fontSize: "12px",
-                                cursor: "pointer",
-                              }}
+                              style={{ padding: "5px 12px", background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: "6px", fontSize: "12px", cursor: "pointer" }}
                             >
                               {personelSiliniyor === p.id ? "Siliniyor..." : "Sil"}
                             </button>
                           </div>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  ))
-                )}
+                  )}
+                </div>
               </div>
             </div>
           ) : activeTab === "ikinci-el-belge" ? (
