@@ -32,19 +32,20 @@ const navItems: {
   href: string;
   label: string;
   icon?: LucideIcon;
+  permKey?: string;
 }[] = [
   { href: "/", label: "Gösterge Paneli" },
-  { href: "/cihaz-kayit", label: "Cihaz Kayıt" },
-  { href: "/cihaz-sorgula", label: "Cihaz Sorgula" },
-  { href: "/ikinci-el", label: "İkinci El Cihazlar" },
-  { href: "/bekleyen-cihazlar", label: "Bekleyen Cihazlar" },
-  { href: "/dis-servis", label: "Dış Servisler", icon: Truck },
-  { href: "/stok", label: "Stok Yönetimi", icon: Package },
-  { href: "/cari", label: "Cari Yönetimi", icon: Building2 },
-  { href: "/bayiler", label: "Bayiler", icon: Store },
-  { href: "/planlarim", label: "Planlarım", icon: Calendar },
-  { href: "/raporlar", label: "Raporlar", icon: BarChart },
-  { href: "/sirketim", label: "Şirketim", icon: Landmark },
+  { href: "/cihaz-kayit", label: "Cihaz Kayıt", permKey: "canViewCihazKayit" },
+  { href: "/cihaz-sorgula", label: "Cihaz Sorgula", permKey: "canViewCihazSorgula" },
+  { href: "/ikinci-el", label: "İkinci El Cihazlar", permKey: "canViewIkinciEl" },
+  { href: "/bekleyen-cihazlar", label: "Bekleyen Cihazlar", permKey: "canViewBekleyen" },
+  { href: "/dis-servis", label: "Dış Servisler", icon: Truck, permKey: "canViewDisServis" },
+  { href: "/stok", label: "Stok Yönetimi", icon: Package, permKey: "canViewStok" },
+  { href: "/cari", label: "Cari Yönetimi", icon: Building2, permKey: "canViewCari" },
+  { href: "/bayiler", label: "Bayiler", icon: Store, permKey: "canViewBayiler" },
+  { href: "/planlarim", label: "Planlarım", icon: Calendar, permKey: "canViewPlanlarim" },
+  { href: "/raporlar", label: "Raporlar", icon: BarChart, permKey: "canViewRaporlar" },
+  { href: "/sirketim", label: "Şirketim", icon: Landmark, permKey: "canViewSirketim" },
 ];
 
 export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
@@ -56,11 +57,20 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
   const [loggingOut, setLoggingOut] = useState(false);
   const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
+  const [personelYetkiler, setPersonelYetkiler] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setAktifPersonelAdi(sessionStorage.getItem("activePersonnelName"));
     const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
     setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (permsRaw) {
+      try {
+        setPersonelYetkiler(JSON.parse(permsRaw) as Record<string, boolean>);
+      } catch {
+        setPersonelYetkiler({});
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -258,8 +268,16 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-2 min-h-0">
           {navItems
             .filter((item) => {
+              // Personel modu kapalıysa veya admin ise hepsini göster
               if (aktifPersonelIsAdmin) return true;
-              return !["/sirketim", "/raporlar", "/planlarim"].includes(item.href);
+              // Personel modu açık, admin değil
+              // permKey yoksa (Gösterge Paneli) her zaman göster
+              if (!item.permKey) return true;
+              // isAdmin false ama personel giriş modu aktif değilse göster
+              const isAdminRaw = sessionStorage.getItem("activePersonnelIsAdmin");
+              if (isAdminRaw === null) return true;
+              // Yetki kontrolü
+              return !!personelYetkiler[item.permKey];
             })
             .map((item) => {
             const active =
