@@ -135,10 +135,6 @@ export default function IkinciElDuzenlePage() {
         return;
       }
       const row = data as RowDetail;
-      if (row.isSold) {
-        setLoadError("Satılmış kayıtlar düzenlenemez.");
-        return;
-      }
       setDeviceCode(row.deviceCode);
       setValue("sellerName", row.sellerName);
       setValue("sellerPhone", normalizePhoneForInput(row.sellerPhone));

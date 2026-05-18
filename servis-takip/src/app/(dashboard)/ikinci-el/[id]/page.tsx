@@ -349,18 +349,16 @@ export default function IkinciElDetayPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {!row.isSold ? (
-              <Link
-                href={`/ikinci-el/${id}/duzenle`}
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "gap-1",
-                )}
-              >
-                <Pencil className="size-3.5" aria-hidden />
-                ✏ Düzenle
-              </Link>
-            ) : null}
+            <Link
+              href={`/ikinci-el/${id}/duzenle`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "gap-1",
+              )}
+            >
+              <Pencil className="size-3.5" aria-hidden />
+              ✏ Düzenle
+            </Link>
             <Link
               href={`/ikinci-el-fis/${id}`}
               target="_blank"

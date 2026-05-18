@@ -869,6 +869,16 @@ function IkinciElInner() {
                         >
                           Detay
                         </Link>
+                        <Link
+                          href={`/ikinci-el/${row.id}/duzenle`}
+                          onClick={(e) => e.stopPropagation()}
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" }),
+                            "pointer-events-auto",
+                          )}
+                        >
+                          Düzenle
+                        </Link>
                         <Button
                           variant="outline"
                           size="sm"
