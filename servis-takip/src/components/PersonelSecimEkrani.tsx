@@ -18,6 +18,34 @@ interface Personel {
   canViewIkinciEl: boolean;
   canViewCihazSorgula: boolean;
   canViewCihazKayit: boolean;
+  canCreateRecord: boolean;
+  canDeleteIkinciEl: boolean;
+  canDeleteServis: boolean;
+  canEditServis: boolean;
+  canEditIkinciEl: boolean;
+  canUpdateServisStatus: boolean;
+  canAddDisServis: boolean;
+  canDeleteDisServis: boolean;
+  canEditDisServis: boolean;
+  canAddStok: boolean;
+  canDeleteStok: boolean;
+  canEditStok: boolean;
+  canAddCari: boolean;
+  canEditCari: boolean;
+  canDeleteCari: boolean;
+  canAddBayi: boolean;
+  canEditBayi: boolean;
+  canDeleteBayi: boolean;
+  canAddPlan: boolean;
+  canEditPlan: boolean;
+  canDeletePlan: boolean;
+  canViewCiro: boolean;
+  canPrintMusteri: boolean;
+  canPrintTeslim: boolean;
+  canPrintEtiket: boolean;
+  canPrintAlimFisi: boolean;
+  canPrintSatisFisi: boolean;
+  canSellIkinciEl: boolean;
 }
 
 interface Props {
@@ -61,6 +89,34 @@ export default function PersonelSecimEkrani({ onSecim }: Props) {
         canViewIkinciEl: p.canViewIkinciEl,
         canViewCihazSorgula: p.canViewCihazSorgula,
         canViewCihazKayit: p.canViewCihazKayit,
+        canCreateRecord: p.canCreateRecord,
+        canDeleteIkinciEl: p.canDeleteIkinciEl,
+        canDeleteServis: p.canDeleteServis,
+        canEditServis: p.canEditServis,
+        canEditIkinciEl: p.canEditIkinciEl,
+        canUpdateServisStatus: p.canUpdateServisStatus,
+        canAddDisServis: p.canAddDisServis,
+        canDeleteDisServis: p.canDeleteDisServis,
+        canEditDisServis: p.canEditDisServis,
+        canAddStok: p.canAddStok,
+        canDeleteStok: p.canDeleteStok,
+        canEditStok: p.canEditStok,
+        canAddCari: p.canAddCari,
+        canEditCari: p.canEditCari,
+        canDeleteCari: p.canDeleteCari,
+        canAddBayi: p.canAddBayi,
+        canEditBayi: p.canEditBayi,
+        canDeleteBayi: p.canDeleteBayi,
+        canAddPlan: p.canAddPlan,
+        canEditPlan: p.canEditPlan,
+        canDeletePlan: p.canDeletePlan,
+        canViewCiro: p.canViewCiro,
+        canPrintMusteri: p.canPrintMusteri,
+        canPrintTeslim: p.canPrintTeslim,
+        canPrintEtiket: p.canPrintEtiket,
+        canPrintAlimFisi: p.canPrintAlimFisi,
+        canPrintSatisFisi: p.canPrintSatisFisi,
+        canSellIkinciEl: p.canSellIkinciEl,
       });
       return;
     }
@@ -93,6 +149,34 @@ export default function PersonelSecimEkrani({ onSecim }: Props) {
           canViewIkinciEl: p.canViewIkinciEl,
           canViewCihazSorgula: p.canViewCihazSorgula,
           canViewCihazKayit: p.canViewCihazKayit,
+          canCreateRecord: p.canCreateRecord,
+          canDeleteIkinciEl: p.canDeleteIkinciEl,
+          canDeleteServis: p.canDeleteServis,
+          canEditServis: p.canEditServis,
+          canEditIkinciEl: p.canEditIkinciEl,
+          canUpdateServisStatus: p.canUpdateServisStatus,
+          canAddDisServis: p.canAddDisServis,
+          canDeleteDisServis: p.canDeleteDisServis,
+          canEditDisServis: p.canEditDisServis,
+          canAddStok: p.canAddStok,
+          canDeleteStok: p.canDeleteStok,
+          canEditStok: p.canEditStok,
+          canAddCari: p.canAddCari,
+          canEditCari: p.canEditCari,
+          canDeleteCari: p.canDeleteCari,
+          canAddBayi: p.canAddBayi,
+          canEditBayi: p.canEditBayi,
+          canDeleteBayi: p.canDeleteBayi,
+          canAddPlan: p.canAddPlan,
+          canEditPlan: p.canEditPlan,
+          canDeletePlan: p.canDeletePlan,
+          canViewCiro: p.canViewCiro,
+          canPrintMusteri: p.canPrintMusteri,
+          canPrintTeslim: p.canPrintTeslim,
+          canPrintEtiket: p.canPrintEtiket,
+          canPrintAlimFisi: p.canPrintAlimFisi,
+          canPrintSatisFisi: p.canPrintSatisFisi,
+          canSellIkinciEl: p.canSellIkinciEl,
         });
       } else {
         setHata("Şifre yanlış, tekrar deneyin");
