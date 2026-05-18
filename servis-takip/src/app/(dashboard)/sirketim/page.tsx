@@ -2088,6 +2088,34 @@ function SirketimPageInner() {
       canViewIkinciEl: boolean;
       canViewCihazSorgula: boolean;
       canViewCihazKayit: boolean;
+      canCreateRecord: boolean;
+      canDeleteIkinciEl: boolean;
+      canDeleteServis: boolean;
+      canEditServis: boolean;
+      canEditIkinciEl: boolean;
+      canUpdateServisStatus: boolean;
+      canAddDisServis: boolean;
+      canDeleteDisServis: boolean;
+      canEditDisServis: boolean;
+      canAddStok: boolean;
+      canDeleteStok: boolean;
+      canEditStok: boolean;
+      canAddCari: boolean;
+      canEditCari: boolean;
+      canDeleteCari: boolean;
+      canAddBayi: boolean;
+      canEditBayi: boolean;
+      canDeleteBayi: boolean;
+      canAddPlan: boolean;
+      canEditPlan: boolean;
+      canDeletePlan: boolean;
+      canViewCiro: boolean;
+      canPrintMusteri: boolean;
+      canPrintTeslim: boolean;
+      canPrintEtiket: boolean;
+      canPrintAlimFisi: boolean;
+      canPrintSatisFisi: boolean;
+      canSellIkinciEl: boolean;
     }[]
   >([]);
   const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
@@ -2105,6 +2133,34 @@ function SirketimPageInner() {
     canViewIkinciEl: false,
     canViewCihazSorgula: false,
     canViewCihazKayit: false,
+    canCreateRecord: false,
+    canDeleteIkinciEl: false,
+    canDeleteServis: false,
+    canEditServis: false,
+    canEditIkinciEl: false,
+    canUpdateServisStatus: false,
+    canAddDisServis: false,
+    canDeleteDisServis: false,
+    canEditDisServis: false,
+    canAddStok: false,
+    canDeleteStok: false,
+    canEditStok: false,
+    canAddCari: false,
+    canEditCari: false,
+    canDeleteCari: false,
+    canAddBayi: false,
+    canEditBayi: false,
+    canDeleteBayi: false,
+    canAddPlan: false,
+    canEditPlan: false,
+    canDeletePlan: false,
+    canViewCiro: false,
+    canPrintMusteri: false,
+    canPrintTeslim: false,
+    canPrintEtiket: false,
+    canPrintAlimFisi: false,
+    canPrintSatisFisi: false,
+    canSellIkinciEl: false,
   });
   const [duzenleId, setDuzenleId] = useState<string | null>(null);
   const [duzenleAd, setDuzenleAd] = useState("");
@@ -2122,6 +2178,34 @@ function SirketimPageInner() {
     canViewIkinciEl: false,
     canViewCihazSorgula: false,
     canViewCihazKayit: false,
+    canCreateRecord: false,
+    canDeleteIkinciEl: false,
+    canDeleteServis: false,
+    canEditServis: false,
+    canEditIkinciEl: false,
+    canUpdateServisStatus: false,
+    canAddDisServis: false,
+    canDeleteDisServis: false,
+    canEditDisServis: false,
+    canAddStok: false,
+    canDeleteStok: false,
+    canEditStok: false,
+    canAddCari: false,
+    canEditCari: false,
+    canDeleteCari: false,
+    canAddBayi: false,
+    canEditBayi: false,
+    canDeleteBayi: false,
+    canAddPlan: false,
+    canEditPlan: false,
+    canDeletePlan: false,
+    canViewCiro: false,
+    canPrintMusteri: false,
+    canPrintTeslim: false,
+    canPrintEtiket: false,
+    canPrintAlimFisi: false,
+    canPrintSatisFisi: false,
+    canSellIkinciEl: false,
   });
   const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
   const [personelKaydediliyor, setPersonelKaydediliyor] = useState(false);
@@ -2514,18 +2598,81 @@ function SirketimPageInner() {
     }
   }
 
-  const yetkiLabels = [
-    { key: "canViewCihazKayit", label: "Cihaz Kayıt" },
-    { key: "canViewCihazSorgula", label: "Cihaz Sorgula" },
-    { key: "canViewBekleyen", label: "Bekleyen Cihazlar" },
-    { key: "canViewIkinciEl", label: "İkinci El Cihazlar" },
-    { key: "canViewDisServis", label: "Dış Servisler" },
-    { key: "canViewStok", label: "Stok Yönetimi" },
-    { key: "canViewCari", label: "Cari Yönetimi" },
-    { key: "canViewBayiler", label: "Bayiler" },
-    { key: "canViewPlanlarim", label: "Planlarım" },
-    { key: "canViewRaporlar", label: "Raporlar" },
-    { key: "canViewSirketim", label: "Şirketim" },
+  const yetkiGruplari = [
+    {
+      baslik: "📄 Sayfa Erişim Yetkileri",
+      yetkiler: [
+        { key: "canViewCihazKayit", label: "Cihaz Kayıt" },
+        { key: "canViewCihazSorgula", label: "Cihaz Sorgula" },
+        { key: "canViewBekleyen", label: "Bekleyen Cihazlar" },
+        { key: "canViewIkinciEl", label: "İkinci El Cihazlar" },
+        { key: "canViewDisServis", label: "Dış Servisler" },
+        { key: "canViewStok", label: "Stok Yönetimi" },
+        { key: "canViewCari", label: "Cari Yönetimi" },
+        { key: "canViewBayiler", label: "Bayiler" },
+        { key: "canViewPlanlarim", label: "Planlarım" },
+        { key: "canViewRaporlar", label: "Raporlar" },
+        { key: "canViewSirketim", label: "Şirketim" },
+      ],
+    },
+    {
+      baslik: "🔧 Kayıt İşlem Yetkileri",
+      yetkiler: [
+        { key: "canCreateRecord", label: "Cihaz Kaydı Yapma (Servis & İkinci El)" },
+        { key: "canEditServis", label: "Servis Kaydı Düzenleme" },
+        { key: "canDeleteServis", label: "Servis Kaydı Silme" },
+        { key: "canUpdateServisStatus", label: "Servis Durum Güncelleme" },
+        { key: "canEditIkinciEl", label: "İkinci El Kaydı Düzenleme" },
+        { key: "canDeleteIkinciEl", label: "İkinci El Kaydı Silme" },
+        { key: "canSellIkinciEl", label: "İkinci El Satışa Çevirme" },
+      ],
+    },
+    {
+      baslik: "🏪 Dış Servis Yetkileri",
+      yetkiler: [
+        { key: "canAddDisServis", label: "Dış Servis Ekleme" },
+        { key: "canEditDisServis", label: "Dış Servis Düzenleme" },
+        { key: "canDeleteDisServis", label: "Dış Servis Silme" },
+      ],
+    },
+    {
+      baslik: "📦 Stok Yetkileri",
+      yetkiler: [
+        { key: "canAddStok", label: "Stok Ekleme" },
+        { key: "canEditStok", label: "Stok Güncelleme" },
+        { key: "canDeleteStok", label: "Stok Silme" },
+      ],
+    },
+    {
+      baslik: "👥 Cari & Bayi Yetkileri",
+      yetkiler: [
+        { key: "canAddCari", label: "Cari Ekleme" },
+        { key: "canEditCari", label: "Cari Düzenleme" },
+        { key: "canDeleteCari", label: "Cari Silme" },
+        { key: "canAddBayi", label: "Bayi Ekleme" },
+        { key: "canEditBayi", label: "Bayi Düzenleme" },
+        { key: "canDeleteBayi", label: "Bayi Silme" },
+      ],
+    },
+    {
+      baslik: "📅 Plan Yetkileri",
+      yetkiler: [
+        { key: "canAddPlan", label: "Plan Ekleme" },
+        { key: "canEditPlan", label: "Plan Düzenleme" },
+        { key: "canDeletePlan", label: "Plan Silme" },
+      ],
+    },
+    {
+      baslik: "🖨️ Yazdırma & Görüntüleme Yetkileri",
+      yetkiler: [
+        { key: "canViewCiro", label: "Dashboard Ciro Görme" },
+        { key: "canPrintMusteri", label: "Müşteri Nüshası Çıktısı" },
+        { key: "canPrintTeslim", label: "Teslim Fişi Çıktısı" },
+        { key: "canPrintEtiket", label: "Cihaz Etiketi Çıktısı" },
+        { key: "canPrintAlimFisi", label: "İkinci El Alım Fişi Çıktısı" },
+        { key: "canPrintSatisFisi", label: "İkinci El Satış Fişi Çıktısı" },
+      ],
+    },
   ];
 
   async function handlePersonelEkle() {
@@ -2575,6 +2722,34 @@ function SirketimPageInner() {
         canViewIkinciEl: false,
         canViewCihazSorgula: false,
         canViewCihazKayit: false,
+        canCreateRecord: false,
+        canDeleteIkinciEl: false,
+        canDeleteServis: false,
+        canEditServis: false,
+        canEditIkinciEl: false,
+        canUpdateServisStatus: false,
+        canAddDisServis: false,
+        canDeleteDisServis: false,
+        canEditDisServis: false,
+        canAddStok: false,
+        canDeleteStok: false,
+        canEditStok: false,
+        canAddCari: false,
+        canEditCari: false,
+        canDeleteCari: false,
+        canAddBayi: false,
+        canEditBayi: false,
+        canDeleteBayi: false,
+        canAddPlan: false,
+        canEditPlan: false,
+        canDeletePlan: false,
+        canViewCiro: false,
+        canPrintMusteri: false,
+        canPrintTeslim: false,
+        canPrintEtiket: false,
+        canPrintAlimFisi: false,
+        canPrintSatisFisi: false,
+        canSellIkinciEl: false,
       });
       toast.success("Personel eklendi");
     } catch {
@@ -2584,22 +2759,7 @@ function SirketimPageInner() {
     }
   }
 
-  function handlePersonelDuzenleBaslat(p: {
-    id: string;
-    name: string;
-    isAdmin: boolean;
-    canViewSirketim: boolean;
-    canViewRaporlar: boolean;
-    canViewPlanlarim: boolean;
-    canViewBayiler: boolean;
-    canViewCari: boolean;
-    canViewStok: boolean;
-    canViewDisServis: boolean;
-    canViewBekleyen: boolean;
-    canViewIkinciEl: boolean;
-    canViewCihazSorgula: boolean;
-    canViewCihazKayit: boolean;
-  }) {
+  function handlePersonelDuzenleBaslat(p: (typeof personeller)[number]) {
     setDuzenleId(p.id);
     setDuzenleAd(p.name);
     setDuzenleSifre("");
@@ -2616,6 +2776,34 @@ function SirketimPageInner() {
       canViewIkinciEl: p.canViewIkinciEl ?? false,
       canViewCihazSorgula: p.canViewCihazSorgula ?? false,
       canViewCihazKayit: p.canViewCihazKayit ?? false,
+      canCreateRecord: p.canCreateRecord ?? false,
+      canDeleteIkinciEl: p.canDeleteIkinciEl ?? false,
+      canDeleteServis: p.canDeleteServis ?? false,
+      canEditServis: p.canEditServis ?? false,
+      canEditIkinciEl: p.canEditIkinciEl ?? false,
+      canUpdateServisStatus: p.canUpdateServisStatus ?? false,
+      canAddDisServis: p.canAddDisServis ?? false,
+      canDeleteDisServis: p.canDeleteDisServis ?? false,
+      canEditDisServis: p.canEditDisServis ?? false,
+      canAddStok: p.canAddStok ?? false,
+      canDeleteStok: p.canDeleteStok ?? false,
+      canEditStok: p.canEditStok ?? false,
+      canAddCari: p.canAddCari ?? false,
+      canEditCari: p.canEditCari ?? false,
+      canDeleteCari: p.canDeleteCari ?? false,
+      canAddBayi: p.canAddBayi ?? false,
+      canEditBayi: p.canEditBayi ?? false,
+      canDeleteBayi: p.canDeleteBayi ?? false,
+      canAddPlan: p.canAddPlan ?? false,
+      canEditPlan: p.canEditPlan ?? false,
+      canDeletePlan: p.canDeletePlan ?? false,
+      canViewCiro: p.canViewCiro ?? false,
+      canPrintMusteri: p.canPrintMusteri ?? false,
+      canPrintTeslim: p.canPrintTeslim ?? false,
+      canPrintEtiket: p.canPrintEtiket ?? false,
+      canPrintAlimFisi: p.canPrintAlimFisi ?? false,
+      canPrintSatisFisi: p.canPrintSatisFisi ?? false,
+      canSellIkinciEl: p.canSellIkinciEl ?? false,
     });
   }
 
@@ -2657,17 +2845,7 @@ function SirketimPageInner() {
                 ...p,
                 name: duzenleAd,
                 isAdmin: duzenleAdmin,
-                canViewSirketim: duzenleYetkiler.canViewSirketim,
-                canViewRaporlar: duzenleYetkiler.canViewRaporlar,
-                canViewPlanlarim: duzenleYetkiler.canViewPlanlarim,
-                canViewBayiler: duzenleYetkiler.canViewBayiler,
-                canViewCari: duzenleYetkiler.canViewCari,
-                canViewStok: duzenleYetkiler.canViewStok,
-                canViewDisServis: duzenleYetkiler.canViewDisServis,
-                canViewBekleyen: duzenleYetkiler.canViewBekleyen,
-                canViewIkinciEl: duzenleYetkiler.canViewIkinciEl,
-                canViewCihazSorgula: duzenleYetkiler.canViewCihazSorgula,
-                canViewCihazKayit: duzenleYetkiler.canViewCihazKayit,
+                ...duzenleYetkiler,
               }
             : p,
         ),
@@ -4589,54 +4767,83 @@ function SirketimPageInner() {
                     </label>
                   </div>
                   {!yeniPersonelAdmin && (
-                    <div style={{ marginTop: "12px" }}>
-                      <p
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          color: "#374151",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        Erişim Yetkileri
-                      </p>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: "6px",
-                        }}
-                      >
-                        {yetkiLabels.map(({ key, label }) => (
-                          <label
-                            key={key}
+                    <div
+                      style={{
+                        marginTop: "16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "16px",
+                      }}
+                    >
+                      {yetkiGruplari.map((grup) => (
+                        <div
+                          key={grup.baslik}
+                          style={{
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              fontSize: "13px",
+                              background: "#f9fafb",
+                              padding: "8px 12px",
+                              borderBottom: "1px solid #e5e7eb",
+                              fontSize: "12px",
+                              fontWeight: 700,
                               color: "#374151",
-                              cursor: "pointer",
                             }}
                           >
-                            <input
-                              type="checkbox"
-                              checked={
-                                yeniPersonelYetkiler[
-                                  key as keyof typeof yeniPersonelYetkiler
-                                ]
-                              }
-                              onChange={(e) =>
-                                setYeniPersonelYetkiler((prev) => ({
-                                  ...prev,
-                                  [key]: e.target.checked,
-                                }))
-                              }
-                            />
-                            {label}
-                          </label>
-                        ))}
-                      </div>
+                            {grup.baslik}
+                          </div>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: "0",
+                            }}
+                          >
+                            {grup.yetkiler.map(({ key, label }, i) => (
+                              <label
+                                key={key}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  padding: "8px 12px",
+                                  fontSize: "12px",
+                                  color: "#374151",
+                                  cursor: "pointer",
+                                  borderBottom:
+                                    i < grup.yetkiler.length - 2
+                                      ? "1px solid #f3f4f6"
+                                      : "none",
+                                  borderRight:
+                                    i % 2 === 0 ? "1px solid #f3f4f6" : "none",
+                                  background: "white",
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    yeniPersonelYetkiler[
+                                      key as keyof typeof yeniPersonelYetkiler
+                                    ] ?? false
+                                  }
+                                  onChange={(e) =>
+                                    setYeniPersonelYetkiler((prev) => ({
+                                      ...prev,
+                                      [key]: e.target.checked,
+                                    }))
+                                  }
+                                  style={{ flexShrink: 0 }}
+                                />
+                                {label}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
               </div>
@@ -4704,54 +4911,83 @@ function SirketimPageInner() {
                             </label>
                           </div>
                           {!duzenleAdmin && (
-                            <div style={{ marginTop: "12px" }}>
-                              <p
-                                style={{
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  color: "#374151",
-                                  marginBottom: "8px",
-                                }}
-                              >
-                                Erişim Yetkileri
-                              </p>
-                              <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1fr 1fr",
-                                  gap: "6px",
-                                }}
-                              >
-                                {yetkiLabels.map(({ key, label }) => (
-                                  <label
-                                    key={key}
+                            <div
+                              style={{
+                                marginTop: "16px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "16px",
+                              }}
+                            >
+                              {yetkiGruplari.map((grup) => (
+                                <div
+                                  key={grup.baslik}
+                                  style={{
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: "8px",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  <div
                                     style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "6px",
-                                      fontSize: "13px",
+                                      background: "#f9fafb",
+                                      padding: "8px 12px",
+                                      borderBottom: "1px solid #e5e7eb",
+                                      fontSize: "12px",
+                                      fontWeight: 700,
                                       color: "#374151",
-                                      cursor: "pointer",
                                     }}
                                   >
-                                    <input
-                                      type="checkbox"
-                                      checked={
-                                        duzenleYetkiler[
-                                          key as keyof typeof duzenleYetkiler
-                                        ]
-                                      }
-                                      onChange={(e) =>
-                                        setDuzenleYetkiler((prev) => ({
-                                          ...prev,
-                                          [key]: e.target.checked,
-                                        }))
-                                      }
-                                    />
-                                    {label}
-                                  </label>
-                                ))}
-                              </div>
+                                    {grup.baslik}
+                                  </div>
+                                  <div
+                                    style={{
+                                      display: "grid",
+                                      gridTemplateColumns: "1fr 1fr",
+                                      gap: "0",
+                                    }}
+                                  >
+                                    {grup.yetkiler.map(({ key, label }, i) => (
+                                      <label
+                                        key={key}
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: "8px",
+                                          padding: "8px 12px",
+                                          fontSize: "12px",
+                                          color: "#374151",
+                                          cursor: "pointer",
+                                          borderBottom:
+                                                    i < grup.yetkiler.length - 2
+                                                      ? "1px solid #f3f4f6"
+                                                      : "none",
+                                          borderRight:
+                                                    i % 2 === 0 ? "1px solid #f3f4f6" : "none",
+                                          background: "white",
+                                        }}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={
+                                                    duzenleYetkiler[
+                                                      key as keyof typeof duzenleYetkiler
+                                                    ] ?? false
+                                          }
+                                          onChange={(e) =>
+                                                    setDuzenleYetkiler((prev) => ({
+                                                      ...prev,
+                                                      [key]: e.target.checked,
+                                                    }))
+                                          }
+                                          style={{ flexShrink: 0 }}
+                                        />
+                                        {label}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           )}
                           <div style={{ display: "flex", gap: "8px" }}>
