@@ -241,6 +241,7 @@ function CihazKayitServiceInner({
   );
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
   const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
+  const [canCreateRecord, setCanCreateRecord] = useState(true);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -336,6 +337,18 @@ function CihazKayitServiceInner({
       }
       if (aktifPersonelAdi) {
         setAktifPersonelAdi(aktifPersonelAdi);
+      }
+
+      const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+      if (permsRaw) {
+        try {
+          const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+          setCanCreateRecord(!!perms["canCreateRecord"]);
+        } catch {
+          setCanCreateRecord(false);
+        }
+      } else {
+        setCanCreateRecord(false);
       }
     }
   }, [setValue]);
@@ -604,6 +617,10 @@ function CihazKayitServiceInner({
   }
 
   async function onSubmit(data: CreateServiceOrderFormValues) {
+    if (!canCreateRecord) {
+      toast.error("Cihaz kaydı yapma yetkiniz bulunmuyor.");
+      return;
+    }
     const payload = createServiceOrderSchema.parse(data);
     try {
       const res = await fetch("/api/service-orders", {
@@ -985,6 +1002,24 @@ function CihazKayitServiceInner({
       ) : null}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        {!canCreateRecord && (
+          <div
+            style={{
+              background: "#fef2f2",
+              border: "1px solid #fca5a5",
+              borderRadius: "8px",
+              padding: "12px 16px",
+              marginBottom: "16px",
+              fontSize: "13px",
+              color: "#dc2626",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            🔒 Cihaz kaydı yapma yetkiniz bulunmuyor. Yöneticinizle iletişime geçin.
+          </div>
+        )}
         <div className="flex flex-col gap-6 lg:flex-row">
           <div className="min-w-0 flex-1 space-y-6">
             <Card className="border-slate-200/80 bg-white shadow-sm">
@@ -2286,7 +2321,7 @@ function CihazKayitServiceInner({
                 ref={submitRef}
                 type="submit"
                 size="lg"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !canCreateRecord}
               >
                 {isSubmitting ? "Kaydediliyor…" : "Kaydet"}
               </Button>
