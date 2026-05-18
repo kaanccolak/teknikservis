@@ -2351,7 +2351,7 @@ function SirketimPageInner() {
       void fetch("/api/personnel")
         .then((r) => r.json())
         .then(
-          (data: { id: string; name: string; hasPassword: boolean; isAdmin: boolean; canViewSirketim: boolean; canViewRaporlar: boolean; canViewPlanlarim: boolean; canViewBayiler: boolean; canViewCari: boolean; canViewStok: boolean; canViewDisServis: boolean; canViewBekleyen: boolean; canViewIkinciEl: boolean; canViewCihazSorgula: boolean; canViewCihazKayit: boolean; }[]) => {
+          (data: typeof personeller) => {
             if (Array.isArray(data)) setPersoneller(data);
           },
         )
