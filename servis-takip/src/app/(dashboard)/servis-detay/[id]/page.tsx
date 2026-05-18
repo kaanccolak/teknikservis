@@ -62,6 +62,7 @@ import {
 } from "@/lib/service-order-status-ui-config";
 import { getStatusBadge, STATUS_CONFIG } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 type Customer = { id: string; name: string; phone: string | null };
 type NamedEntity = { id: string; name: string };
@@ -259,6 +260,7 @@ export default function ServisDetayPage() {
     router.push(resolveBackHref());
   }
 
+  const { yetkiVar } = usePersonelYetki();
   const [order, setOrder] = useState<ServiceOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -2141,56 +2143,66 @@ export default function ServisDetayPage() {
             <ArrowLeft className="mr-2 size-4" aria-hidden />
             Geri Dön
           </Button>
-          <Link
-            href={editHref}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "whitespace-nowrap",
-            )}
-          >
-            <Pencil className="mr-2 size-4" aria-hidden />
-            Kaydı Düzenle
-          </Link>
-          <Link
-            href={`/fis/${encodeURIComponent(order.id)}`}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "whitespace-nowrap",
-            )}
-          >
-            <Printer className="mr-2 size-4" aria-hidden />
-            Müşteri Nüshası
-          </Link>
-          <Link
-            href={`/teslim-fisi/${encodeURIComponent(order.id)}`}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "whitespace-nowrap",
-            )}
-          >
-            <Printer className="mr-2 size-4" aria-hidden />
-            Teslim Fişi
-          </Link>
-          <Link
-            href={`/dukkan-nushasi/${encodeURIComponent(order.id)}`}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "whitespace-nowrap",
-            )}
-          >
-            <Printer className="mr-2 size-4" aria-hidden />
-            Cihaz Etiketi
-          </Link>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="whitespace-nowrap"
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="mr-2 size-4" aria-hidden />
-            Kaydı Sil
-          </Button>
+          {yetkiVar("canEditServis") && (
+            <Link
+              href={editHref}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "whitespace-nowrap",
+              )}
+            >
+              <Pencil className="mr-2 size-4" aria-hidden />
+              Kaydı Düzenle
+            </Link>
+          )}
+          {yetkiVar("canPrintMusteri") && (
+            <Link
+              href={`/fis/${encodeURIComponent(order.id)}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "whitespace-nowrap",
+              )}
+            >
+              <Printer className="mr-2 size-4" aria-hidden />
+              Müşteri Nüshası
+            </Link>
+          )}
+          {yetkiVar("canPrintTeslim") && (
+            <Link
+              href={`/teslim-fisi/${encodeURIComponent(order.id)}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "whitespace-nowrap",
+              )}
+            >
+              <Printer className="mr-2 size-4" aria-hidden />
+              Teslim Fişi
+            </Link>
+          )}
+          {yetkiVar("canPrintEtiket") && (
+            <Link
+              href={`/dukkan-nushasi/${encodeURIComponent(order.id)}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "whitespace-nowrap",
+              )}
+            >
+              <Printer className="mr-2 size-4" aria-hidden />
+              Cihaz Etiketi
+            </Link>
+          )}
+          {yetkiVar("canDeleteServis") && (
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="whitespace-nowrap"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="mr-2 size-4" aria-hidden />
+              Kaydı Sil
+            </Button>
+          )}
           <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -2859,6 +2871,7 @@ export default function ServisDetayPage() {
         </div>
 
         <div className="space-y-6 lg:col-span-1">
+          {yetkiVar("canUpdateServisStatus") && (
           <Card>
             <CardHeader className="border-b border-slate-100 pb-4">
               <CardTitle>Durum Güncelle</CardTitle>
@@ -2993,6 +3006,7 @@ export default function ServisDetayPage() {
               </div>
             </CardContent>
           </Card>
+          )}
 
           <div
             style={{
