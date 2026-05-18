@@ -31,6 +31,34 @@ export async function GET() {
         canViewIkinciEl: true,
         canViewCihazSorgula: true,
         canViewCihazKayit: true,
+        canCreateRecord: true,
+        canDeleteIkinciEl: true,
+        canDeleteServis: true,
+        canEditServis: true,
+        canEditIkinciEl: true,
+        canUpdateServisStatus: true,
+        canAddDisServis: true,
+        canDeleteDisServis: true,
+        canEditDisServis: true,
+        canAddStok: true,
+        canDeleteStok: true,
+        canEditStok: true,
+        canAddCari: true,
+        canEditCari: true,
+        canDeleteCari: true,
+        canAddBayi: true,
+        canEditBayi: true,
+        canDeleteBayi: true,
+        canAddPlan: true,
+        canEditPlan: true,
+        canDeletePlan: true,
+        canViewCiro: true,
+        canPrintMusteri: true,
+        canPrintTeslim: true,
+        canPrintEtiket: true,
+        canPrintAlimFisi: true,
+        canPrintSatisFisi: true,
+        canSellIkinciEl: true,
       },
     });
     return NextResponse.json(
@@ -51,6 +79,34 @@ export async function GET() {
         canViewIkinciEl: p.canViewIkinciEl,
         canViewCihazSorgula: p.canViewCihazSorgula,
         canViewCihazKayit: p.canViewCihazKayit,
+        canCreateRecord: p.canCreateRecord,
+        canDeleteIkinciEl: p.canDeleteIkinciEl,
+        canDeleteServis: p.canDeleteServis,
+        canEditServis: p.canEditServis,
+        canEditIkinciEl: p.canEditIkinciEl,
+        canUpdateServisStatus: p.canUpdateServisStatus,
+        canAddDisServis: p.canAddDisServis,
+        canDeleteDisServis: p.canDeleteDisServis,
+        canEditDisServis: p.canEditDisServis,
+        canAddStok: p.canAddStok,
+        canDeleteStok: p.canDeleteStok,
+        canEditStok: p.canEditStok,
+        canAddCari: p.canAddCari,
+        canEditCari: p.canEditCari,
+        canDeleteCari: p.canDeleteCari,
+        canAddBayi: p.canAddBayi,
+        canEditBayi: p.canEditBayi,
+        canDeleteBayi: p.canDeleteBayi,
+        canAddPlan: p.canAddPlan,
+        canEditPlan: p.canEditPlan,
+        canDeletePlan: p.canDeletePlan,
+        canViewCiro: p.canViewCiro,
+        canPrintMusteri: p.canPrintMusteri,
+        canPrintTeslim: p.canPrintTeslim,
+        canPrintEtiket: p.canPrintEtiket,
+        canPrintAlimFisi: p.canPrintAlimFisi,
+        canPrintSatisFisi: p.canPrintSatisFisi,
+        canSellIkinciEl: p.canSellIkinciEl,
       })),
     );
   } catch (error) {
@@ -80,6 +136,34 @@ export async function POST(req: Request) {
       canViewIkinciEl,
       canViewCihazSorgula,
       canViewCihazKayit,
+      canCreateRecord,
+      canDeleteIkinciEl,
+      canDeleteServis,
+      canEditServis,
+      canEditIkinciEl,
+      canUpdateServisStatus,
+      canAddDisServis,
+      canDeleteDisServis,
+      canEditDisServis,
+      canAddStok,
+      canDeleteStok,
+      canEditStok,
+      canAddCari,
+      canEditCari,
+      canDeleteCari,
+      canAddBayi,
+      canEditBayi,
+      canDeleteBayi,
+      canAddPlan,
+      canEditPlan,
+      canDeletePlan,
+      canViewCiro,
+      canPrintMusteri,
+      canPrintTeslim,
+      canPrintEtiket,
+      canPrintAlimFisi,
+      canPrintSatisFisi,
+      canSellIkinciEl,
     } = (await req.json()) as {
       name: string;
       password?: string;
@@ -95,6 +179,34 @@ export async function POST(req: Request) {
       canViewIkinciEl?: boolean;
       canViewCihazSorgula?: boolean;
       canViewCihazKayit?: boolean;
+      canCreateRecord?: boolean;
+      canDeleteIkinciEl?: boolean;
+      canDeleteServis?: boolean;
+      canEditServis?: boolean;
+      canEditIkinciEl?: boolean;
+      canUpdateServisStatus?: boolean;
+      canAddDisServis?: boolean;
+      canDeleteDisServis?: boolean;
+      canEditDisServis?: boolean;
+      canAddStok?: boolean;
+      canDeleteStok?: boolean;
+      canEditStok?: boolean;
+      canAddCari?: boolean;
+      canEditCari?: boolean;
+      canDeleteCari?: boolean;
+      canAddBayi?: boolean;
+      canEditBayi?: boolean;
+      canDeleteBayi?: boolean;
+      canAddPlan?: boolean;
+      canEditPlan?: boolean;
+      canDeletePlan?: boolean;
+      canViewCiro?: boolean;
+      canPrintMusteri?: boolean;
+      canPrintTeslim?: boolean;
+      canPrintEtiket?: boolean;
+      canPrintAlimFisi?: boolean;
+      canPrintSatisFisi?: boolean;
+      canSellIkinciEl?: boolean;
     };
     if (!name?.trim()) {
       return NextResponse.json({ error: "İsim zorunludur" }, { status: 400 });
@@ -119,6 +231,34 @@ export async function POST(req: Request) {
         canViewIkinciEl: canViewIkinciEl ?? false,
         canViewCihazSorgula: canViewCihazSorgula ?? false,
         canViewCihazKayit: canViewCihazKayit ?? false,
+        canCreateRecord: canCreateRecord ?? false,
+        canDeleteIkinciEl: canDeleteIkinciEl ?? false,
+        canDeleteServis: canDeleteServis ?? false,
+        canEditServis: canEditServis ?? false,
+        canEditIkinciEl: canEditIkinciEl ?? false,
+        canUpdateServisStatus: canUpdateServisStatus ?? false,
+        canAddDisServis: canAddDisServis ?? false,
+        canDeleteDisServis: canDeleteDisServis ?? false,
+        canEditDisServis: canEditDisServis ?? false,
+        canAddStok: canAddStok ?? false,
+        canDeleteStok: canDeleteStok ?? false,
+        canEditStok: canEditStok ?? false,
+        canAddCari: canAddCari ?? false,
+        canEditCari: canEditCari ?? false,
+        canDeleteCari: canDeleteCari ?? false,
+        canAddBayi: canAddBayi ?? false,
+        canEditBayi: canEditBayi ?? false,
+        canDeleteBayi: canDeleteBayi ?? false,
+        canAddPlan: canAddPlan ?? false,
+        canEditPlan: canEditPlan ?? false,
+        canDeletePlan: canDeletePlan ?? false,
+        canViewCiro: canViewCiro ?? false,
+        canPrintMusteri: canPrintMusteri ?? false,
+        canPrintTeslim: canPrintTeslim ?? false,
+        canPrintEtiket: canPrintEtiket ?? false,
+        canPrintAlimFisi: canPrintAlimFisi ?? false,
+        canPrintSatisFisi: canPrintSatisFisi ?? false,
+        canSellIkinciEl: canSellIkinciEl ?? false,
       },
     });
     return NextResponse.json({

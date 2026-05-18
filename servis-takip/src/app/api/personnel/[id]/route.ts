@@ -32,6 +32,34 @@ export async function PATCH(
       canViewIkinciEl,
       canViewCihazSorgula,
       canViewCihazKayit,
+      canCreateRecord,
+      canDeleteIkinciEl,
+      canDeleteServis,
+      canEditServis,
+      canEditIkinciEl,
+      canUpdateServisStatus,
+      canAddDisServis,
+      canDeleteDisServis,
+      canEditDisServis,
+      canAddStok,
+      canDeleteStok,
+      canEditStok,
+      canAddCari,
+      canEditCari,
+      canDeleteCari,
+      canAddBayi,
+      canEditBayi,
+      canDeleteBayi,
+      canAddPlan,
+      canEditPlan,
+      canDeletePlan,
+      canViewCiro,
+      canPrintMusteri,
+      canPrintTeslim,
+      canPrintEtiket,
+      canPrintAlimFisi,
+      canPrintSatisFisi,
+      canSellIkinciEl,
     } = (await req.json()) as {
       name?: string;
       password?: string;
@@ -47,6 +75,34 @@ export async function PATCH(
       canViewIkinciEl?: boolean;
       canViewCihazSorgula?: boolean;
       canViewCihazKayit?: boolean;
+      canCreateRecord?: boolean;
+      canDeleteIkinciEl?: boolean;
+      canDeleteServis?: boolean;
+      canEditServis?: boolean;
+      canEditIkinciEl?: boolean;
+      canUpdateServisStatus?: boolean;
+      canAddDisServis?: boolean;
+      canDeleteDisServis?: boolean;
+      canEditDisServis?: boolean;
+      canAddStok?: boolean;
+      canDeleteStok?: boolean;
+      canEditStok?: boolean;
+      canAddCari?: boolean;
+      canEditCari?: boolean;
+      canDeleteCari?: boolean;
+      canAddBayi?: boolean;
+      canEditBayi?: boolean;
+      canDeleteBayi?: boolean;
+      canAddPlan?: boolean;
+      canEditPlan?: boolean;
+      canDeletePlan?: boolean;
+      canViewCiro?: boolean;
+      canPrintMusteri?: boolean;
+      canPrintTeslim?: boolean;
+      canPrintEtiket?: boolean;
+      canPrintAlimFisi?: boolean;
+      canPrintSatisFisi?: boolean;
+      canSellIkinciEl?: boolean;
     };
 
     const existing = await prisma.personnel.findFirst({
@@ -69,6 +125,34 @@ export async function PATCH(
       canViewIkinciEl?: boolean;
       canViewCihazSorgula?: boolean;
       canViewCihazKayit?: boolean;
+      canCreateRecord?: boolean;
+      canDeleteIkinciEl?: boolean;
+      canDeleteServis?: boolean;
+      canEditServis?: boolean;
+      canEditIkinciEl?: boolean;
+      canUpdateServisStatus?: boolean;
+      canAddDisServis?: boolean;
+      canDeleteDisServis?: boolean;
+      canEditDisServis?: boolean;
+      canAddStok?: boolean;
+      canDeleteStok?: boolean;
+      canEditStok?: boolean;
+      canAddCari?: boolean;
+      canEditCari?: boolean;
+      canDeleteCari?: boolean;
+      canAddBayi?: boolean;
+      canEditBayi?: boolean;
+      canDeleteBayi?: boolean;
+      canAddPlan?: boolean;
+      canEditPlan?: boolean;
+      canDeletePlan?: boolean;
+      canViewCiro?: boolean;
+      canPrintMusteri?: boolean;
+      canPrintTeslim?: boolean;
+      canPrintEtiket?: boolean;
+      canPrintAlimFisi?: boolean;
+      canPrintSatisFisi?: boolean;
+      canSellIkinciEl?: boolean;
     } = {};
     if (name?.trim()) updateData.name = name.trim();
     if (typeof isAdmin === "boolean") updateData.isAdmin = isAdmin;
@@ -91,6 +175,48 @@ export async function PATCH(
       updateData.canViewCihazSorgula = canViewCihazSorgula;
     if (typeof canViewCihazKayit === "boolean")
       updateData.canViewCihazKayit = canViewCihazKayit;
+    if (typeof canCreateRecord === "boolean")
+      updateData.canCreateRecord = canCreateRecord;
+    if (typeof canDeleteIkinciEl === "boolean")
+      updateData.canDeleteIkinciEl = canDeleteIkinciEl;
+    if (typeof canDeleteServis === "boolean")
+      updateData.canDeleteServis = canDeleteServis;
+    if (typeof canEditServis === "boolean") updateData.canEditServis = canEditServis;
+    if (typeof canEditIkinciEl === "boolean")
+      updateData.canEditIkinciEl = canEditIkinciEl;
+    if (typeof canUpdateServisStatus === "boolean")
+      updateData.canUpdateServisStatus = canUpdateServisStatus;
+    if (typeof canAddDisServis === "boolean")
+      updateData.canAddDisServis = canAddDisServis;
+    if (typeof canDeleteDisServis === "boolean")
+      updateData.canDeleteDisServis = canDeleteDisServis;
+    if (typeof canEditDisServis === "boolean")
+      updateData.canEditDisServis = canEditDisServis;
+    if (typeof canAddStok === "boolean") updateData.canAddStok = canAddStok;
+    if (typeof canDeleteStok === "boolean") updateData.canDeleteStok = canDeleteStok;
+    if (typeof canEditStok === "boolean") updateData.canEditStok = canEditStok;
+    if (typeof canAddCari === "boolean") updateData.canAddCari = canAddCari;
+    if (typeof canEditCari === "boolean") updateData.canEditCari = canEditCari;
+    if (typeof canDeleteCari === "boolean") updateData.canDeleteCari = canDeleteCari;
+    if (typeof canAddBayi === "boolean") updateData.canAddBayi = canAddBayi;
+    if (typeof canEditBayi === "boolean") updateData.canEditBayi = canEditBayi;
+    if (typeof canDeleteBayi === "boolean") updateData.canDeleteBayi = canDeleteBayi;
+    if (typeof canAddPlan === "boolean") updateData.canAddPlan = canAddPlan;
+    if (typeof canEditPlan === "boolean") updateData.canEditPlan = canEditPlan;
+    if (typeof canDeletePlan === "boolean") updateData.canDeletePlan = canDeletePlan;
+    if (typeof canViewCiro === "boolean") updateData.canViewCiro = canViewCiro;
+    if (typeof canPrintMusteri === "boolean")
+      updateData.canPrintMusteri = canPrintMusteri;
+    if (typeof canPrintTeslim === "boolean")
+      updateData.canPrintTeslim = canPrintTeslim;
+    if (typeof canPrintEtiket === "boolean")
+      updateData.canPrintEtiket = canPrintEtiket;
+    if (typeof canPrintAlimFisi === "boolean")
+      updateData.canPrintAlimFisi = canPrintAlimFisi;
+    if (typeof canPrintSatisFisi === "boolean")
+      updateData.canPrintSatisFisi = canPrintSatisFisi;
+    if (typeof canSellIkinciEl === "boolean")
+      updateData.canSellIkinciEl = canSellIkinciEl;
     if (password?.trim()) {
       updateData.password = await bcrypt.hash(password.trim(), 10);
     } else if (password === "") {
@@ -116,6 +242,34 @@ export async function PATCH(
         canViewIkinciEl: true,
         canViewCihazSorgula: true,
         canViewCihazKayit: true,
+        canCreateRecord: true,
+        canDeleteIkinciEl: true,
+        canDeleteServis: true,
+        canEditServis: true,
+        canEditIkinciEl: true,
+        canUpdateServisStatus: true,
+        canAddDisServis: true,
+        canDeleteDisServis: true,
+        canEditDisServis: true,
+        canAddStok: true,
+        canDeleteStok: true,
+        canEditStok: true,
+        canAddCari: true,
+        canEditCari: true,
+        canDeleteCari: true,
+        canAddBayi: true,
+        canEditBayi: true,
+        canDeleteBayi: true,
+        canAddPlan: true,
+        canEditPlan: true,
+        canDeletePlan: true,
+        canViewCiro: true,
+        canPrintMusteri: true,
+        canPrintTeslim: true,
+        canPrintEtiket: true,
+        canPrintAlimFisi: true,
+        canPrintSatisFisi: true,
+        canSellIkinciEl: true,
       },
     });
     return NextResponse.json(updated);
