@@ -226,16 +226,7 @@ export default function IkinciElSatisFisPage() {
           </div>
 
           <div style={{ marginBottom: "20px" }}>
-            <h2
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#4f46e5",
-                marginBottom: "8px",
-              }}
-            >
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
               Satıcı Bilgileri
             </h2>
             <p style={{ fontSize: "14px", margin: "0 0 4px 0" }}>
