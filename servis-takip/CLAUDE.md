@@ -812,3 +812,47 @@ Admin olmayan personel bu URL'lere direkt giremez.
 ### Personel Ekle/Düzenle UI
 `src/app/(dashboard)/sirketim/page.tsx` — yetkiGruplari array'i ile gruplandırılmış checkbox UI.
 Admin yetkisi verilince tüm yetki checkboxları gizlenir.
+
+## Bugün Yapılanlar (19 Mayıs 2026)
+
+### Yetki Sistemi
+- `src/hooks/usePersonelYetki.ts` — granüler yetki kontrol hook'u
+- 28 yetki alanı: canView* (sayfa erişim) + canCreate/Edit/Delete/Print* (işlem)
+- Tüm sayfalara yetki kontrolleri eklendi
+- Dashboard: Planlarım blur, Son Kayıtlar blur, Ciro kilitleme
+- Personeller UI yeniden tasarlandı — iki kolon layout
+
+### İkinci El
+- Satılmış kayıtlar düzenlenebilir hale getirildi
+- Satış iptal butonu eklendi
+- Alım fişine Alıcı (dükkan) bilgileri eklendi
+- Satış fişine Satıcı (dükkan) bilgileri eklendi
+- `deviceCode` global unique → `@@unique([shopId, deviceCode])` düzeltildi
+
+### Raporlar
+- Silinen kayıtlar (`deletedAt: null`) raporlara dahil edilmeyecek
+
+### Bayi
+- Silme işleminde soft-delete edilmiş kayıtlar sayılmıyor
+- Silme öncesi bağlı kayıt sayısı gösteriliyor
+
+### Güvenlik
+- HTTP güvenlik başlıkları `next.config.mjs`'e eklendi
+- SPF, DKIM, DMARC DNS kayıtları isimtescil'de düzenlendi
+
+### KVKK
+- `/kvkk` sayfası oluşturuldu
+- Cookie banner eklendi
+- Kayıt formuna KVKK checkbox eklendi
+- Footer'a KVKK linki eklendi
+
+### SEO
+- Meta tags, OpenGraph, Twitter Card, canonical URL
+- JSON-LD structured data
+- Sitemap güncellendi (6 URL, www ile)
+- Google Search Console'a www mülkü eklendi
+
+### Fiyatlandırma
+- Tek paket modeline geçildi: ₺100/ay, ₺1.000/yıl
+- Landing page fiyatlandırma bölümü yeniden tasarlandı
+- Referanslar gerçek dükkan isimleriyle güncellendi
