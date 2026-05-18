@@ -659,6 +659,23 @@ function RevenueCiroCard({
 function UpcomingPaymentsCard() {
   const [plans, setPlans] = useState<PaymentPlanRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [planlarimYetkiVar, setPlanlarimYetkiVar] = useState(true);
+
+  useEffect(() => {
+    const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
+    if (isAdmin === null || isAdmin === "true") return;
+    const permsRaw = sessionStorage.getItem("activePersonnelPermissions");
+    if (!permsRaw) {
+      setPlanlarimYetkiVar(false);
+      return;
+    }
+    try {
+      const perms = JSON.parse(permsRaw) as Record<string, boolean>;
+      setPlanlarimYetkiVar(!!perms.canViewPlanlarim);
+    } catch {
+      setPlanlarimYetkiVar(false);
+    }
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -707,8 +724,38 @@ function UpcomingPaymentsCard() {
         borderRadius: "10px",
         background: "white",
         overflow: "hidden",
+        position: "relative",
       }}
     >
+      {!planlarimYetkiVar && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backdropFilter: "blur(6px)",
+            background: "rgba(255,255,255,0.6)",
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            borderRadius: "10px",
+          }}
+        >
+          <span style={{ fontSize: "24px" }}>🔒</span>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "#374151",
+              margin: 0,
+            }}
+          >
+            Bu alana erişim yetkiniz yok
+          </p>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
