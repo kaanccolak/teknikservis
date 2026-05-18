@@ -191,7 +191,9 @@ export async function DELETE(
   try {
     const row = await prisma.bayi.findFirst({ where: { id, shopId: shop.id } });
     if (!row) return NextResponse.json({ error: "Bayi bulunamadı" }, { status: 404 });
-    const linkedCount = await prisma.serviceOrder.count({ where: { shopId: shop.id, bayiId: id } });
+    const linkedCount = await prisma.serviceOrder.count({
+      where: { shopId: shop.id, bayiId: id, deletedAt: null },
+    });
     if (linkedCount > 0 && !force) {
       return NextResponse.json(
         { error: "Bu bayiye bağlı servis kayıtları var", linkedCount },
