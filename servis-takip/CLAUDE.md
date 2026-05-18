@@ -741,3 +741,74 @@ src/lib/supabase/
 - `src/app/sitemap.ts` — www ile 6 URL (landing, login, sorgula, kvkk, gizlilik, hizmet şartları)
 - Google Search Console — hem www hem www'suz mülk eklendi, sitemap gönderildi
 - Referanslar gerçek dükkan isimleriyle güncellendi (Atarici, Konsol Plus, MOTSAN)
+
+## Personel Yetki Sistemi
+
+### Genel Yapı
+- Personel giriş modu kapalıysa yetki sistemi devreye girmez — herkes her şeyi yapabilir
+- `isAdmin: true` olan personel tüm yetkilere sahip, hiçbir kısıtlamaya takılmaz
+- `isAdmin: false` olan personel için granüler yetki sistemi aktif
+
+### Yetki Depolama
+- Personel seçilince yetkiler `sessionStorage.activePersonnelPermissions` (JSON) olarak kaydedilir
+- Çıkış, personel değiştirme veya personel giriş modu kapatılınca temizlenir
+
+### usePersonelYetki Hook
+`src/hooks/usePersonelYetki.ts` — tüm sayfalarda kullanılan yetki kontrol hook'u:
+```typescript
+const { yetkiVar } = usePersonelYetki();
+yetkiVar("canEditServis") // true/false döner, admin ise her zaman true
+```
+
+### Sayfa Erişim Yetkileri (Personnel DB alanları)
+- `canViewCihazKayit` — Cihaz Kayıt sayfası
+- `canViewCihazSorgula` — Cihaz Sorgula sayfası
+- `canViewBekleyen` — Bekleyen Cihazlar sayfası
+- `canViewIkinciEl` — İkinci El Cihazlar sayfası
+- `canViewDisServis` — Dış Servisler sayfası
+- `canViewStok` — Stok Yönetimi sayfası
+- `canViewCari` — Cari Yönetimi sayfası
+- `canViewBayiler` — Bayiler sayfası
+- `canViewPlanlarim` — Planlarım sayfası (yoksa dashboard'da blur)
+- `canViewRaporlar` — Raporlar sayfası
+- `canViewSirketim` — Şirketim sayfası
+
+### Servis İşlem Yetkileri
+- `canCreateRecord` — Cihaz kaydı yapma (servis & ikinci el)
+- `canEditServis` — Servis kaydı düzenleme
+- `canDeleteServis` — Servis kaydı silme
+- `canUpdateServisStatus` — Servis durum güncelleme
+- `canEditIkinciEl` — İkinci el kaydı düzenleme
+- `canDeleteIkinciEl` — İkinci el kaydı silme
+- `canSellIkinciEl` — İkinci el satışa çevirme / satış iptal
+- `canAddDisServis` / `canEditDisServis` / `canDeleteDisServis` — Dış servis işlemleri
+- `canAddStok` / `canEditStok` / `canDeleteStok` — Stok işlemleri
+- `canAddCari` / `canEditCari` / `canDeleteCari` — Cari işlemleri
+- `canAddBayi` / `canEditBayi` / `canDeleteBayi` — Bayi işlemleri
+- `canAddPlan` / `canEditPlan` / `canDeletePlan` — Plan işlemleri
+- `canViewCiro` — Dashboard ciro görme
+- `canPrintMusteri` — Müşteri nüshası çıktısı
+- `canPrintTeslim` — Teslim fişi çıktısı
+- `canPrintEtiket` — Cihaz etiketi çıktısı
+- `canPrintAlimFisi` — İkinci el alım fişi çıktısı
+- `canPrintSatisFisi` — İkinci el satış fişi çıktısı
+
+### Uygulanan Sayfalar
+- `src/app/(dashboard)/servis-detay/[id]/page.tsx`
+- `src/app/(dashboard)/ikinci-el/[id]/page.tsx`
+- `src/app/(dashboard)/ikinci-el/page.tsx`
+- `src/app/(dashboard)/dis-servis/page.tsx`
+- `src/app/(dashboard)/stok/page.tsx`
+- `src/app/(dashboard)/cari/page.tsx`
+- `src/app/(dashboard)/bayiler/page.tsx`
+- `src/app/(dashboard)/planlarim/page.tsx`
+- `src/app/(dashboard)/cihaz-kayit/page.tsx`
+- `src/app/(dashboard)/page.tsx` (ciro, planlarım blur, son kayıtlar blur)
+
+### Middleware URL Koruması
+`personnelIsAdmin` cookie'si ile `/sirketim`, `/raporlar`, `/planlarim` rotaları korunuyor.
+Admin olmayan personel bu URL'lere direkt giremez.
+
+### Personel Ekle/Düzenle UI
+`src/app/(dashboard)/sirketim/page.tsx` — yetkiGruplari array'i ile gruplandırılmış checkbox UI.
+Admin yetkisi verilince tüm yetki checkboxları gizlenir.
