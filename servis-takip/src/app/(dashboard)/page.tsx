@@ -26,6 +26,7 @@ import {
   formatPlanDate,
   getDaysColor,
 } from "@/lib/payment-plan-helpers";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 import { cn } from "@/lib/utils";
 
 function InfoTooltip({ text }: { text: string }) {
@@ -374,6 +375,7 @@ function RevenueCiroCard({
   /** Ana dashboard yüklemesindeki günlük ciro; period=daily iken ek API çağrısı yapılmaz */
   dailyRevenueFromDashboard: number;
 }) {
+  const { yetkiVar } = usePersonelYetki();
   const [ciroGoster, setCiroGoster] = useState(false);
   const [period, setPeriod] = useState<RevenuePeriod>("daily");
   const [startDate, setStartDate] = useState("");
@@ -488,6 +490,33 @@ function RevenueCiroCard({
           height: "100%",
         }}
       >
+        {!yetkiVar("canViewCiro") ? (
+          <div
+            style={{
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              minHeight: "120px",
+              width: "100%",
+            }}
+          >
+            <span style={{ fontSize: "24px" }}>🔒</span>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                margin: 0,
+                fontWeight: 500,
+              }}
+            >
+              Ciro görme yetkiniz yok
+            </p>
+          </div>
+        ) : (
+          <>
         <div style={{ flexShrink: 0 }}>
           <div
             style={{
@@ -633,6 +662,8 @@ function RevenueCiroCard({
             </button>
           ))}
         </div>
+          </>
+        )}
       </div>
 
       {period === "range" ? (
