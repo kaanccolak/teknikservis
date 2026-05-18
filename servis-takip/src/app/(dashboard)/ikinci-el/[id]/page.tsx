@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
 type Detail = {
   id: string;
@@ -109,6 +110,7 @@ export default function IkinciElDetayPage() {
   const params = useParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : "";
+  const { yetkiVar } = usePersonelYetki();
 
   const [row, setRow] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -372,18 +374,21 @@ export default function IkinciElDetayPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href={`/ikinci-el/${id}/duzenle`}
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "gap-1",
-              )}
-            >
-              <Pencil className="size-3.5" aria-hidden />
-              ✏ Düzenle
-            </Link>
-            <Link
-              href={`/ikinci-el-fis/${id}`}
+            {yetkiVar("canEditIkinciEl") && (
+              <Link
+                href={`/ikinci-el/${id}/duzenle`}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "gap-1",
+                )}
+              >
+                <Pencil className="size-3.5" aria-hidden />
+                ✏ Düzenle
+              </Link>
+            )}
+            {yetkiVar("canPrintAlimFisi") && (
+              <Link
+                href={`/ikinci-el-fis/${id}`}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
@@ -393,8 +398,9 @@ export default function IkinciElDetayPage() {
             >
               <Printer className="size-3.5" aria-hidden />
               🖨 Alım fişi
-            </Link>
-            {row.isSold ? (
+              </Link>
+            )}
+            {row.isSold && yetkiVar("canPrintSatisFisi") ? (
               <Link
                 href={`/ikinci-el-satis-fisi/${id}`}
                 target="_blank"
@@ -408,7 +414,7 @@ export default function IkinciElDetayPage() {
                 🖨 Satış fişi
               </Link>
             ) : null}
-            {row.isSold ? (
+            {row.isSold && yetkiVar("canSellIkinciEl") ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -419,7 +425,7 @@ export default function IkinciElDetayPage() {
                 {satisCikariliyor ? "İptal ediliyor..." : "✕ Satışı İptal Et"}
               </Button>
             ) : null}
-            {!row.isSold ? (
+            {!row.isSold && yetkiVar("canSellIkinciEl") ? (
               <Button
                 type="button"
                 size="sm"
@@ -429,16 +435,18 @@ export default function IkinciElDetayPage() {
                 ✓ Satıldı olarak işaretle
               </Button>
             ) : null}
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="border-red-200 text-red-600 hover:bg-red-50"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 className="mr-1 size-3.5" aria-hidden />
-              🗑 Sil
-            </Button>
+            {yetkiVar("canDeleteIkinciEl") && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 className="mr-1 size-3.5" aria-hidden />
+                🗑 Sil
+              </Button>
+            )}
           </div>
         </div>
       </div>
