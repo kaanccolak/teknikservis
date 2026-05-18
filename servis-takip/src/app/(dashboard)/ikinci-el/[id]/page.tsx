@@ -125,6 +125,7 @@ export default function IkinciElDetayPage() {
   >(null);
   const [saleOpen, setSaleOpen] = useState(false);
   const [saleSubmitting, setSaleSubmitting] = useState(false);
+  const [satisCikariliyor, setSatisCikariliyor] = useState(false);
 
   const saleForm = useForm<SaleFormValues>({
     defaultValues: {
@@ -286,6 +287,28 @@ export default function IkinciElDetayPage() {
     }
   }
 
+  async function handleSatisIptal() {
+    if (!confirm("Satışı iptal etmek istediğinize emin misiniz? Alıcı bilgileri silinecek.")) return;
+    setSatisCikariliyor(true);
+    try {
+      const res = await fetch(`/api/second-hand/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isSold: false }),
+      });
+      if (res.ok) {
+        toast.success("Satış iptal edildi, cihaz stoğa geri döndü.");
+        router.refresh();
+      } else {
+        toast.error("Satış iptal edilemedi.");
+      }
+    } catch {
+      toast.error("Bir hata oluştu.");
+    } finally {
+      setSatisCikariliyor(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center gap-2 py-24 text-slate-600">
@@ -384,6 +407,17 @@ export default function IkinciElDetayPage() {
                 <Printer className="size-3.5" aria-hidden />
                 🖨 Satış fişi
               </Link>
+            ) : null}
+            {row.isSold ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:bg-red-50"
+                onClick={() => void handleSatisIptal()}
+                disabled={satisCikariliyor}
+              >
+                {satisCikariliyor ? "İptal ediliyor..." : "✕ Satışı İptal Et"}
+              </Button>
             ) : null}
             {!row.isSold ? (
               <Button
