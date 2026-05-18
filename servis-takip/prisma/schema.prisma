@@ -63,6 +63,17 @@ model Personnel {
   name          String
   password      String?
   isAdmin       Boolean        @default(false)
+  canViewSirketim      Boolean @default(false)
+  canViewRaporlar      Boolean @default(false)
+  canViewPlanlarim     Boolean @default(false)
+  canViewBayiler       Boolean @default(false)
+  canViewCari          Boolean @default(false)
+  canViewStok          Boolean @default(false)
+  canViewDisServis     Boolean @default(false)
+  canViewBekleyen      Boolean @default(false)
+  canViewIkinciEl      Boolean @default(false)
+  canViewCihazSorgula  Boolean @default(false)
+  canViewCihazKayit    Boolean @default(false)
   createdAt     DateTime       @default(now())
   serviceOrders ServiceOrder[]
   statusLogs    StatusLog[]
