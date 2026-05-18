@@ -26,6 +26,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
+import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 import { cn } from "@/lib/utils";
 
 type Row = {
@@ -66,6 +67,7 @@ function formatPhone(stored: string | null): string {
 }
 
 function IkinciElInner() {
+  const { yetkiVar } = usePersonelYetki();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -356,15 +358,17 @@ function IkinciElInner() {
             Satın alınan ikinci el cihaz kayıtları
           </p>
         </div>
-        <Link
-          href="/cihaz-kayit?mode=secondhand"
-          className={cn(
-            buttonVariants({ size: "default" }),
-            "shrink-0 bg-violet-600 text-white hover:bg-violet-700",
-          )}
-        >
-          Yeni kayıt ekle
-        </Link>
+        {yetkiVar("canCreateRecord") && (
+          <Link
+            href="/cihaz-kayit?mode=secondhand"
+            className={cn(
+              buttonVariants({ size: "default" }),
+              "shrink-0 bg-violet-600 text-white hover:bg-violet-700",
+            )}
+          >
+            Yeni kayıt ekle
+          </Link>
+        )}
       </div>
 
       {metaError ? (
@@ -870,27 +874,31 @@ function IkinciElInner() {
                         >
                           Detay
                         </Link>
-                        <Link
-                          href={`/ikinci-el/${row.id}/duzenle`}
-                          onClick={(e) => e.stopPropagation()}
-                          className={cn(
-                            buttonVariants({ variant: "outline", size: "sm" }),
-                            "pointer-events-auto",
-                          )}
-                        >
-                          Düzenle
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="pointer-events-auto text-red-600 hover:bg-red-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteId(row.id);
-                          }}
-                        >
-                          Sil
-                        </Button>
+                        {yetkiVar("canEditIkinciEl") && (
+                          <Link
+                            href={`/ikinci-el/${row.id}/duzenle`}
+                            onClick={(e) => e.stopPropagation()}
+                            className={cn(
+                              buttonVariants({ variant: "outline", size: "sm" }),
+                              "pointer-events-auto",
+                            )}
+                          >
+                            Düzenle
+                          </Link>
+                        )}
+                        {yetkiVar("canDeleteIkinciEl") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="pointer-events-auto text-red-600 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(row.id);
+                            }}
+                          >
+                            Sil
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
