@@ -253,6 +253,8 @@ export async function POST(request: Request) {
           customerPhone: string;
           deviceModel: string;
           brand: string;
+          brandName: string;
+          modelName: string;
           customerIsNew: boolean;
           personnelId: string | null;
         }
@@ -392,6 +394,8 @@ export async function POST(request: Request) {
             customerPhone: customer.phone ?? "",
             deviceModel: deviceModel.name,
             brand: brand.name,
+            brandName: brand.name,
+            modelName: deviceModel.name,
             customerIsNew,
             personnelId: personnelIdCreate,
           };
@@ -437,7 +441,7 @@ export async function POST(request: Request) {
         });
         if (personnel?.phone) {
           const { sendBaileysMessage } = await import("@/lib/baileys-client");
-          const message = `🔧 Yeni İş Emri\n\nMüşteri: ${order.customerName}\nCihaz: ${order.brand?.name ?? ""} ${order.deviceModel?.name ?? ""}\nKayıt No: ${order.orderNumber}\n\nBu cihaz size atandı.`;
+          const message = `🔧 Yeni İş Emri\n\nMüşteri: ${order.customerName}\nCihaz: ${order.brandName ?? ""} ${order.modelName ?? ""}\nKayıt No: ${order.orderNumber}\n\nBu cihaz size atandı.`;
           void sendBaileysMessage(shop.id, personnel.phone, message).catch(
             (err) => console.error("[Personnel WA]", err),
           );
