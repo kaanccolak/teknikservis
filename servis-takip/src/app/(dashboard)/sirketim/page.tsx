@@ -2075,6 +2075,7 @@ function SirketimPageInner() {
     {
       id: string;
       name: string;
+      phone: string | null;
       hasPassword: boolean;
       isAdmin: boolean;
       canViewSirketim: boolean;
@@ -2120,6 +2121,7 @@ function SirketimPageInner() {
   >([]);
   const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
   const [yeniPersonelSifre, setYeniPersonelSifre] = useState("");
+  const [yeniPersonelTelefon, setYeniPersonelTelefon] = useState("");
   const [yeniPersonelAdmin, setYeniPersonelAdmin] = useState(false);
   const [yeniPersonelYetkiler, setYeniPersonelYetkiler] = useState({
     canViewSirketim: false,
@@ -2165,6 +2167,7 @@ function SirketimPageInner() {
   const [duzenleId, setDuzenleId] = useState<string | null>(null);
   const [duzenleAd, setDuzenleAd] = useState("");
   const [duzenleSifre, setDuzenleSifre] = useState("");
+  const [duzenleTelefon, setDuzenleTelefon] = useState("");
   const [duzenleAdmin, setDuzenleAdmin] = useState(false);
   const [duzenleYetkiler, setDuzenleYetkiler] = useState({
     canViewSirketim: false,
@@ -2685,6 +2688,7 @@ function SirketimPageInner() {
         body: JSON.stringify({
           name: yeniPersonelAdi.trim(),
           password: yeniPersonelSifre || undefined,
+          phone: yeniPersonelTelefon || undefined,
           isAdmin: yeniPersonelAdmin,
           ...yeniPersonelYetkiler,
         }),
@@ -2709,6 +2713,7 @@ function SirketimPageInner() {
       ]);
       setYeniPersonelAdi("");
       setYeniPersonelSifre("");
+      setYeniPersonelTelefon("");
       setYeniPersonelAdmin(false);
       setYeniPersonelYetkiler({
         canViewSirketim: false,
@@ -2762,6 +2767,7 @@ function SirketimPageInner() {
   function handlePersonelDuzenleBaslat(p: (typeof personeller)[number]) {
     setDuzenleId(p.id);
     setDuzenleAd(p.name);
+    setDuzenleTelefon(p.phone ?? "");
     setDuzenleSifre("");
     setDuzenleAdmin(p.isAdmin);
     setDuzenleYetkiler({
@@ -2824,6 +2830,7 @@ function SirketimPageInner() {
         body: JSON.stringify({
           name: duzenleAd.trim(),
           password: duzenleSifre || undefined,
+          phone: duzenleTelefon || undefined,
           isAdmin: duzenleAdmin,
           ...duzenleYetkiler,
         }),
@@ -4700,6 +4707,13 @@ function SirketimPageInner() {
                       placeholder={duzenleId ? "Yeni şifre (boş bırak = değişmez)" : "Şifre (opsiyonel)"}
                       style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "9px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
                     />
+                    <input
+                      type="tel"
+                      value={duzenleId ? duzenleTelefon : yeniPersonelTelefon}
+                      onChange={(e) => duzenleId ? setDuzenleTelefon(e.target.value) : setYeniPersonelTelefon(e.target.value)}
+                      placeholder="Telefon (opsiyonel, WhatsApp bildirimi için)"
+                      style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "9px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
+                    />
                     <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#374151", cursor: "pointer" }}>
                       <input
                         type="checkbox"
@@ -4815,6 +4829,9 @@ function SirketimPageInner() {
                                   <span style={{ fontSize: "10px", background: "#dbeafe", color: "#1d4ed8", padding: "1px 6px", borderRadius: "10px" }}>🔒 Şifreli</span>
                                 )}
                               </div>
+                              {p.phone && (
+                                <span style={{ fontSize: "11px", color: "#6b7280" }}>📞 {p.phone}</span>
+                              )}
                               {!p.isAdmin && (
                                 <p style={{ fontSize: "11px", color: "#9ca3af", margin: "2px 0 0 0" }}>
                                   {Object.entries(p).filter(([k, v]) => k.startsWith("canView") && v === true).length} sayfa · {Object.entries(p).filter(([k, v]) => !k.startsWith("canView") && k.startsWith("can") && v === true).length} işlem yetkisi
