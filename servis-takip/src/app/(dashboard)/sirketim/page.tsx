@@ -2761,6 +2761,7 @@ function SirketimPageInner() {
         canPrintAlimFisi: false,
         canPrintSatisFisi: false,
         canSellIkinciEl: false,
+        canAssignPersonnel: false,
       });
       toast.success("Personel eklendi");
     } catch {
