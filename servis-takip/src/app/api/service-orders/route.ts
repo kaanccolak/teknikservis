@@ -164,6 +164,9 @@ export async function GET(request: Request) {
           personnel: {
             select: { id: true, name: true, phone: true },
           },
+          assignedPersonnel: {
+            select: { id: true, name: true },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),
