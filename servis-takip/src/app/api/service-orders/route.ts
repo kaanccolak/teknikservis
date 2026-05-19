@@ -254,6 +254,7 @@ export async function POST(request: Request) {
           deviceModel: string;
           brand: string;
           customerIsNew: boolean;
+          personnelId: string | null;
         }
       | undefined;
     let lastTxError: unknown;
@@ -392,6 +393,7 @@ export async function POST(request: Request) {
             deviceModel: deviceModel.name,
             brand: brand.name,
             customerIsNew,
+            personnelId: personnelIdCreate,
           };
         });
         break;
@@ -424,6 +426,25 @@ export async function POST(request: Request) {
         },
         order.orderNumber,
       ).catch((err) => console.error("[Google Contacts]", err));
+    }
+
+    // Atanan personele WhatsApp bildirimi gönder
+    if (order.personnelId) {
+      try {
+        const personnel = await prisma.personnel.findFirst({
+          where: { id: order.personnelId, shopId: shop.id },
+          select: { name: true, phone: true },
+        });
+        if (personnel?.phone) {
+          const { sendBaileysMessage } = await import("@/lib/baileys-client");
+          const message = `🔧 Yeni İş Emri\n\nMüşteri: ${order.customerName}\nCihaz: ${order.brand?.name ?? ""} ${order.deviceModel?.name ?? ""}\nKayıt No: ${order.orderNumber}\n\nBu cihaz size atandı.`;
+          void sendBaileysMessage(shop.id, personnel.phone, message).catch(
+            (err) => console.error("[Personnel WA]", err),
+          );
+        }
+      } catch (err) {
+        console.error("[Personnel WA]", err);
+      }
     }
 
     return NextResponse.json({
