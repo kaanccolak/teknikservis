@@ -107,8 +107,9 @@ model Personnel {
   canSellIkinciEl       Boolean @default(false)
   canAssignPersonnel    Boolean @default(false)
   createdAt     DateTime       @default(now())
-  serviceOrders ServiceOrder[]
-  statusLogs    StatusLog[]
+  serviceOrders   ServiceOrder[] @relation("ServiceOrderPersonnel")
+  assignedOrders  ServiceOrder[] @relation("AssignedPersonnel")
+  statusLogs      StatusLog[]
 
   @@index([shopId])
 }
@@ -285,7 +286,9 @@ model ServiceOrder {
   bayiId     String?
   bayi       Bayi?    @relation(fields: [bayiId], references: [id])
   personnelId String?
-  personnel   Personnel? @relation(fields: [personnelId], references: [id], onDelete: SetNull)
+  personnel   Personnel? @relation("ServiceOrderPersonnel", fields: [personnelId], references: [id], onDelete: SetNull)
+  assignedPersonnelId String?
+  assignedPersonnel   Personnel? @relation("AssignedPersonnel", fields: [assignedPersonnelId], references: [id], onDelete: SetNull)
 
   deviceTypeId   String?
   brandId        String?
