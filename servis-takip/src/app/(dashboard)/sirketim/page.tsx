@@ -4724,7 +4724,11 @@ function SirketimPageInner() {
                         value={duzenleId ? duzenleTelefon : yeniPersonelTelefon}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                          duzenleId ? setDuzenleTelefon(val) : setYeniPersonelTelefon(val);
+                          if (duzenleId) {
+                            setDuzenleTelefon(val);
+                          } else {
+                            setYeniPersonelTelefon(val);
+                          }
                         }}
                         placeholder="5XX XXX XX XX"
                         style={{ border: "none", outline: "none", padding: "9px 12px", fontSize: "14px", flex: 1, width: "100%" }}
