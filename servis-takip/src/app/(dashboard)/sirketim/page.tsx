@@ -2697,6 +2697,7 @@ function SirketimPageInner() {
         id: string;
         name: string;
         isAdmin: boolean;
+        phone: string | null;
         error?: string;
       };
       if (!res.ok) {
