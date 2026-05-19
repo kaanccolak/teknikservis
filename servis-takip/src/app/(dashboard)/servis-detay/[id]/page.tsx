@@ -170,6 +170,7 @@ type ServiceOrderDetail = {
   brand: NamedEntity | null;
   deviceModel: NamedEntity | null;
   personnel?: { name: string } | null;
+  assignedPersonnel?: { id: string; name: string; phone?: string | null } | null;
   statusLogs: StatusLogRow[];
   sparePartUsages?: SparePartUsageRow[];
   deliveryType?: string | null;
@@ -321,6 +322,9 @@ export default function ServisDetayPage() {
   const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
     [],
   );
+  const [isAtamaOpen, setIsAtamaOpen] = useState(false);
+  const [yeniAtananPersonelId, setYeniAtananPersonelId] = useState("");
+  const [isAtamaYapiliyor, setIsAtamaYapiliyor] = useState(false);
   const [secilenPersonelId, setSecilenPersonelId] = useState("");
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
   const [waSending, setWaSending] = useState(false);
@@ -695,6 +699,22 @@ export default function ServisDetayPage() {
       throw new Error(msg);
     }
     return data as ServiceOrderDetail;
+  }
+
+  async function handleIsEmirleriYenidenAta() {
+    if (!yeniAtananPersonelId) return;
+    setIsAtamaYapiliyor(true);
+    try {
+      await patchOrder({ assignedPersonnelId: yeniAtananPersonelId });
+      toast.success("İş emri yeniden atandı");
+      setIsAtamaOpen(false);
+      setYeniAtananPersonelId("");
+      void load();
+    } catch {
+      toast.error("Atama yapılamadı");
+    } finally {
+      setIsAtamaYapiliyor(false);
+    }
   }
 
   useEffect(() => {
@@ -2382,6 +2402,9 @@ export default function ServisDetayPage() {
                 {order.personnel?.name ? (
                   <DetailRow label="Kaydı yapan">{order.personnel.name}</DetailRow>
                 ) : null}
+                {order.assignedPersonnel?.name ? (
+                  <DetailRow label="İş Atanan Personel">{order.assignedPersonnel.name}</DetailRow>
+                ) : null}
               </dl>
             </CardContent>
           </Card>
@@ -2871,6 +2894,48 @@ export default function ServisDetayPage() {
         </div>
 
         <div className="space-y-6 lg:col-span-1">
+          {yetkiVar("canAssignPersonnel") && (
+            <Card className="border-slate-200/80 bg-white shadow-sm">
+              <CardHeader
+                className="cursor-pointer select-none"
+                onClick={() => setIsAtamaOpen((v) => !v)}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <CardTitle style={{ fontSize: "14px" }}>İş Emri Atama</CardTitle>
+                    <CardDescription>
+                      {order.assignedPersonnel?.name
+                        ? `Şu an: ${order.assignedPersonnel.name}`
+                        : "Henüz atanmadı"}
+                    </CardDescription>
+                  </div>
+                  <span style={{ color: "#6b7280" }}>{isAtamaOpen ? "▲" : "▼"}</span>
+                </div>
+              </CardHeader>
+              {isAtamaOpen && (
+                <CardContent>
+                  <select
+                    value={yeniAtananPersonelId}
+                    onChange={(e) => setYeniAtananPersonelId(e.target.value)}
+                    style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", outline: "none", marginBottom: "10px" }}
+                  >
+                    <option value="">Personel seçin</option>
+                    {personeller.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void handleIsEmirleriYenidenAta()}
+                    disabled={isAtamaYapiliyor || !yeniAtananPersonelId}
+                    style={{ width: "100%", padding: "9px", background: "#111827", color: "white", border: "none", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}
+                  >
+                    {isAtamaYapiliyor ? "Atanıyor..." : "Ata"}
+                  </button>
+                </CardContent>
+              )}
+            </Card>
+          )}
           {yetkiVar("canUpdateServisStatus") && (
           <Card>
             <CardHeader className="border-b border-slate-100 pb-4">
@@ -3461,21 +3526,30 @@ export default function ServisDetayPage() {
                           </div>
                         ) : (
                           <p className="mt-1 text-slate-800">
-                            <span className="font-medium">
-                              {log.oldStatus
-                                ? serviceOrderStatusLabel(log.oldStatus)
-                                : "—"}
-                            </span>
-                            <span className="mx-1.5 text-slate-400">→</span>
-                            <span className="font-medium">
-                              {serviceOrderStatusLabel(log.newStatus)}
-                            </span>
-                            {log.personnel?.name ? (
-                              <span style={{ fontSize: "11px", color: "#6b7280" }}>
-                                {" "}
-                                — {log.personnel.name}
+                            {log.newStatus === "assigned" ? (
+                              <span style={{ fontWeight: 500, color: "#4f46e5" }}>
+                                🔧 İş Emri Atandı
+                                {log.personnel?.name ? ` → ${log.personnel.name}` : ""}
                               </span>
-                            ) : null}
+                            ) : (
+                              <>
+                                <span className="font-medium">
+                                  {log.oldStatus
+                                    ? serviceOrderStatusLabel(log.oldStatus)
+                                    : "—"}
+                                </span>
+                                <span className="mx-1.5 text-slate-400">→</span>
+                                <span className="font-medium">
+                                  {serviceOrderStatusLabel(log.newStatus)}
+                                </span>
+                                {log.personnel?.name ? (
+                                  <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                                    {" "}
+                                    — {log.personnel.name}
+                                  </span>
+                                ) : null}
+                              </>
+                            )}
                           </p>
                         )}
                         {log.note ? (
