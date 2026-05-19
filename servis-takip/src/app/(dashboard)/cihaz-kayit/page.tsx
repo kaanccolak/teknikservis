@@ -242,6 +242,7 @@ function CihazKayitServiceInner({
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
   const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
   const [canCreateRecord, setCanCreateRecord] = useState(true);
+  const [canAssignPersonnel, setCanAssignPersonnel] = useState(false);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -344,8 +345,10 @@ function CihazKayitServiceInner({
         try {
           const perms = JSON.parse(permsRaw) as Record<string, boolean>;
           setCanCreateRecord(!!perms["canCreateRecord"]);
+          setCanAssignPersonnel(!!perms["canAssignPersonnel"]);
         } catch {
           setCanCreateRecord(false);
+          setCanAssignPersonnel(false);
         }
       } else {
         setCanCreateRecord(false);
@@ -1157,13 +1160,19 @@ function CihazKayitServiceInner({
 
             <Card className="border-slate-200/80 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>Kaydı yapan personel</CardTitle>
+                <CardTitle>
+                  {aktifPersonelIsAdmin || canAssignPersonnel
+                    ? "İş Atama / Kaydı Yapan Personel"
+                    : "Kaydı yapan personel"}
+                </CardTitle>
                 <CardDescription>
-                  Bu kaydı hangi personel oluşturdu?
+                  {aktifPersonelIsAdmin || canAssignPersonnel
+                    ? "Bu kaydı hangi personele atamak istiyorsunuz?"
+                    : "Bu kaydı hangi personel oluşturdu?"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {aktifPersonelIsAdmin ? (
+                {aktifPersonelIsAdmin || canAssignPersonnel ? (
                   <>
                     <Controller
                       name="personnelId"
