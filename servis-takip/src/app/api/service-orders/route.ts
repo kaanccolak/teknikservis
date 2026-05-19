@@ -438,31 +438,6 @@ export async function POST(request: Request) {
       ).catch((err) => console.error("[Google Contacts]", err));
     }
 
-    // Atanan personele WhatsApp bildirimi gönder
-    if (order.personnelId) {
-      try {
-        const personnel = await prisma.personnel.findFirst({
-          where: { id: order.personnelId, shopId: shop.id },
-          select: { name: true, phone: true },
-        });
-        if (personnel?.phone) {
-          const { sendBaileysMessage } = await import("@/lib/baileys-client");
-          // Telefonu uluslararası formata çevir
-          let phone = personnel.phone.replace(/\D/g, ""); // sadece rakamlar
-          if (phone.startsWith("0")) phone = "90" + phone.slice(1);
-          else if (phone.startsWith("+90")) phone = phone.slice(1);
-          else if (!phone.startsWith("90")) phone = "90" + phone;
-
-          const message = `🔧 Yeni İş Emri\n\nMüşteri: ${order.customerName}\nCihaz: ${order.brandName ?? ""} ${order.modelName ?? ""}\nKayıt No: ${order.orderNumber}\n\nBu cihaz size atandı.`;
-          void sendBaileysMessage(shop.id, phone, message).catch(
-            (err) => console.error("[Personnel WA]", err),
-          );
-        }
-      } catch (err) {
-        console.error("[Personnel WA]", err);
-      }
-    }
-
     return NextResponse.json({
       id: order.id,
       orderNumber: order.orderNumber,
