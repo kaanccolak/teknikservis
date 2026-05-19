@@ -390,7 +390,7 @@ export async function PATCH(
         select: { id: true, name: true },
       });
       if (pRow) {
-        prismaData.assignedPersonnelId = pRow.id;
+        prismaData.assignedPersonnel = { connect: { id: pRow.id } };
         assignedPersonnelStatusLog = {
           oldStatus: existing.assignedPersonnelId ?? null,
           note: `İş emri ${pRow.name} adlı personele atandı`,
@@ -398,7 +398,7 @@ export async function PATCH(
         };
       }
     } else {
-      prismaData.assignedPersonnelId = null;
+      prismaData.assignedPersonnel = { disconnect: true };
     }
   }
 
