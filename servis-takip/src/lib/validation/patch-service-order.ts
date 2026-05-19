@@ -17,6 +17,7 @@ const statusEnum = z.enum(statusLiterals);
 export const patchServiceOrderSchema = z
   .object({
     personnelId: z.string().optional(),
+    assignedPersonnelId: z.string().nullable().optional(),
     status: statusEnum.optional(),
     totalPrice: z.number().min(0).max(99_999_999).nullable().optional(),
     estimatedPrice: z.number().min(0).max(99_999_999).nullable().optional(),
