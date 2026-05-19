@@ -245,6 +245,7 @@ function CihazKayitServiceInner({
   const [canAssignPersonnel, setCanAssignPersonnel] = useState(false);
   const [isAtamaAcik, setIsAtamaAcik] = useState(false);
   const [isAtananPersonelId, setIsAtananPersonelId] = useState("");
+  const [isAtamaModuAktif, setIsAtamaModuAktif] = useState(false);
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -331,6 +332,9 @@ function CihazKayitServiceInner({
   useEffect(() => {
     const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
     setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+
+    const isAtamaMod = sessionStorage.getItem("isAtamaModuAktif");
+    setIsAtamaModuAktif(isAtamaMod === "true");
 
     if (isAdmin === "false") {
       const aktifPersonelId = sessionStorage.getItem("activePersonnelId");
@@ -1205,7 +1209,7 @@ function CihazKayitServiceInner({
             </Card>
 
             {/* İş Atama — sadece canAssignPersonnel yetkisi varsa */}
-            {(aktifPersonelIsAdmin || canAssignPersonnel) && (
+            {(aktifPersonelIsAdmin || canAssignPersonnel) && isAtamaModuAktif && (
               <Card className="border-slate-200/80 bg-white shadow-sm">
                 <CardHeader
                   className="cursor-pointer select-none"
