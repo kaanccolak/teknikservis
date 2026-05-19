@@ -83,6 +83,7 @@ export default function IsEmirleriPage() {
 
   useEffect(() => {
     const params = new URLSearchParams();
+    params.set("assignedOnly", "true");
     if (secilenPersonel) params.set("personnelId", secilenPersonel);
     if (secilenDurum) params.set("status", secilenDurum);
     setYukleniyor(true);

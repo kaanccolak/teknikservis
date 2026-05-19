@@ -94,6 +94,9 @@ export async function GET(request: Request) {
     ...(searchParams.get("personnelId")
       ? { personnelId: searchParams.get("personnelId") }
       : {}),
+    ...(searchParams.get("assignedOnly") === "true"
+      ? { assignedPersonnelId: { not: null } }
+      : {}),
   };
 
   if (deviceTypeId) {
