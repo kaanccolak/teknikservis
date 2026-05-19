@@ -2219,6 +2219,8 @@ function SirketimPageInner() {
   const [personelGirisModu, setPersonelGirisModu] = useState(false);
   const [personelGirisModuKaydediliyor, setPersonelGirisModuKaydediliyor] =
     useState(false);
+  const [isAtamaModuAktif, setIsAtamaModuAktif] = useState(false);
+  const [isAtamaModuKaydediliyor, setIsAtamaModuKaydediliyor] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -2304,6 +2306,9 @@ function SirketimPageInner() {
         );
         setPersonelGirisModu(
           (settingsData as Record<string, string>).personel_giris_modu === "true",
+        );
+        setIsAtamaModuAktif(
+          (settingsData as Record<string, string>).is_atama_modu === "true"
         );
       } catch {
         // varsayılan etiketGenislik kalır
@@ -2542,6 +2547,23 @@ function SirketimPageInner() {
       toast.error("Ayar kaydedilemedi");
     } finally {
       setPersonelGirisModuKaydediliyor(false);
+    }
+  }
+
+  async function handleIsAtamaModu(aktif: boolean) {
+    setIsAtamaModuKaydediliyor(true);
+    try {
+      await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_atama_modu: aktif ? "true" : "false" }),
+      });
+      setIsAtamaModuAktif(aktif);
+      toast.success(aktif ? "İş atama modu aktif edildi" : "İş atama modu kapatıldı");
+    } catch {
+      toast.error("Ayar kaydedilemedi");
+    } finally {
+      setIsAtamaModuKaydediliyor(false);
     }
   }
 
@@ -4684,6 +4706,35 @@ function SirketimPageInner() {
                   <span style={{
                     position: "absolute", top: "2px",
                     left: personelGirisModu ? "22px" : "2px",
+                    width: "20px", height: "20px", borderRadius: "50%",
+                    background: "white", transition: "left 0.2s",
+                  }} />
+                </button>
+              </div>
+
+              {/* İş Atama Modu Toggle */}
+              <div style={{
+                border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px 20px",
+                marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between",
+                background: "white",
+              }}>
+                <div>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: "#111827", margin: 0 }}>İş Atama Modu</p>
+                  <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>Aktif olduğunda cihaz kaydında personele iş atanabilir ve İş Emirleri menüsü görünür</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={isAtamaModuKaydediliyor}
+                  onClick={() => void handleIsAtamaModu(!isAtamaModuAktif)}
+                  style={{
+                    width: "44px", height: "24px", borderRadius: "12px", border: "none",
+                    background: isAtamaModuAktif ? "#111827" : "#d1d5db",
+                    cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0,
+                  }}
+                >
+                  <span style={{
+                    position: "absolute", top: "2px",
+                    left: isAtamaModuAktif ? "22px" : "2px",
                     width: "20px", height: "20px", borderRadius: "50%",
                     background: "white", transition: "left 0.2s",
                   }} />
