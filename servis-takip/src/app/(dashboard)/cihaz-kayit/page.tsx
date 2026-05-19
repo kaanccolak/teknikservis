@@ -663,6 +663,7 @@ function CihazKayitServiceInner({
       }
 
       if (json.orderNumber && json.order) {
+        (window as Record<string, unknown>)._isAtananPersonelId = isAtananPersonelId;
         toast.success("Kayıt oluşturuldu");
         const deviceName = deviceSummaryFromLists(
           payload,
@@ -2788,6 +2789,14 @@ function CihazKayitRoot() {
   const [waShopReady, setWaShopReady] = useState(false);
   const [createdWa, setCreatedWa] = useState<WaPostCreateDialog | null>(null);
   const [waSending, setWaSending] = useState(false);
+  const [lastCreatedServiceId, setLastCreatedServiceId] = useState("");
+  const [personelWaDialog, setPersonelWaDialog] = useState<{
+    personnelName: string;
+    personnelPhone: string;
+    shopId: string;
+    message: string;
+  } | null>(null);
+  const [personelWaSending, setPersonelWaSending] = useState(false);
 
   useEffect(() => {
     setMode(modeParam === "secondhand" ? "secondhand" : "service");
@@ -2833,6 +2842,53 @@ function CihazKayitRoot() {
 
   const canSendCreatedWa = Boolean(waShopReady && waPhoneOk);
 
+  function navigateToService(serviceId: string) {
+    setCreatedWa(null);
+    router.push(`/servis-detay/${encodeURIComponent(serviceId)}`);
+  }
+
+  async function maybeOpenPersonelWaDialog(serviceId: string) {
+    const isAtamaMod = sessionStorage.getItem("isAtamaModuAktif");
+    if (isAtamaMod !== "true" || !createdWa || createdWa.kind !== "service") {
+      navigateToService(serviceId);
+      return;
+    }
+
+    const atananId = (window as Record<string, unknown>)._isAtananPersonelId as string;
+    if (!atananId) {
+      navigateToService(serviceId);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/personnel");
+      const personeller = (await res.json()) as {
+        id: string;
+        name: string;
+        phone: string | null;
+      }[];
+      const personel = personeller.find((p) => p.id === atananId);
+      if (!personel?.phone) {
+        navigateToService(serviceId);
+        return;
+      }
+
+      let phone = personel.phone.replace(/\D/g, "");
+      if (phone.startsWith("0")) phone = "90" + phone.slice(1);
+      else if (!phone.startsWith("90")) phone = "90" + phone;
+
+      setPersonelWaDialog({
+        personnelName: personel.name,
+        personnelPhone: phone,
+        shopId: "",
+        message: `🔧 Yeni İş Emri\n\nKayıt No: ${createdWa.orderNumber ?? ""}\nMüşteri: ${createdWa.customerName}\n\nBu cihaz size atandı.`,
+      });
+      setCreatedWa(null);
+    } catch {
+      navigateToService(serviceId);
+    }
+  }
+
   async function sendCreatedWhatsApp() {
     if (!createdWa) return;
     setWaSending(true);
@@ -2852,8 +2908,7 @@ function CihazKayitRoot() {
           }),
         );
         toast.success("WhatsApp mesajı gönderildi!");
-        setCreatedWa(null);
-        router.push(`/servis-detay/${encodeURIComponent(serviceId)}`);
+        await maybeOpenPersonelWaDialog(serviceId);
       } else {
         await sendWhatsApp(
           createdWa.sellerPhone,
@@ -2920,12 +2975,13 @@ function CihazKayitRoot() {
       </div>
       {mode === "service" ? (
         <CihazKayitServiceInner
-          onServiceOrderCreated={(info) =>
+          onServiceOrderCreated={(info) => {
+            setLastCreatedServiceId(info.id);
             setCreatedWa({
               kind: "service",
               ...info,
-            })
-          }
+            });
+          }}
         />
       ) : (
         <SecondHandDeviceForm
@@ -3009,9 +3065,7 @@ function CihazKayitRoot() {
                   disabled={waSending}
                   onClick={() => {
                     if (createdWa.kind === "service") {
-                      const id = createdWa.id;
-                      setCreatedWa(null);
-                      router.push(`/servis-detay/${encodeURIComponent(id)}`);
+                      void maybeOpenPersonelWaDialog(createdWa.id);
                     } else {
                       setCreatedWa(null);
                     }
@@ -3046,6 +3100,64 @@ function CihazKayitRoot() {
               </DialogFooter>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={personelWaDialog !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPersonelWaDialog(null);
+            router.push(`/servis-detay/${encodeURIComponent(lastCreatedServiceId)}`);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogTitle>Personele Bildirim Gönder</DialogTitle>
+          <DialogDescription>
+            {personelWaDialog?.personnelName} adlı personele iş emri bildirimi göndermek ister misiniz?
+          </DialogDescription>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => {
+                setPersonelWaDialog(null);
+                router.push(`/servis-detay/${encodeURIComponent(lastCreatedServiceId)}`);
+              }}
+              style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "8px", background: "white", cursor: "pointer", fontSize: "14px" }}
+            >
+              Hayır
+            </button>
+            <button
+              type="button"
+              disabled={personelWaSending}
+              onClick={async () => {
+                if (!personelWaDialog) return;
+                setPersonelWaSending(true);
+                try {
+                  await fetch("/api/whatsapp/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      phone: personelWaDialog.personnelPhone,
+                      templateName: "custom",
+                      parameters: [personelWaDialog.message],
+                    }),
+                  });
+                  toast.success("Personele bildirim gönderildi!");
+                } catch {
+                  toast.error("Bildirim gönderilemedi");
+                } finally {
+                  setPersonelWaSending(false);
+                  setPersonelWaDialog(null);
+                  router.push(`/servis-detay/${encodeURIComponent(lastCreatedServiceId)}`);
+                }
+              }}
+              style={{ padding: "8px 16px", background: "#111827", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}
+            >
+              {personelWaSending ? "Gönderiliyor..." : "Evet, Gönder"}
+            </button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
