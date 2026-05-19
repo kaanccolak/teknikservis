@@ -2774,7 +2774,7 @@ function SirketimPageInner() {
   function handlePersonelDuzenleBaslat(p: (typeof personeller)[number]) {
     setDuzenleId(p.id);
     setDuzenleAd(p.name);
-    setDuzenleTelefon(p.phone ?? "");
+    setDuzenleTelefon((p.phone ?? "").replace(/^\+?90/, "").replace(/\D/g, ""));
     setDuzenleSifre("");
     setDuzenleAdmin(p.isAdmin);
     setDuzenleYetkiler({
@@ -4715,13 +4715,21 @@ function SirketimPageInner() {
                       placeholder={duzenleId ? "Yeni şifre (boş bırak = değişmez)" : "Şifre (opsiyonel)"}
                       style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "9px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
                     />
-                    <input
-                      type="tel"
-                      value={duzenleId ? duzenleTelefon : yeniPersonelTelefon}
-                      onChange={(e) => duzenleId ? setDuzenleTelefon(e.target.value) : setYeniPersonelTelefon(e.target.value)}
-                      placeholder="Telefon (opsiyonel, WhatsApp bildirimi için)"
-                      style={{ border: "1px solid #d1d5db", borderRadius: "8px", padding: "9px 12px", fontSize: "14px", outline: "none", width: "100%", boxSizing: "border-box" }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", border: "1px solid #d1d5db", borderRadius: "8px", overflow: "hidden" }}>
+                      <span style={{ padding: "9px 10px", background: "#f9fafb", borderRight: "1px solid #d1d5db", fontSize: "14px", color: "#374151", flexShrink: 0 }}>
+                        +90
+                      </span>
+                      <input
+                        type="tel"
+                        value={duzenleId ? duzenleTelefon : yeniPersonelTelefon}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          duzenleId ? setDuzenleTelefon(val) : setYeniPersonelTelefon(val);
+                        }}
+                        placeholder="5XX XXX XX XX"
+                        style={{ border: "none", outline: "none", padding: "9px 12px", fontSize: "14px", flex: 1, width: "100%" }}
+                      />
+                    </div>
                     <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#374151", cursor: "pointer" }}>
                       <input
                         type="checkbox"
@@ -4838,7 +4846,9 @@ function SirketimPageInner() {
                                 )}
                               </div>
                               {p.phone && (
-                                <span style={{ fontSize: "11px", color: "#6b7280" }}>📞 {p.phone}</span>
+                                <span style={{ fontSize: "11px", color: "#6b7280" }}>
+                                  📞 +90 {p.phone.slice(0,3)} {p.phone.slice(3,6)} {p.phone.slice(6,8)} {p.phone.slice(8,10)}
+                                </span>
                               )}
                               {!p.isAdmin && (
                                 <p style={{ fontSize: "11px", color: "#9ca3af", margin: "2px 0 0 0" }}>
