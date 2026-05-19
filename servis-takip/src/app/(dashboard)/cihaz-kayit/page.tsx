@@ -640,6 +640,7 @@ function CihazKayitServiceInner({
           cariId: selectedCariId ?? undefined,
           bayiId: selectedBayiId ?? undefined,
           personnelId: isAtananPersonelId || data.personnelId || undefined,
+          assignedPersonnelId: isAtananPersonelId || undefined,
           isReturn,
         }),
       });
