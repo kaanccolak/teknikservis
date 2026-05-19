@@ -60,6 +60,7 @@ export async function GET() {
         canPrintAlimFisi: true,
         canPrintSatisFisi: true,
         canSellIkinciEl: true,
+        canAssignPersonnel: true,
       },
     });
     return NextResponse.json(
@@ -109,6 +110,7 @@ export async function GET() {
         canPrintAlimFisi: p.canPrintAlimFisi,
         canPrintSatisFisi: p.canPrintSatisFisi,
         canSellIkinciEl: p.canSellIkinciEl,
+        canAssignPersonnel: p.canAssignPersonnel,
       })),
     );
   } catch (error) {
@@ -167,6 +169,7 @@ export async function POST(req: Request) {
       canPrintAlimFisi,
       canPrintSatisFisi,
       canSellIkinciEl,
+      canAssignPersonnel,
     } = (await req.json()) as {
       name: string;
       password?: string;
@@ -211,6 +214,7 @@ export async function POST(req: Request) {
       canPrintAlimFisi?: boolean;
       canPrintSatisFisi?: boolean;
       canSellIkinciEl?: boolean;
+      canAssignPersonnel?: boolean;
     };
     if (!name?.trim()) {
       return NextResponse.json({ error: "İsim zorunludur" }, { status: 400 });
@@ -264,6 +268,7 @@ export async function POST(req: Request) {
         canPrintAlimFisi: canPrintAlimFisi ?? false,
         canPrintSatisFisi: canPrintSatisFisi ?? false,
         canSellIkinciEl: canSellIkinciEl ?? false,
+        canAssignPersonnel: canAssignPersonnel ?? false,
       },
     });
     return NextResponse.json({

@@ -2117,6 +2117,7 @@ function SirketimPageInner() {
       canPrintAlimFisi: boolean;
       canPrintSatisFisi: boolean;
       canSellIkinciEl: boolean;
+      canAssignPersonnel: boolean;
     }[]
   >([]);
   const [yeniPersonelAdi, setYeniPersonelAdi] = useState("");
@@ -2163,6 +2164,7 @@ function SirketimPageInner() {
     canPrintAlimFisi: false,
     canPrintSatisFisi: false,
     canSellIkinciEl: false,
+    canAssignPersonnel: false,
   });
   const [duzenleId, setDuzenleId] = useState<string | null>(null);
   const [duzenleAd, setDuzenleAd] = useState("");
@@ -2209,6 +2211,7 @@ function SirketimPageInner() {
     canPrintAlimFisi: false,
     canPrintSatisFisi: false,
     canSellIkinciEl: false,
+    canAssignPersonnel: false,
   });
   const [personelEkleniyor, setPersonelEkleniyor] = useState(false);
   const [personelKaydediliyor, setPersonelKaydediliyor] = useState(false);
@@ -2628,6 +2631,7 @@ function SirketimPageInner() {
         { key: "canEditIkinciEl", label: "İkinci El Kaydı Düzenleme" },
         { key: "canDeleteIkinciEl", label: "İkinci El Kaydı Silme" },
         { key: "canSellIkinciEl", label: "İkinci El Satışa Çevirme" },
+        { key: "canAssignPersonnel", label: "İş Atama Yetkisi" },
       ],
     },
     {
@@ -2812,6 +2816,7 @@ function SirketimPageInner() {
       canPrintAlimFisi: p.canPrintAlimFisi ?? false,
       canPrintSatisFisi: p.canPrintSatisFisi ?? false,
       canSellIkinciEl: p.canSellIkinciEl ?? false,
+      canAssignPersonnel: p.canAssignPersonnel ?? false,
     });
   }
 

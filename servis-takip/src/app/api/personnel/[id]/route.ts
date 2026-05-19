@@ -61,6 +61,7 @@ export async function PATCH(
       canPrintAlimFisi?: boolean;
       canPrintSatisFisi?: boolean;
       canSellIkinciEl?: boolean;
+      canAssignPersonnel?: boolean;
     };
     const {
       name,
@@ -106,6 +107,7 @@ export async function PATCH(
       canPrintAlimFisi,
       canPrintSatisFisi,
       canSellIkinciEl,
+      canAssignPersonnel,
     } = body;
 
     const existing = await prisma.personnel.findFirst({
@@ -157,6 +159,7 @@ export async function PATCH(
       canPrintAlimFisi?: boolean;
       canPrintSatisFisi?: boolean;
       canSellIkinciEl?: boolean;
+      canAssignPersonnel?: boolean;
     } = {};
     if (name?.trim()) updateData.name = name.trim();
     if ("phone" in body)
@@ -224,6 +227,8 @@ export async function PATCH(
       updateData.canPrintSatisFisi = canPrintSatisFisi;
     if (typeof canSellIkinciEl === "boolean")
       updateData.canSellIkinciEl = canSellIkinciEl;
+    if (typeof canAssignPersonnel === "boolean")
+      updateData.canAssignPersonnel = canAssignPersonnel;
     if (password?.trim()) {
       updateData.password = await bcrypt.hash(password.trim(), 10);
     } else if (password === "") {

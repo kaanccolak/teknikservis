@@ -15,7 +15,8 @@ type YetkiKey =
   | "canAddPlan" | "canEditPlan" | "canDeletePlan"
   | "canViewCiro" | "canPrintMusteri" | "canPrintTeslim"
   | "canPrintEtiket" | "canPrintAlimFisi" | "canPrintSatisFisi"
-  | "canSellIkinciEl";
+  | "canSellIkinciEl"
+  | "canAssignPersonnel";
 
 export function usePersonelYetki() {
   const [yetkiler, setYetkiler] = useState<Record<string, boolean>>({});
