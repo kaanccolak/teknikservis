@@ -319,12 +319,18 @@ export default function ServisDetayPage() {
   const [savingEstimated, setSavingEstimated] = useState(false);
 
   const [waShopReady, setWaShopReady] = useState(false);
-  const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
-    [],
-  );
+  const [personeller, setPersoneller] = useState<
+    { id: string; name: string; phone: string | null }[]
+  >([]);
   const [isAtamaOpen, setIsAtamaOpen] = useState(false);
   const [yeniAtananPersonelId, setYeniAtananPersonelId] = useState("");
   const [isAtamaYapiliyor, setIsAtamaYapiliyor] = useState(false);
+  const [personelWaDialog, setPersonelWaDialog] = useState<{
+    personnelName: string;
+    personnelPhone: string;
+    message: string;
+  } | null>(null);
+  const [personelWaSending, setPersonelWaSending] = useState(false);
   const [secilenPersonelId, setSecilenPersonelId] = useState("");
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
   const [isAtamaModuAktif, setIsAtamaModuAktif] = useState(false);
@@ -703,12 +709,30 @@ export default function ServisDetayPage() {
   }
 
   async function handleIsEmirleriYenidenAta() {
-    if (!yeniAtananPersonelId) return;
+    if (!yeniAtananPersonelId || !order) return;
     setIsAtamaYapiliyor(true);
     try {
       await patchOrder({ assignedPersonnelId: yeniAtananPersonelId });
       toast.success("İş emri yeniden atandı");
       setIsAtamaOpen(false);
+
+      const personel = personeller.find((p) => p.id === yeniAtananPersonelId);
+      if (personel?.phone) {
+        let phone = personel.phone.replace(/\D/g, "");
+        if (phone.startsWith("0")) phone = "90" + phone.slice(1);
+        else if (!phone.startsWith("90")) phone = "90" + phone;
+
+        const cihazBilgisi = [order.deviceTypeName, order.brandName, order.modelName]
+          .filter(Boolean)
+          .join(" / ");
+
+        setPersonelWaDialog({
+          personnelName: personel.name,
+          personnelPhone: phone,
+          message: `🔧 Yeni İş Emri\n\nKayıt No: ${order.orderNumber}\nMüşteri: ${order.customer?.name ?? ""}\nCihaz: ${cihazBilgisi}${order.complaint ? `\nArıza: ${order.complaint}` : ""}\n\nBu cihaz size atandı.`,
+        });
+      }
+
       setYeniAtananPersonelId("");
       void load();
     } catch {
@@ -738,7 +762,7 @@ export default function ServisDetayPage() {
     let cancelled = false;
     void fetch("/api/personnel")
       .then((r) => r.json())
-      .then((data: { id: string; name: string }[]) => {
+      .then((data: { id: string; name: string; phone: string | null }[]) => {
         if (cancelled) return;
         if (Array.isArray(data)) setPersoneller(data);
       })
@@ -3738,6 +3762,57 @@ export default function ServisDetayPage() {
           </div>
         </div>
       ) : null}
+
+      {personelWaDialog && (
+        <Dialog open={true} onOpenChange={(open) => { if (!open) setPersonelWaDialog(null); }}>
+          <DialogContent>
+            <DialogTitle>Personele Bildirim Gönder</DialogTitle>
+            <DialogDescription>
+              {personelWaDialog.personnelName} adlı personele iş emri bildirimi göndermek ister misiniz?
+            </DialogDescription>
+            <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "12px", fontSize: "13px", color: "#374151", whiteSpace: "pre-wrap", marginTop: "8px" }}>
+              {personelWaDialog.message}
+            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setPersonelWaDialog(null)}
+                style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "8px", background: "white", cursor: "pointer", fontSize: "14px" }}
+              >
+                Hayır
+              </button>
+              <button
+                type="button"
+                disabled={personelWaSending}
+                onClick={async () => {
+                  if (!personelWaDialog) return;
+                  setPersonelWaSending(true);
+                  try {
+                    await fetch("/api/whatsapp/send", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        phone: personelWaDialog.personnelPhone,
+                        templateName: "__custom__",
+                        customMessage: personelWaDialog.message,
+                      }),
+                    });
+                    toast.success("Personele bildirim gönderildi!");
+                  } catch {
+                    toast.error("Bildirim gönderilemedi");
+                  } finally {
+                    setPersonelWaSending(false);
+                    setPersonelWaDialog(null);
+                  }
+                }}
+                style={{ padding: "8px 16px", background: "#111827", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}
+              >
+                {personelWaSending ? "Gönderiliyor..." : "Evet, Gönder"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
