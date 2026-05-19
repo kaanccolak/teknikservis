@@ -856,3 +856,41 @@ Admin yetkisi verilince tüm yetki checkboxları gizlenir.
 - Tek paket modeline geçildi: ₺100/ay, ₺1.000/yıl
 - Landing page fiyatlandırma bölümü yeniden tasarlandı
 - Referanslar gerçek dükkan isimleriyle güncellendi
+
+## Bugün Yapılanlar (19 Mayıs 2026 - Devam)
+
+### İş Emirleri Sistemi
+- `Personnel` modeline `phone`, `canAssignPersonnel`, `canViewIsEmirleri` alanları eklendi
+- `ServiceOrder` modeline `assignedPersonnelId` / `assignedPersonnel` ilişkisi eklendi
+- `src/app/(dashboard)/is-emirleri/page.tsx` — İş Emirleri sayfası (sadece atanmış kayıtlar)
+- Sidebar'a İş Emirleri linki eklendi (`canViewIsEmirleri` permKey)
+- Şirketim → Personeller sekmesine "İş Atama Modu" toggle eklendi (`is_atama_modu` setting key)
+- İş atama modu kapalıysa: İş Emirleri sayfasında uyarı, cihaz kayıt formunda iş atama kartı gizli, servis detayda atama kartı ve personel bilgisi gizli
+
+### Cihaz Kayıt - İş Atama
+- "Kaydı Yapan Personel" ve "İş Atama" ayrı kartlara ayrıldı
+- İş Atama kartı açılır/kapanır panel
+- Kayıt sonrası personele WA bildirim onay dialog'u eklendi
+- WA mesajı: kayıt no, müşteri, cihaz, arıza bilgisi içeriyor
+
+### Servis Detay - İş Atama
+- "İş Atanan Personel" DetailRow eklendi
+- Durum geçmişinde `newStatus === "assigned"` için özel gösterim: "🔧 İş Emri Atandı → personel adı"
+- İş Emri Atama kartı — başka personele yeniden atama
+- Yeniden atamada WA bildirim onay dialog'u
+
+### Personel UI
+- Telefon alanı eklendi: +90 prefix, sadece rakam, formatlanmış gösterim
+- Personel listesinde telefon gösterimi: `+90 5XX XXX XX XX`
+
+### API Güncellemeleri
+- `GET /api/service-orders` — `assignedPersonnelId` filtresi, `assignedPersonnel` include, `assignedOnly` parametresi
+- `PATCH /api/service-orders/[id]` — `assignedPersonnelId` güncelleme + StatusLog
+- `patchServiceOrderSchema` — `assignedPersonnelId` alanı eklendi
+- Personnel API — `phone`, `canAssignPersonnel`, `canViewIsEmirleri` alanları
+
+### Düzeltmeler
+- Bayi silme: soft-delete kayıtlar `linkedCount`'a dahil edilmiyor
+- Raporlar: silinen kayıtlar hariç tutuldu
+- İkinci el satılmış kayıtlar düzenlenebilir + satış iptal butonu
+- İkinci el alım/satış fişlerine dükkan bilgileri eklendi
