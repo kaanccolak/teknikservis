@@ -663,7 +663,7 @@ function CihazKayitServiceInner({
       }
 
       if (json.orderNumber && json.order) {
-        (window as Record<string, unknown>)._isAtananPersonelId = isAtananPersonelId;
+        (window as unknown as Record<string, unknown>)._isAtananPersonelId = isAtananPersonelId;
         toast.success("Kayıt oluşturuldu");
         const deviceName = deviceSummaryFromLists(
           payload,
@@ -2854,7 +2854,7 @@ function CihazKayitRoot() {
       return;
     }
 
-    const atananId = (window as Record<string, unknown>)._isAtananPersonelId as string;
+    const atananId = (window as unknown as Record<string, unknown>)._isAtananPersonelId as string;
     if (!atananId) {
       navigateToService(serviceId);
       return;
