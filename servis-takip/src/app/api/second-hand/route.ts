@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
+import { addContactToGoogle } from "@/lib/googleContacts";
 import { prisma } from "@/lib/prisma";
 import { getErrorDetails, jsonServerError } from "@/lib/server-error";
 import {
@@ -302,6 +303,17 @@ export async function POST(request: Request) {
         },
       });
     });
+    // Satıcıyı Google Contacts'a ekle
+    if (sellerPhone && sellerPhone.trim().length > 0) {
+      void addContactToGoogle(
+        shop.id,
+        {
+          name: sellerName,
+          phone: sellerPhone,
+        },
+        created.deviceCode,
+      ).catch((err) => console.error("[Google Contacts - SecondHand]", err));
+    }
     return NextResponse.json(created);
   } catch (error) {
     console.error("[POST /api/second-hand] Second hand create error:", error);
