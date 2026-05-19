@@ -60,6 +60,7 @@ export async function GET() {
       _count: {
         select: {
           orders: { where: { deletedAt: null } },
+          secondHandDevices: true,
         },
       },
       orders: {
@@ -121,6 +122,10 @@ export async function GET() {
     shops.map(async (shop) => {
       try {
         const status = await getSessionStatus(shop.id);
+        const personelGirisModu = await prisma.setting.findFirst({
+          where: { shopId: shop.id, key: "personel_giris_modu" },
+          select: { value: true },
+        });
         const { googleAccessToken, ...rest } = shop;
         return {
           ...rest,
@@ -128,8 +133,14 @@ export async function GET() {
           lastOrder: lastByShop.get(shop.id) ?? [],
           waConnected: status.connected === true,
           googleContactsConnected: !!googleAccessToken,
+          personelGirisModu: personelGirisModu?.value === "true",
+          secondHandCount: shop._count.secondHandDevices,
         };
       } catch {
+        const personelGirisModu = await prisma.setting.findFirst({
+          where: { shopId: shop.id, key: "personel_giris_modu" },
+          select: { value: true },
+        });
         const { googleAccessToken, ...rest } = shop;
         return {
           ...rest,
@@ -137,6 +148,8 @@ export async function GET() {
           lastOrder: lastByShop.get(shop.id) ?? [],
           waConnected: false,
           googleContactsConnected: !!googleAccessToken,
+          personelGirisModu: personelGirisModu?.value === "true",
+          secondHandCount: shop._count.secondHandDevices,
         };
       }
     }),

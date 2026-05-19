@@ -16,7 +16,9 @@ type AdminStatsResponse = {
     waConnected: boolean;
     userId: string | null;
     googleContactsConnected: boolean;
-    _count: { orders: number };
+    personelGirisModu: boolean;
+    secondHandCount: number;
+    _count: { orders: number; secondHandDevices: number };
     orders: Array<{ id: string }>;
     recentOrders: Array<{ id: string }>;
     lastOrder: Array<{ createdAt: string }>;
@@ -545,7 +547,8 @@ export default function AdminPage() {
                   <p style={{ fontSize: "11px", color: "#9ca3af" }}>
                     Kayıt:{" "}
                     {new Date(shop.createdAt).toLocaleDateString("tr-TR")} ·
-                    Toplam: {shop._count.orders} · Bu ay: {shop.orders.length}
+                    Servis: {shop._count.orders} · İkinci El:{" "}
+                    {shop.secondHandCount} · Bu ay: {shop.orders.length}
                   </p>
                   <div
                     style={{
@@ -669,6 +672,22 @@ export default function AdminPage() {
                     {shop.waConnected
                       ? "✅ WA Bağlı"
                       : "❌ WA Bağlı Değil"}
+                  </span>
+                  <span
+                    style={{
+                      padding: "3px 8px",
+                      borderRadius: "20px",
+                      fontSize: "11px",
+                      fontWeight: 500,
+                      background: shop.personelGirisModu
+                        ? "#dbeafe"
+                        : "#f3f4f6",
+                      color: shop.personelGirisModu ? "#1d4ed8" : "#6b7280",
+                    }}
+                  >
+                    {shop.personelGirisModu
+                      ? "👥 Personel Modu Açık"
+                      : "👤 Personel Modu Kapalı"}
                   </span>
                   <button
                     type="button"
