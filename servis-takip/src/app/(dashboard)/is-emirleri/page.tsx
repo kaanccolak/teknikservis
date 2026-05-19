@@ -19,17 +19,23 @@ interface Order {
   deviceTypeName: string | null;
   personnelId: string | null;
   personnel: Personnel | null;
+  assignedPersonnel: { id: string; name: string } | null;
   customer: { name: string; phone: string | null };
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   in_service: { label: "Teknik Serviste", color: "#92400e", bg: "#fef3c7" },
   waiting_parts: { label: "Parça Bekliyor", color: "#9a3412", bg: "#ffedd5" },
+  waiting_part: { label: "Parça Bekliyor", color: "#9a3412", bg: "#ffedd5" },
   waiting_approval: { label: "Onay Bekliyor", color: "#6b21a8", bg: "#f3e8ff" },
   completed: { label: "Tamamlandı", color: "#166534", bg: "#dcfce7" },
   delivered: { label: "Teslim Edildi", color: "#166534", bg: "#dcfce7" },
+  delivered_repair_failed: { label: "Teslim - Tamir Olmadı", color: "#991b1b", bg: "#fee2e2" },
+  delivered_no_problem: { label: "Teslim - Sorun Yok", color: "#166534", bg: "#dcfce7" },
+  delivered_customer_return: { label: "Teslim - Müşteri İadesi", color: "#374151", bg: "#f3f4f6" },
   repair_failed: { label: "Tamir Olmadı", color: "#991b1b", bg: "#fee2e2" },
   sent_to_external: { label: "Dış Serviste", color: "#1e40af", bg: "#dbeafe" },
+  returned_device: { label: "Cihaz İade", color: "#374151", bg: "#f3f4f6" },
 };
 
 export default function IsEmirleriPage() {
@@ -192,12 +198,12 @@ export default function IsEmirleriPage() {
                       </span>
                     </td>
                     <td style={{ padding: "12px 14px", fontSize: "13px", color: "#374151" }}>
-                      {order.personnel ? (
+                      {order.assignedPersonnel ? (
                         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                           <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#111827", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "white", flexShrink: 0 }}>
-                            {order.personnel.name.charAt(0).toUpperCase()}
+                            {order.assignedPersonnel.name.charAt(0).toUpperCase()}
                           </div>
-                          <span>{order.personnel.name}</span>
+                          <span>{order.assignedPersonnel.name}</span>
                         </div>
                       ) : (
                         <span style={{ color: "#9ca3af", fontSize: "12px" }}>Atanmadı</span>
