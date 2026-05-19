@@ -198,6 +198,8 @@ function CihazKayitServiceInner({
     deviceModel: string;
     brand: string;
     deviceName: string;
+    deviceTypeName?: string | null;
+    complaint?: string | null;
   }) => void;
 }) {
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
@@ -681,6 +683,10 @@ function CihazKayitServiceInner({
           deviceModel: json.order.deviceModel,
           brand: json.order.brand,
           deviceName,
+          deviceTypeName: payload.deviceTypeId
+            ? deviceTypes.find((d) => d.id === payload.deviceTypeId)?.name ?? null
+            : null,
+          complaint: payload.complaint ?? null,
         });
         reset(getDefaultValues());
         window.__formIsDirty = false;
@@ -2777,6 +2783,8 @@ type WaPostCreateDialog =
       deviceModel: string;
       brand: string;
       deviceName: string;
+      deviceTypeName?: string | null;
+      complaint?: string | null;
     }
   | ({ kind: "secondhand" } & SecondHandRegisterInfo);
 
@@ -2878,11 +2886,17 @@ function CihazKayitRoot() {
       if (phone.startsWith("0")) phone = "90" + phone.slice(1);
       else if (!phone.startsWith("90")) phone = "90" + phone;
 
+      const cihazBilgisi = [createdWa.deviceTypeName, createdWa.brand, createdWa.deviceModel]
+        .filter(Boolean)
+        .join(" / ");
+
+      const message = `🔧 Yeni İş Emri\n\nKayıt No: ${createdWa.orderNumber ?? ""}\nMüşteri: ${createdWa.customerName}${cihazBilgisi ? `\nCihaz: ${cihazBilgisi}` : ""}${createdWa.complaint ? `\nArıza: ${createdWa.complaint}` : ""}\n\nBu cihaz size atandı.`;
+
       setPersonelWaDialog({
         personnelName: personel.name,
         personnelPhone: phone,
         shopId: "",
-        message: `🔧 Yeni İş Emri\n\nKayıt No: ${createdWa.orderNumber ?? ""}\nMüşteri: ${createdWa.customerName}\n\nBu cihaz size atandı.`,
+        message,
       });
       setCreatedWa(null);
     } catch {
