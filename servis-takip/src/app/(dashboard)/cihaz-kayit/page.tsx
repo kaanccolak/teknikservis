@@ -270,6 +270,12 @@ function CihazKayitServiceInner({
     gecmisKayitSayisi: number;
     benzerlikTuru: string | null;
   } | null>(null);
+  const [mevcutMusteriModal, setMevcutMusteriModal] = useState<{
+    mevcutAd: string;
+    yeniAd: string;
+    phone: string;
+    onConfirm: (forceNew: boolean) => void;
+  } | null>(null);
 
   const customerNameRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
@@ -627,11 +633,10 @@ function CihazKayitServiceInner({
     }`;
   }
 
-  async function onSubmit(data: CreateServiceOrderFormValues) {
-    if (!canCreateRecord) {
-      toast.error("Cihaz kaydı yapma yetkiniz bulunmuyor.");
-      return;
-    }
+  async function submitOrder(
+    data: CreateServiceOrderFormValues,
+    forceNewCustomer: boolean,
+  ) {
     const payload = createServiceOrderSchema.parse(data);
     try {
       const res = await fetch("/api/service-orders", {
@@ -644,6 +649,7 @@ function CihazKayitServiceInner({
           personnelId: isAtananPersonelId || data.personnelId || undefined,
           assignedPersonnelId: isAtananPersonelId || undefined,
           isReturn,
+          forceNewCustomer,
         }),
       });
       const json = (await res.json()) as {
@@ -703,6 +709,49 @@ function CihazKayitServiceInner({
     } catch {
       toast.error("Bağlantı hatası. Tekrar deneyin.");
     }
+  }
+
+  async function onSubmit(data: CreateServiceOrderFormValues) {
+    if (!canCreateRecord) {
+      toast.error("Cihaz kaydı yapma yetkiniz bulunmuyor.");
+      return;
+    }
+
+    // Telefon varsa mevcut müşteri kontrolü yap
+    if (data.phone && data.phone.trim()) {
+      try {
+        const res = await fetch(
+          `/api/customers/by-phone?phone=${encodeURIComponent(data.phone)}`,
+        );
+        const json = (await res.json()) as {
+          customer: { id: string; name: string } | null;
+        };
+        if (
+          json.customer &&
+          json.customer.name.trim().toLowerCase() !==
+            data.customerName.trim().toLowerCase()
+        ) {
+          // Farklı isim — modal aç
+          await new Promise<void>((resolve) => {
+            setMevcutMusteriModal({
+              mevcutAd: json.customer!.name,
+              yeniAd: data.customerName,
+              phone: data.phone,
+              onConfirm: (forceNew) => {
+                setMevcutMusteriModal(null);
+                void submitOrder(data, forceNew);
+                resolve();
+              },
+            });
+          });
+          return;
+        }
+      } catch {
+        // hata olursa normal devam et
+      }
+    }
+
+    void submitOrder(data, false);
   }
 
   async function createInlineBayi() {
@@ -2427,6 +2476,64 @@ function CihazKayitServiceInner({
           </div>
         </div>
       </form>
+
+      {mevcutMusteriModal && (
+        <Dialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setMevcutMusteriModal(null);
+          }}
+        >
+          <DialogContent>
+            <DialogTitle>Mevcut Müşteri Bulundu</DialogTitle>
+            <DialogDescription>
+              Bu telefon numarasıyla kayıtlı bir müşteri var:
+            </DialogDescription>
+            <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
+              <p style={{ fontSize: "13px", color: "#6b7280", margin: "0 0 4px 0" }}>Kayıtlı isim:</p>
+              <p style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: 0 }}>{mevcutMusteriModal.mevcutAd}</p>
+            </div>
+            <p style={{ fontSize: "13px", color: "#6b7280", margin: "8px 0" }}>
+              Girdiğiniz isim: <strong>{mevcutMusteriModal.yeniAd}</strong>
+            </p>
+            <p style={{ fontSize: "13px", color: "#374151" }}>Ne yapmak istersiniz?</p>
+            <DialogFooter style={{ flexDirection: "column", gap: "8px" }}>
+              <button
+                onClick={() => mevcutMusteriModal.onConfirm(false)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "#111827",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Mevcut müşteriyi kullan ({mevcutMusteriModal.mevcutAd})
+              </button>
+              <button
+                type="button"
+                onClick={() => mevcutMusteriModal.onConfirm(true)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "white",
+                  color: "#374151",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                Yeni müşteri olarak kaydet ({mevcutMusteriModal.yeniAd})
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <AlertDialog open={pendingSelection !== null} onOpenChange={(open) => !open && setPendingSelection(null)}>
         <AlertDialogContent>
