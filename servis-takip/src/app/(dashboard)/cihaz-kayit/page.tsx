@@ -243,6 +243,8 @@ function CihazKayitServiceInner({
   const [aktifPersonelAdi, setAktifPersonelAdi] = useState<string | null>(null);
   const [canCreateRecord, setCanCreateRecord] = useState(true);
   const [canAssignPersonnel, setCanAssignPersonnel] = useState(false);
+  const [isAtamaAcik, setIsAtamaAcik] = useState(false);
+  const [isAtananPersonelId, setIsAtananPersonelId] = useState("");
   const skipDeviceCascade = useRef(false);
   const skipBrandCascade = useRef(false);
   const [showAddDeviceType, setShowAddDeviceType] = useState(false);
@@ -633,7 +635,7 @@ function CihazKayitServiceInner({
           ...payload,
           cariId: selectedCariId ?? undefined,
           bayiId: selectedBayiId ?? undefined,
-          personnelId: data.personnelId,
+          personnelId: isAtananPersonelId || data.personnelId || undefined,
           isReturn,
         }),
       });
@@ -1158,21 +1160,14 @@ function CihazKayitServiceInner({
             </CardContent>
             </Card>
 
+            {/* Kaydı Yapan Personel — her zaman göster */}
             <Card className="border-slate-200/80 bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>
-                  {aktifPersonelIsAdmin || canAssignPersonnel
-                    ? "İş Atama / Kaydı Yapan Personel"
-                    : "Kaydı yapan personel"}
-                </CardTitle>
-                <CardDescription>
-                  {aktifPersonelIsAdmin || canAssignPersonnel
-                    ? "Bu kaydı hangi personele atamak istiyorsunuz?"
-                    : "Bu kaydı hangi personel oluşturdu?"}
-                </CardDescription>
+                <CardTitle>Kaydı Yapan Personel</CardTitle>
+                <CardDescription>Bu kaydı hangi personel oluşturdu?</CardDescription>
               </CardHeader>
               <CardContent>
-                {aktifPersonelIsAdmin || canAssignPersonnel ? (
+                {aktifPersonelIsAdmin ? (
                   <>
                     <Controller
                       name="personnelId"
@@ -1186,66 +1181,64 @@ function CihazKayitServiceInner({
                           aria-invalid={!!errors.personnelId}
                         >
                           <option value="">
-                            {personeller.length === 0
-                              ? "Yükleniyor..."
-                              : "Personel seçin"}
+                            {personeller.length === 0 ? "Yükleniyor..." : "Personel seçin"}
                           </option>
                           {personeller.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
+                            <option key={p.id} value={p.id}>{p.name}</option>
                           ))}
                         </select>
                       )}
                     />
                     {errors.personnelId ? (
-                      <p className="text-sm text-red-500 mt-1">
-                        {errors.personnelId.message}
-                      </p>
+                      <p className="text-sm text-red-500 mt-1">{errors.personnelId.message}</p>
                     ) : null}
                   </>
                 ) : aktifPersonelAdi ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "10px 14px",
-                      background: "#f9fafb",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "34px",
-                        height: "34px",
-                        borderRadius: "50%",
-                        background: "#111827",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        color: "white",
-                        flexShrink: 0,
-                      }}
-                    >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
+                    <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "#111827", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "white", flexShrink: 0 }}>
                       {aktifPersonelAdi.charAt(0).toUpperCase()}
                     </div>
-                    <span
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#111827",
-                      }}
-                    >
-                      {aktifPersonelAdi}
-                    </span>
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: "#111827" }}>{aktifPersonelAdi}</span>
                   </div>
                 ) : null}
               </CardContent>
             </Card>
+
+            {/* İş Atama — sadece canAssignPersonnel yetkisi varsa */}
+            {(aktifPersonelIsAdmin || canAssignPersonnel) && (
+              <Card className="border-slate-200/80 bg-white shadow-sm">
+                <CardHeader
+                  className="cursor-pointer select-none"
+                  onClick={() => setIsAtamaAcik((v) => !v)}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                      <CardTitle>İş Atama</CardTitle>
+                      <CardDescription>Bu kaydı bir personele ata (opsiyonel)</CardDescription>
+                    </div>
+                    <span style={{ fontSize: "18px", color: "#6b7280" }}>{isAtamaAcik ? "▲" : "▼"}</span>
+                  </div>
+                </CardHeader>
+                {isAtamaAcik && (
+                  <CardContent>
+                    <select
+                      value={isAtananPersonelId}
+                      onChange={(e) => setIsAtananPersonelId(e.target.value)}
+                      className={nativeSelectClassName}
+                      disabled={personeller.length === 0}
+                    >
+                      <option value="">Personel seçin (opsiyonel)</option>
+                      {personeller.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Seçilen personele WhatsApp bildirimi gönderilecek.
+                    </p>
+                  </CardContent>
+                )}
+              </Card>
+            )}
 
             <Card className="border-slate-200/80 bg-white shadow-sm">
           <CardHeader>
