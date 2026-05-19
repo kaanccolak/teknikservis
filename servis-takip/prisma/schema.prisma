@@ -104,6 +104,7 @@ model Personnel {
   canPrintAlimFisi      Boolean @default(false)
   canPrintSatisFisi     Boolean @default(false)
   canSellIkinciEl       Boolean @default(false)
+  canAssignPersonnel    Boolean @default(false)
   createdAt     DateTime       @default(now())
   serviceOrders ServiceOrder[]
   statusLogs    StatusLog[]
