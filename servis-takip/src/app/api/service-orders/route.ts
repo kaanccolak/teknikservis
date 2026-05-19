@@ -227,6 +227,14 @@ export async function POST(request: Request) {
 
   const body = parsed.data;
 
+  const forceNewCustomer =
+    typeof json === "object" &&
+    json !== null &&
+    typeof (json as { forceNewCustomer?: unknown }).forceNewCustomer ===
+      "boolean"
+      ? (json as { forceNewCustomer: boolean }).forceNewCustomer
+      : false;
+
   const personnelIdRaw =
     typeof body.personnelId === "string" && body.personnelId.trim()
       ? body.personnelId.trim()
@@ -353,7 +361,7 @@ export async function POST(request: Request) {
 
           let customer = null;
           let customerIsNew = false;
-          if (phoneStored) {
+          if (phoneStored && !forceNewCustomer) {
             const key = trPhoneMatchKey(phoneStored);
             if (key.length > 0) {
               const candidates = await tx.customer.findMany({
