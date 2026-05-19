@@ -2707,6 +2707,7 @@ function SirketimPageInner() {
         ...prev,
         {
           ...data,
+          phone: data.phone ?? null,
           hasPassword: !!yeniPersonelSifre,
           ...yeniPersonelYetkiler,
         },
