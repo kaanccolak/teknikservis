@@ -17,53 +17,11 @@ export async function PATCH(
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
     const { id } = await params;
-    const {
-      name,
-      password,
-      isAdmin,
-      canViewSirketim,
-      canViewRaporlar,
-      canViewPlanlarim,
-      canViewBayiler,
-      canViewCari,
-      canViewStok,
-      canViewDisServis,
-      canViewBekleyen,
-      canViewIkinciEl,
-      canViewCihazSorgula,
-      canViewCihazKayit,
-      canCreateRecord,
-      canDeleteIkinciEl,
-      canDeleteServis,
-      canEditServis,
-      canEditIkinciEl,
-      canUpdateServisStatus,
-      canAddDisServis,
-      canDeleteDisServis,
-      canEditDisServis,
-      canAddStok,
-      canDeleteStok,
-      canEditStok,
-      canAddCari,
-      canEditCari,
-      canDeleteCari,
-      canAddBayi,
-      canEditBayi,
-      canDeleteBayi,
-      canAddPlan,
-      canEditPlan,
-      canDeletePlan,
-      canViewCiro,
-      canPrintMusteri,
-      canPrintTeslim,
-      canPrintEtiket,
-      canPrintAlimFisi,
-      canPrintSatisFisi,
-      canSellIkinciEl,
-    } = (await req.json()) as {
+    const body = (await req.json()) as {
       name?: string;
       password?: string;
       isAdmin?: boolean;
+      phone?: string;
       canViewSirketim?: boolean;
       canViewRaporlar?: boolean;
       canViewPlanlarim?: boolean;
@@ -104,6 +62,51 @@ export async function PATCH(
       canPrintSatisFisi?: boolean;
       canSellIkinciEl?: boolean;
     };
+    const {
+      name,
+      password,
+      isAdmin,
+      phone,
+      canViewSirketim,
+      canViewRaporlar,
+      canViewPlanlarim,
+      canViewBayiler,
+      canViewCari,
+      canViewStok,
+      canViewDisServis,
+      canViewBekleyen,
+      canViewIkinciEl,
+      canViewCihazSorgula,
+      canViewCihazKayit,
+      canCreateRecord,
+      canDeleteIkinciEl,
+      canDeleteServis,
+      canEditServis,
+      canEditIkinciEl,
+      canUpdateServisStatus,
+      canAddDisServis,
+      canDeleteDisServis,
+      canEditDisServis,
+      canAddStok,
+      canDeleteStok,
+      canEditStok,
+      canAddCari,
+      canEditCari,
+      canDeleteCari,
+      canAddBayi,
+      canEditBayi,
+      canDeleteBayi,
+      canAddPlan,
+      canEditPlan,
+      canDeletePlan,
+      canViewCiro,
+      canPrintMusteri,
+      canPrintTeslim,
+      canPrintEtiket,
+      canPrintAlimFisi,
+      canPrintSatisFisi,
+      canSellIkinciEl,
+    } = body;
 
     const existing = await prisma.personnel.findFirst({
       where: { id, shopId: shop.id },
@@ -113,6 +116,7 @@ export async function PATCH(
     const updateData: {
       name?: string;
       password?: string | null;
+      phone?: string | null;
       isAdmin?: boolean;
       canViewSirketim?: boolean;
       canViewRaporlar?: boolean;
@@ -155,6 +159,9 @@ export async function PATCH(
       canSellIkinciEl?: boolean;
     } = {};
     if (name?.trim()) updateData.name = name.trim();
+    if ("phone" in body)
+      updateData.phone =
+        typeof phone === "string" && phone.trim() ? phone.trim() : null;
     if (typeof isAdmin === "boolean") updateData.isAdmin = isAdmin;
     if (typeof canViewSirketim === "boolean")
       updateData.canViewSirketim = canViewSirketim;
@@ -229,6 +236,7 @@ export async function PATCH(
       select: {
         id: true,
         name: true,
+        phone: true,
         createdAt: true,
         isAdmin: true,
         canViewSirketim: true,

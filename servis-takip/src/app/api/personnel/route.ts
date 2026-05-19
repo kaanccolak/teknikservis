@@ -17,6 +17,7 @@ export async function GET() {
       select: {
         id: true,
         name: true,
+        phone: true,
         createdAt: true,
         password: true,
         isAdmin: true,
@@ -65,6 +66,7 @@ export async function GET() {
       personnel.map((p) => ({
         id: p.id,
         name: p.name,
+        phone: p.phone,
         createdAt: p.createdAt,
         hasPassword: !!p.password,
         isAdmin: p.isAdmin,
@@ -125,6 +127,7 @@ export async function POST(req: Request) {
       name,
       password,
       isAdmin,
+      phone,
       canViewSirketim,
       canViewRaporlar,
       canViewPlanlarim,
@@ -168,6 +171,7 @@ export async function POST(req: Request) {
       name: string;
       password?: string;
       isAdmin?: boolean;
+      phone?: string;
       canViewSirketim?: boolean;
       canViewRaporlar?: boolean;
       canViewPlanlarim?: boolean;
@@ -219,6 +223,7 @@ export async function POST(req: Request) {
         shopId: shop.id,
         name: name.trim(),
         password: hashedPassword,
+        phone: phone?.trim() || null,
         isAdmin: isAdmin ?? false,
         canViewSirketim: canViewSirketim ?? false,
         canViewRaporlar: canViewRaporlar ?? false,
