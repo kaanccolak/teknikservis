@@ -91,6 +91,9 @@ export async function GET(request: Request) {
   const where: Prisma.ServiceOrderWhereInput = {
     shopId: shop.id,
     deletedAt: null,
+    ...(searchParams.get("personnelId")
+      ? { personnelId: searchParams.get("personnelId") }
+      : {}),
   };
 
   if (deviceTypeId) {
@@ -158,6 +161,9 @@ export async function GET(request: Request) {
           brand: true,
           deviceModel: true,
           bayi: true,
+          personnel: {
+            select: { id: true, name: true, phone: true },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),
