@@ -2089,6 +2089,7 @@ function SirketimPageInner() {
       canViewIkinciEl: boolean;
       canViewCihazSorgula: boolean;
       canViewCihazKayit: boolean;
+      canViewIsEmirleri: boolean;
       canCreateRecord: boolean;
       canDeleteIkinciEl: boolean;
       canDeleteServis: boolean;
@@ -2136,6 +2137,7 @@ function SirketimPageInner() {
     canViewIkinciEl: false,
     canViewCihazSorgula: false,
     canViewCihazKayit: false,
+    canViewIsEmirleri: false,
     canCreateRecord: false,
     canDeleteIkinciEl: false,
     canDeleteServis: false,
@@ -2183,6 +2185,7 @@ function SirketimPageInner() {
     canViewIkinciEl: false,
     canViewCihazSorgula: false,
     canViewCihazKayit: false,
+    canViewIsEmirleri: false,
     canCreateRecord: false,
     canDeleteIkinciEl: false,
     canDeleteServis: false,
@@ -2633,6 +2636,7 @@ function SirketimPageInner() {
         { key: "canViewCihazKayit", label: "Cihaz Kayıt" },
         { key: "canViewCihazSorgula", label: "Cihaz Sorgula" },
         { key: "canViewBekleyen", label: "Bekleyen Cihazlar" },
+        { key: "canViewIsEmirleri", label: "İş Emirleri" },
         { key: "canViewIkinciEl", label: "İkinci El Cihazlar" },
         { key: "canViewDisServis", label: "Dış Servisler" },
         { key: "canViewStok", label: "Stok Yönetimi" },
@@ -2755,6 +2759,7 @@ function SirketimPageInner() {
         canViewIkinciEl: false,
         canViewCihazSorgula: false,
         canViewCihazKayit: false,
+        canViewIsEmirleri: false,
         canCreateRecord: false,
         canDeleteIkinciEl: false,
         canDeleteServis: false,
@@ -2811,6 +2816,7 @@ function SirketimPageInner() {
       canViewIkinciEl: p.canViewIkinciEl ?? false,
       canViewCihazSorgula: p.canViewCihazSorgula ?? false,
       canViewCihazKayit: p.canViewCihazKayit ?? false,
+      canViewIsEmirleri: p.canViewIsEmirleri ?? false,
       canCreateRecord: p.canCreateRecord ?? false,
       canDeleteIkinciEl: p.canDeleteIkinciEl ?? false,
       canDeleteServis: p.canDeleteServis ?? false,

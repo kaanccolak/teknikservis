@@ -33,6 +33,7 @@ export async function PATCH(
       canViewIkinciEl?: boolean;
       canViewCihazSorgula?: boolean;
       canViewCihazKayit?: boolean;
+      canViewIsEmirleri?: boolean;
       canCreateRecord?: boolean;
       canDeleteIkinciEl?: boolean;
       canDeleteServis?: boolean;
@@ -79,6 +80,7 @@ export async function PATCH(
       canViewIkinciEl,
       canViewCihazSorgula,
       canViewCihazKayit,
+      canViewIsEmirleri,
       canCreateRecord,
       canDeleteIkinciEl,
       canDeleteServis,
@@ -131,6 +133,7 @@ export async function PATCH(
       canViewIkinciEl?: boolean;
       canViewCihazSorgula?: boolean;
       canViewCihazKayit?: boolean;
+      canViewIsEmirleri?: boolean;
       canCreateRecord?: boolean;
       canDeleteIkinciEl?: boolean;
       canDeleteServis?: boolean;
@@ -185,6 +188,8 @@ export async function PATCH(
       updateData.canViewCihazSorgula = canViewCihazSorgula;
     if (typeof canViewCihazKayit === "boolean")
       updateData.canViewCihazKayit = canViewCihazKayit;
+    if (typeof canViewIsEmirleri === "boolean")
+      updateData.canViewIsEmirleri = canViewIsEmirleri;
     if (typeof canCreateRecord === "boolean")
       updateData.canCreateRecord = canCreateRecord;
     if (typeof canDeleteIkinciEl === "boolean")
@@ -255,6 +260,7 @@ export async function PATCH(
         canViewIkinciEl: true,
         canViewCihazSorgula: true,
         canViewCihazKayit: true,
+        canViewIsEmirleri: true,
         canCreateRecord: true,
         canDeleteIkinciEl: true,
         canDeleteServis: true,

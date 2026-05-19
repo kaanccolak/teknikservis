@@ -57,7 +57,7 @@ export default function IsEmirleriPage() {
       if (permsRaw) {
         try {
           const perms = JSON.parse(permsRaw) as Record<string, boolean>;
-          setCanView(!!perms["canAssignPersonnel"]);
+          setCanView(!!perms["canAssignPersonnel"] || !!perms["canViewIsEmirleri"]);
         } catch {
           setCanView(false);
         }

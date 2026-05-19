@@ -75,6 +75,7 @@ model Personnel {
   canViewIkinciEl      Boolean @default(false)
   canViewCihazSorgula  Boolean @default(false)
   canViewCihazKayit    Boolean @default(false)
+  canViewIsEmirleri    Boolean @default(false)
   // Servis İşlem Yetkileri
   canCreateRecord       Boolean @default(false)
   canDeleteIkinciEl     Boolean @default(false)

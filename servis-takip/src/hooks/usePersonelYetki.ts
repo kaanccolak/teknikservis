@@ -5,7 +5,7 @@ type YetkiKey =
   | "canViewCihazKayit" | "canViewCihazSorgula" | "canViewBekleyen"
   | "canViewIkinciEl" | "canViewDisServis" | "canViewStok"
   | "canViewCari" | "canViewBayiler" | "canViewPlanlarim"
-  | "canViewRaporlar" | "canViewSirketim"
+  | "canViewRaporlar" | "canViewSirketim" | "canViewIsEmirleri"
   | "canCreateRecord" | "canDeleteIkinciEl" | "canDeleteServis"
   | "canEditServis" | "canEditIkinciEl" | "canUpdateServisStatus"
   | "canAddDisServis" | "canDeleteDisServis" | "canEditDisServis"

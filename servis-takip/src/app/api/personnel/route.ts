@@ -32,6 +32,7 @@ export async function GET() {
         canViewIkinciEl: true,
         canViewCihazSorgula: true,
         canViewCihazKayit: true,
+        canViewIsEmirleri: true,
         canCreateRecord: true,
         canDeleteIkinciEl: true,
         canDeleteServis: true,
@@ -82,6 +83,7 @@ export async function GET() {
         canViewIkinciEl: p.canViewIkinciEl,
         canViewCihazSorgula: p.canViewCihazSorgula,
         canViewCihazKayit: p.canViewCihazKayit,
+        canViewIsEmirleri: p.canViewIsEmirleri,
         canCreateRecord: p.canCreateRecord,
         canDeleteIkinciEl: p.canDeleteIkinciEl,
         canDeleteServis: p.canDeleteServis,
@@ -141,6 +143,7 @@ export async function POST(req: Request) {
       canViewIkinciEl,
       canViewCihazSorgula,
       canViewCihazKayit,
+      canViewIsEmirleri,
       canCreateRecord,
       canDeleteIkinciEl,
       canDeleteServis,
@@ -186,6 +189,7 @@ export async function POST(req: Request) {
       canViewIkinciEl?: boolean;
       canViewCihazSorgula?: boolean;
       canViewCihazKayit?: boolean;
+      canViewIsEmirleri?: boolean;
       canCreateRecord?: boolean;
       canDeleteIkinciEl?: boolean;
       canDeleteServis?: boolean;
@@ -240,6 +244,7 @@ export async function POST(req: Request) {
         canViewIkinciEl: canViewIkinciEl ?? false,
         canViewCihazSorgula: canViewCihazSorgula ?? false,
         canViewCihazKayit: canViewCihazKayit ?? false,
+        canViewIsEmirleri: canViewIsEmirleri ?? false,
         canCreateRecord: canCreateRecord ?? false,
         canDeleteIkinciEl: canDeleteIkinciEl ?? false,
         canDeleteServis: canDeleteServis ?? false,
