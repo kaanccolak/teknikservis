@@ -447,8 +447,14 @@ export async function POST(request: Request) {
         });
         if (personnel?.phone) {
           const { sendBaileysMessage } = await import("@/lib/baileys-client");
+          // Telefonu uluslararası formata çevir
+          let phone = personnel.phone.replace(/\D/g, ""); // sadece rakamlar
+          if (phone.startsWith("0")) phone = "90" + phone.slice(1);
+          else if (phone.startsWith("+90")) phone = phone.slice(1);
+          else if (!phone.startsWith("90")) phone = "90" + phone;
+
           const message = `🔧 Yeni İş Emri\n\nMüşteri: ${order.customerName}\nCihaz: ${order.brandName ?? ""} ${order.modelName ?? ""}\nKayıt No: ${order.orderNumber}\n\nBu cihaz size atandı.`;
-          void sendBaileysMessage(shop.id, personnel.phone, message).catch(
+          void sendBaileysMessage(shop.id, phone, message).catch(
             (err) => console.error("[Personnel WA]", err),
           );
         }
