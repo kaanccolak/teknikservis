@@ -327,6 +327,7 @@ export default function ServisDetayPage() {
   const [isAtamaYapiliyor, setIsAtamaYapiliyor] = useState(false);
   const [secilenPersonelId, setSecilenPersonelId] = useState("");
   const [aktifPersonelIsAdmin, setAktifPersonelIsAdmin] = useState(true);
+  const [isAtamaModuAktif, setIsAtamaModuAktif] = useState(false);
   const [waSending, setWaSending] = useState(false);
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
@@ -720,6 +721,9 @@ export default function ServisDetayPage() {
   useEffect(() => {
     const isAdmin = sessionStorage.getItem("activePersonnelIsAdmin");
     setAktifPersonelIsAdmin(isAdmin === null || isAdmin === "true");
+
+    const isAtamaMod = sessionStorage.getItem("isAtamaModuAktif");
+    setIsAtamaModuAktif(isAtamaMod === "true");
 
     // Admin değilse aktif personeli otomatik seç
     if (isAdmin === "false") {
@@ -2402,7 +2406,7 @@ export default function ServisDetayPage() {
                 {order.personnel?.name ? (
                   <DetailRow label="Kaydı yapan">{order.personnel.name}</DetailRow>
                 ) : null}
-                {order.assignedPersonnel?.name ? (
+                {isAtamaModuAktif && order.assignedPersonnel?.name ? (
                   <DetailRow label="İş Atanan Personel">{order.assignedPersonnel.name}</DetailRow>
                 ) : null}
               </dl>
@@ -2894,7 +2898,7 @@ export default function ServisDetayPage() {
         </div>
 
         <div className="space-y-6 lg:col-span-1">
-          {yetkiVar("canAssignPersonnel") && (
+          {yetkiVar("canAssignPersonnel") && isAtamaModuAktif && (
             <Card className="border-slate-200/80 bg-white shadow-sm">
               <CardHeader
                 className="cursor-pointer select-none"
