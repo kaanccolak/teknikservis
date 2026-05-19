@@ -226,6 +226,15 @@ export async function POST(request: Request) {
       ? body.personnelId.trim()
       : undefined;
 
+  const assignedPersonnelIdRaw =
+    typeof json === "object" &&
+    json !== null &&
+    typeof (json as { assignedPersonnelId?: unknown }).assignedPersonnelId ===
+      "string" &&
+    (json as { assignedPersonnelId: string }).assignedPersonnelId.trim()
+      ? (json as { assignedPersonnelId: string }).assignedPersonnelId.trim()
+      : undefined;
+
   if (process.env.NODE_ENV === "development") {
     console.log("[POST /api/service-orders] body", body);
   }
@@ -324,6 +333,15 @@ export async function POST(request: Request) {
             personnelIdCreate = pRow.id;
           }
 
+          let assignedPersonnelIdCreate: string | null = null;
+          if (assignedPersonnelIdRaw) {
+            const pRow = await tx.personnel.findFirst({
+              where: { id: assignedPersonnelIdRaw, shopId: shop.id },
+              select: { id: true },
+            });
+            if (pRow) assignedPersonnelIdCreate = pRow.id;
+          }
+
           const phoneStored = phoneRawToStorage(body.phone);
           const phoneDigits = phoneStored ? normalizePhone(phoneStored) : null;
 
@@ -388,9 +406,22 @@ export async function POST(request: Request) {
               status: isReturn ? "returned_device" : "in_service",
               estimatedPrice: formEstimatedPriceToDb(body.estimatedPrice),
               personnelId: personnelIdCreate,
+              assignedPersonnelId: assignedPersonnelIdCreate,
             },
             select: { id: true, orderNumber: true, serialNo: true },
           });
+
+          if (assignedPersonnelIdCreate) {
+            await tx.statusLog.create({
+              data: {
+                serviceOrderId: row.id,
+                oldStatus: null,
+                newStatus: "assigned",
+                note: `İş emri atandı`,
+                personnelId: assignedPersonnelIdCreate,
+              },
+            });
+          }
 
           return {
             id: row.id,

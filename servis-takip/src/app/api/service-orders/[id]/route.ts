@@ -35,6 +35,9 @@ const serviceOrderInclude = {
     },
   },
   personnel: { select: { name: true } },
+  assignedPersonnel: {
+    select: { id: true, name: true, phone: true },
+  },
   deviceType: true,
   brand: true,
   deviceModel: true,
@@ -309,7 +312,13 @@ export async function PATCH(
   try {
     existing = await prisma.serviceOrder.findFirst({
       where: { id, shopId: shop.id, deletedAt: null },
-      select: { id: true, status: true, customerId: true, externalServiceId: true },
+      select: {
+        id: true,
+        status: true,
+        customerId: true,
+        externalServiceId: true,
+        assignedPersonnelId: true,
+      },
     });
   } catch (e) {
     return jsonServerError(
@@ -361,6 +370,37 @@ export async function PATCH(
     body,
     existing.status,
   );
+
+  let assignedPersonnelStatusLog: {
+    oldStatus: string | null;
+    note: string;
+    personnelId: string;
+  } | null = null;
+
+  if (typeof json === "object" && json !== null && "assignedPersonnelId" in json) {
+    const apId =
+      typeof (json as { assignedPersonnelId?: unknown }).assignedPersonnelId ===
+        "string" &&
+      (json as { assignedPersonnelId: string }).assignedPersonnelId.trim()
+        ? (json as { assignedPersonnelId: string }).assignedPersonnelId.trim()
+        : null;
+    if (apId) {
+      const pRow = await prisma.personnel.findFirst({
+        where: { id: apId, shopId: shop.id },
+        select: { id: true, name: true },
+      });
+      if (pRow) {
+        prismaData.assignedPersonnelId = pRow.id;
+        assignedPersonnelStatusLog = {
+          oldStatus: existing.assignedPersonnelId ?? null,
+          note: `İş emri ${pRow.name} adlı personele atandı`,
+          personnelId: pRow.id,
+        };
+      }
+    } else {
+      prismaData.assignedPersonnelId = null;
+    }
+  }
 
   const customerUpdate: {
     name?: string;
@@ -470,6 +510,17 @@ export async function PATCH(
             newStatus,
             note: "Durum güncellendi",
             personnelId: statusLogPersonnelId,
+          },
+        });
+      }
+      if (assignedPersonnelStatusLog) {
+        await tx.statusLog.create({
+          data: {
+            serviceOrderId: id,
+            oldStatus: assignedPersonnelStatusLog.oldStatus,
+            newStatus: "assigned",
+            note: assignedPersonnelStatusLog.note,
+            personnelId: assignedPersonnelStatusLog.personnelId,
           },
         });
       }
