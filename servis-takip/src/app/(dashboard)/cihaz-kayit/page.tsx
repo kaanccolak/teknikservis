@@ -3141,8 +3141,8 @@ function CihazKayitRoot() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                       phone: personelWaDialog.personnelPhone,
-                      templateName: "custom",
-                      parameters: [personelWaDialog.message],
+                      templateName: "__custom__",
+                      customMessage: personelWaDialog.message,
                     }),
                   });
                   toast.success("Personele bildirim gönderildi!");
