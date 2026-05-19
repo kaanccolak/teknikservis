@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 import YetkiYok from "@/components/YetkiYok";
 
 interface Personnel {
@@ -35,7 +34,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
 
 export default function IsEmirleriPage() {
   const router = useRouter();
-  const { yetkiVar, isAdmin } = usePersonelYetki();
   const [orders, setOrders] = useState<Order[]>([]);
   const [personeller, setPersoneller] = useState<Personnel[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -74,24 +72,16 @@ export default function IsEmirleriPage() {
   }, []);
 
   useEffect(() => {
-    void loadOrders();
-  }, [secilenPersonel, secilenDurum]);
-
-  async function loadOrders() {
+    const params = new URLSearchParams();
+    if (secilenPersonel) params.set("personnelId", secilenPersonel);
+    if (secilenDurum) params.set("status", secilenDurum);
     setYukleniyor(true);
-    try {
-      const params = new URLSearchParams();
-      if (secilenPersonel) params.set("personnelId", secilenPersonel);
-      if (secilenDurum) params.set("status", secilenDurum);
-      const res = await fetch(`/api/service-orders?${params.toString()}`);
-      const data = await res.json() as { orders: Order[] };
-      setOrders(data.orders ?? []);
-    } catch {
-      setOrders([]);
-    } finally {
-      setYukleniyor(false);
-    }
-  }
+    fetch(`/api/service-orders?${params.toString()}`)
+      .then((r) => r.json())
+      .then((data: { orders: Order[] }) => setOrders(data.orders ?? []))
+      .catch(() => setOrders([]))
+      .finally(() => setYukleniyor(false));
+  }, [secilenPersonel, secilenDurum]);
 
   if (!yetkiYuklendi) return null;
   if (!canView) return <YetkiYok />;
