@@ -26,6 +26,8 @@ export default function DashboardLayout({
       .then((r) => r.json())
       .then((data: Record<string, string>) => {
         const modAktif = data.personel_giris_modu === "true";
+        const isAtamaModu = data.is_atama_modu === "true";
+        sessionStorage.setItem("isAtamaModuAktif", isAtamaModu ? "true" : "false");
         setPersonelGirisModuAktif(modAktif);
         if (!modAktif || aktifPersonel) {
           setPersonelSecildi(true);

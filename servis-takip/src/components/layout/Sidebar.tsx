@@ -40,7 +40,7 @@ const navItems: {
   { href: "/cihaz-sorgula", label: "Cihaz Sorgula", permKey: "canViewCihazSorgula" },
   { href: "/ikinci-el", label: "İkinci El Cihazlar", permKey: "canViewIkinciEl" },
   { href: "/bekleyen-cihazlar", label: "Bekleyen Cihazlar", permKey: "canViewBekleyen" },
-  { href: "/is-emirleri", label: "İş Emirleri", icon: ClipboardList, permKey: "canAssignPersonnel" },
+  { href: "/is-emirleri", label: "İş Emirleri", icon: ClipboardList },
   { href: "/dis-servis", label: "Dış Servisler", icon: Truck, permKey: "canViewDisServis" },
   { href: "/stok", label: "Stok Yönetimi", icon: Package, permKey: "canViewStok" },
   { href: "/cari", label: "Cari Yönetimi", icon: Building2, permKey: "canViewCari" },

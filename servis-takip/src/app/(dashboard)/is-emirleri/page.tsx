@@ -43,8 +43,12 @@ export default function IsEmirleriPage() {
   // Yetki kontrolü
   const [yetkiYuklendi, setYetkiYuklendi] = useState(false);
   const [canView, setCanView] = useState(true);
+  const [isAtamaModuAktif, setIsAtamaModuAktif] = useState(true);
 
   useEffect(() => {
+    const mod = sessionStorage.getItem("isAtamaModuAktif");
+    setIsAtamaModuAktif(mod !== "false");
+
     const isAdminRaw = sessionStorage.getItem("activePersonnelIsAdmin");
     if (isAdminRaw === null || isAdminRaw === "true") {
       setCanView(true);
@@ -84,6 +88,34 @@ export default function IsEmirleriPage() {
   }, [secilenPersonel, secilenDurum]);
 
   if (!yetkiYuklendi) return null;
+  if (!isAtamaModuAktif) {
+    return (
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", minHeight: "60vh", gap: "16px", textAlign: "center", padding: "24px",
+      }}>
+        <div style={{ fontSize: "48px" }}>⚙️</div>
+        <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111827", margin: 0 }}>
+          İş Atama Modu Aktif Değil
+        </h1>
+        <p style={{ fontSize: "14px", color: "#6b7280", margin: 0, maxWidth: "400px" }}>
+          Bu özelliği kullanmak için İş Atama Modunu aktif etmeniz gerekiyor.
+        </p>
+        <p style={{ fontSize: "13px", color: "#9ca3af", margin: 0 }}>
+          <strong>Şirketim → Personeller</strong> sekmesinden aktif edebilirsiniz.
+        </p>
+        <a
+          href="/sirketim"
+          style={{
+            padding: "10px 24px", background: "#111827", color: "white",
+            borderRadius: "8px", fontSize: "14px", fontWeight: 600, textDecoration: "none",
+          }}
+        >
+          Şirketim&apos;e Git
+        </a>
+      </div>
+    );
+  }
   if (!canView) return <YetkiYok />;
 
   return (
