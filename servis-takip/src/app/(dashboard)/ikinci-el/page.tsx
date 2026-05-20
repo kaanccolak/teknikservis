@@ -41,6 +41,7 @@ type Row = {
   hasBox: boolean;
   purchasePrice: number;
   createdAt: string;
+  purchasedAt: string | null;
   isSold: boolean;
   deviceType: { name: string } | null;
   brand: { name: string } | null;
@@ -856,11 +857,14 @@ function IkinciElInner() {
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
-                      {new Date(row.createdAt).toLocaleDateString("tr-TR", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {new Date(row.purchasedAt ?? row.createdAt).toLocaleDateString(
+                        "tr-TR",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}
                     </td>
                     <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
                       <div className="flex flex-wrap gap-1.5">
