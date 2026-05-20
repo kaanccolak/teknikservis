@@ -930,3 +930,31 @@ Admin yetkisi verilince tüm yetki checkboxları gizlenir.
 - Raporlar: silinen kayıtlar hariç tutuldu
 - İkinci el satılmış kayıtlar düzenlenebilir + satış iptal butonu
 - İkinci el alım/satış fişlerine dükkan bilgileri eklendi
+
+## Bugün Yapılanlar (20 Mayıs 2026)
+
+### Landing Page
+- Fiyatlandırma 3 pakete güncellendi: Basic ₺100, Premium ₺180, Enterprise ₺280
+- Yıllık: Basic ₺1.000, Premium ₺1.800, Enterprise ₺2.800
+- KDV kaldırıldı
+- Özellikler bölümüne İş Emirleri (Enterprise) ve Personel Yönetimi (Premium) kartları eklendi
+- Premium/Enterprise kartlar spotlight tasarımıyla öne çıkarıldı
+
+### Plan Kısıtlamaları Altyapısı
+- `src/hooks/usePlanKisit.ts` — KISITLAMALAR_AKTIF=false (beta)
+- `src/app/paket-sec/page.tsx` — paket seçim sayfası oluşturuldu
+- `src/app/(dashboard)/layout.tsx` — TRIAL_KONTROL_AKTIF=false (beta)
+
+### Google Contacts
+- İkinci el alımında satıcı Google Contacts'a ekleniyor
+- `src/app/api/second-hand/route.ts` güncellendi
+
+### Mevcut Müşteri Kontrolü
+- Aynı telefon farklı isimle kayıt yapılınca modal açılıyor
+- `src/app/api/customers/by-phone/route.ts` endpoint eklendi
+- `service-orders` POST'a `forceNewCustomer` desteği eklendi
+
+## Bekleyen Bug
+- İkinci el cihaz düzenleme sayfasında marka ve model bilgileri yüklenmiyor
+- Dosya: `src/app/(dashboard)/ikinci-el/[id]/duzenle/page.tsx`
+- Sorun: brandId ve deviceModelId değerleri form'a doğru set edilmiyor olabilir
