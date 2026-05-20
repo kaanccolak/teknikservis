@@ -52,6 +52,7 @@ type Detail = {
   purchasePrice: number;
   notes: string | null;
   createdAt: string;
+  purchasedAt: string | null;
   isSold: boolean;
   soldAt: string | null;
   soldPrice: number | null;
@@ -544,15 +545,18 @@ export default function IkinciElDetayPage() {
                 {formatTry(row.purchasePrice)}
               </p>
               <div>
-                <p className="text-sm text-slate-500">Kayıt tarihi</p>
+                <p className="text-sm text-slate-500">Alım tarihi</p>
                 <p className="text-sm font-medium text-slate-800">
-                  {new Date(row.createdAt).toLocaleString("tr-TR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(row.purchasedAt ?? row.createdAt).toLocaleString(
+                    "tr-TR",
+                    {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
                 </p>
               </div>
             </CardContent>
