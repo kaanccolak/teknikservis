@@ -380,6 +380,13 @@ export default function LandingPage() {
               { ikon: "📊", baslik: "Raporlar ve ciro", aciklama: "Aylık özetler, teslim edilen işler ve gelir takibi — kararlarınızı veriye dayandırın." },
               { ikon: "🧾", baslik: "Fiş ve etiket", aciklama: "Müşteri nüshası, teslim fişi ve cihaz etiketi; barkodlu yazdırma ile profesyonel çıktı." },
               { ikon: "🔄", baslik: "İkinci el modülü", aciklama: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun." },
+              {
+                ikon: "📋",
+                baslik: "İş Emirleri Modülü",
+                aciklama:
+                  "Cihaz kaydederken işi personele ata, WhatsApp bildirimi otomatik gitsin. Tüm atanmış görevleri tek ekranda takip et, filtrele ve yeniden ata.",
+                enterprise: true,
+              },
             ].map((item) => (
               <div
                 key={item.baslik}
@@ -390,6 +397,21 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">{item.baslik}</p>
+                  {"enterprise" in item && item.enterprise ? (
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        background: "#111827",
+                        color: "white",
+                        padding: "1px 6px",
+                        borderRadius: "10px",
+                        marginTop: "2px",
+                        display: "inline-block",
+                      }}
+                    >
+                      Enterprise
+                    </span>
+                  ) : null}
                   <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">{item.aciklama}</p>
                 </div>
               </div>
