@@ -626,23 +626,59 @@ src/lib/supabase/
 
 ## Fiyatlandırma
 
-### Paketler
-| Paket | Aylık | Açıklama |
-|-------|-------|----------|
-| Basic | ₺90 +KDV | Tek kişilik servisler |
-| Premium | ₺130 +KDV | 5 personel, stok, raporlar, AI |
-| Enterprise | ₺160 +KDV | Sınırsız personel, haftalık rapor |
+### Paket Yapısı
+3 paket modeli:
+
+| | Aylık | Yıllık |
+|---|---|---|
+| Basic | ₺100 | ₺1.000 |
+| Premium | ₺180 | ₺1.800 |
+| Enterprise | ₺280 | ₺2.800 |
+
+Yıllık ödemede 2 ay ücretsiz.
 
 ### Paket İçerikleri
-- **Basic**: Sınırsız cihaz kayıt, ikinci el, bekleyen, dış servis, cari, bayi, planlarım, WhatsApp, mesaj şablonları, Yardım&Destek AI
-- **Premium**: Basic + stok yönetimi, raporlar, ciro görünümü, tüm AI özellikleri, Google Contacts, 5 personel, personel yetki ve giriş yönetimi
-- **Enterprise**: Premium + sınırsız personel, haftalık rapor e-postası, öncelikli destek
+
+**Basic:**
+- Sınırsız cihaz kayıt ve takip
+- Cihaz sorgula, fiş, etiket, müşteri nüshası
+- İkinci el modülü
+- Dış servisler, bekleyen cihazlar
+- Cari ve bayi yönetimi
+- Planlarım ve hazır tanımlar
+- Sınırsız WhatsApp mesajı
+- Yardım ve Destek AI
+
+**Premium (Basic + şunlar):**
+- Stok yönetimi
+- Raporlar ve ciro görünümü
+- Tüm yapay zeka özellikleri
+- Google Contacts entegrasyonu
+- 5 personele kadar kullanım
+- Personel yetki ve giriş modu
+
+**Enterprise (Premium + şunlar):**
+- İş emirleri modülü
+- Sınırsız personel
+- Haftalık rapor e-postası
+- Öncelikli destek
+
+### Plan Tipleri (DB)
+- `planType: "trial"` — yeni kayıt olan herkes (beta'da sınırsız kullanım)
+- `planType: "basic"` — Basic paket
+- `planType: "premium"` — Premium paket
+- `planType: "enterprise"` — Enterprise paket
+
+### subscriptionStatus Değerleri
+- `"trial"` — aktif deneme
+- `"active"` — ödeme yapılmış, aktif abonelik
+- `"expired"` — süresi dolmuş
+- `"cancelled"` — iptal edilmiş
 
 ### Önemli Notlar
-- İlk 30 gün tüm özellikler ücretsiz, kredi kartı gerekmez
-- Beta döneminde tüm dükkanlar sınırsız kullanım hakkına sahip
+- Beta döneminde tüm dükkanlar trial modunda, tüm özellikler açık, süre sınırı yok
 - Ödeme altyapısı şirket kurulunca (iyzico) implement edilecek
-- Landing page fiyatlandırma bölümü: `src/app/landing/page.tsx` satır 501 civarı
+- Landing page fiyatlandırma bölümü: `src/app/landing/page.tsx`
 
 ## Yapılacaklar (TODO)
 
