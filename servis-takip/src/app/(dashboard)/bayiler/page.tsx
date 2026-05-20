@@ -222,10 +222,6 @@ export default function BayilerPage() {
       toast.error("Telefon 10 haneli ve 5 ile başlamalıdır");
       return;
     }
-    if ((form.tcVergiNo ?? "").trim().length < 10) {
-      toast.error("TC/Vergi no zorunludur");
-      return;
-    }
 
     setSaving(true);
     try {
@@ -570,8 +566,13 @@ export default function BayilerPage() {
               <Input
                 ref={tcVergiRef}
                 value={form.tcVergiNo ?? ""}
-                onChange={(e) => setForm((p) => ({ ...p, tcVergiNo: e.target.value }))}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                  setForm((p) => ({ ...p, tcVergiNo: val }));
+                }}
                 onKeyDown={(e) => handleEnterKey(e, grupRef)}
+                inputMode="numeric"
+                maxLength={11}
               />
             </div>
             <div style={{ marginBottom: "12px" }}>
