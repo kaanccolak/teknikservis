@@ -87,6 +87,20 @@ type CustomerSearchItem = {
   phone: string | null;
   orders: CustomerSearchOrder[];
 };
+type ReturnSearchResult = {
+  id: string;
+  orderNumber: string;
+  serialNo: string | null;
+  customer: { name: string; phone: string | null };
+  deviceTypeId: string | null;
+  brandId: string | null;
+  deviceModelId: string | null;
+  warrantyStatus: string;
+  isTampered: boolean;
+  complaint: string | null;
+  accessories: string | null;
+  physicalDamage: string | null;
+};
 type BayiSuggestionItem = {
   id: string;
   firmaAdi: string;
@@ -238,6 +252,11 @@ function CihazKayitServiceInner({
     grup: null as string | null,
   });
   const [isReturn, setIsReturn] = useState(false);
+  const [returnSearchQuery, setReturnSearchQuery] = useState("");
+  const [returnSearchResults, setReturnSearchResults] = useState<
+    ReturnSearchResult[]
+  >([]);
+  const [returnSearchLoading, setReturnSearchLoading] = useState(false);
   const [personeller, setPersoneller] = useState<{ id: string; name: string }[]>(
     [],
   );
@@ -481,6 +500,33 @@ function CihazKayitServiceInner({
   }, [brandId, setValue]);
 
   useEffect(() => {
+    if (!isReturn || returnSearchQuery.trim().length < 2) {
+      setReturnSearchResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      setReturnSearchLoading(true);
+      try {
+        const res = await fetch(
+          `/api/service-orders?search=${encodeURIComponent(returnSearchQuery.trim())}&limit=5`,
+        );
+        const data = await res.json();
+        const orders = Array.isArray(data.orders)
+          ? data.orders
+          : Array.isArray(data)
+            ? data
+            : [];
+        setReturnSearchResults(orders as ReturnSearchResult[]);
+      } catch {
+        setReturnSearchResults([]);
+      } finally {
+        setReturnSearchLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [returnSearchQuery, isReturn]);
+
+  useEffect(() => {
     const q = (customerName ?? "").trim();
     if (q.length < 3) {
       setCustomerLoading(false);
@@ -610,6 +656,49 @@ function CihazKayitServiceInner({
     setCustomerPanelOpen(false);
     toast.success("Bilgiler aktarıldı");
   }
+
+  const importFromOrder = useCallback(
+    async (order: ReturnSearchResult) => {
+      setValue("customerName", order.customer.name);
+      setValue("phone", order.customer.phone ?? "");
+      setValue(
+        "warrantyStatus",
+        (order.warrantyStatus as "guaranteed" | "no_warranty") ?? "no_warranty",
+      );
+      setValue("isTampered", order.isTampered);
+      setValue("complaint", order.complaint ?? "");
+      setValue("accessories", order.accessories ?? "");
+      setValue("physicalDamage", order.physicalDamage ?? "");
+
+      if (order.deviceTypeId && order.brandId && order.deviceModelId) {
+        try {
+          const [brRes, mdRes] = await Promise.all([
+            fetch(
+              `/api/brands?deviceTypeId=${encodeURIComponent(order.deviceTypeId)}`,
+            ),
+            fetch(`/api/models?brandId=${encodeURIComponent(order.brandId)}`),
+          ]);
+          const brData = await brRes.json();
+          const mdData = await mdRes.json();
+          if (Array.isArray(brData)) setBrands(brData);
+          if (Array.isArray(mdData)) setModels(mdData);
+        } catch {
+          /* sessizce geç */
+        }
+
+        skipDeviceCascade.current = true;
+        skipBrandCascade.current = true;
+        setValue("deviceTypeId", order.deviceTypeId);
+        setValue("brandId", order.brandId);
+        setValue("deviceModelId", order.deviceModelId);
+      }
+
+      setReturnSearchResults([]);
+      setReturnSearchQuery("");
+      toast.success(`#${order.orderNumber} kaydından bilgiler aktarıldı`);
+    },
+    [setValue],
+  );
 
   function applyOnlyCustomer(customer: CustomerSearchItem) {
     const phoneInput = normalizePhoneForInput(customer.phone);
@@ -1335,11 +1424,135 @@ function CihazKayitServiceInner({
                 <input
                   type="checkbox"
                   checked={isReturn}
-                  onChange={(e) => setIsReturn(e.target.checked)}
+                  onChange={(e) => {
+                    setIsReturn(e.target.checked);
+                    if (!e.target.checked) {
+                      setReturnSearchQuery("");
+                      setReturnSearchResults([]);
+                    }
+                  }}
                   style={{ width: "16px", height: "16px", cursor: "pointer" }}
                 />
                 Cihaz Tekrar Geldi
               </label>
+
+              {isReturn && (
+                <div style={{ marginTop: "12px" }}>
+                  <input
+                    type="text"
+                    value={returnSearchQuery}
+                    onChange={(e) => setReturnSearchQuery(e.target.value)}
+                    placeholder="Kayıt numarası ya da seri numarası girin"
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      outline: "none",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  {returnSearchLoading && (
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        color: "#6b7280",
+                        marginTop: "6px",
+                      }}
+                    >
+                      Aranıyor…
+                    </p>
+                  )}
+                  {returnSearchResults.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: "6px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                        background: "white",
+                      }}
+                    >
+                      {returnSearchResults.map((order) => (
+                        <div
+                          key={order.id}
+                          style={{
+                            padding: "10px 14px",
+                            borderBottom: "1px solid #f3f4f6",
+                            cursor: "pointer",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = "#f9fafb")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "white")
+                          }
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <div>
+                              <span
+                                style={{
+                                  fontWeight: "600",
+                                  fontSize: "13px",
+                                  color: "#1f2937",
+                                }}
+                              >
+                                #{order.orderNumber}
+                              </span>
+                              {order.serialNo && (
+                                <span
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "#6b7280",
+                                    marginLeft: "8px",
+                                  }}
+                                >
+                                  Seri: {order.serialNo}
+                                </span>
+                              )}
+                              <div
+                                style={{
+                                  fontSize: "13px",
+                                  color: "#374151",
+                                  marginTop: "2px",
+                                }}
+                              >
+                                {order.customer.name}
+                                {order.customer.phone &&
+                                  ` · ${order.customer.phone}`}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void importFromOrder(order)}
+                              style={{
+                                padding: "6px 12px",
+                                background: "#7c3aed",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Bilgileri Aktar
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <label
                 style={{
