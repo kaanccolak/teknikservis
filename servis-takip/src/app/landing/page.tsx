@@ -381,11 +381,16 @@ export default function LandingPage() {
               { ikon: "🧾", baslik: "Fiş ve etiket", aciklama: "Müşteri nüshası, teslim fişi ve cihaz etiketi; barkodlu yazdırma ile profesyonel çıktı." },
               { ikon: "🔄", baslik: "İkinci el modülü", aciklama: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun." },
               {
+                ikon: "👥",
+                baslik: "Personel Yönetimi",
+                aciklama:
+                  "Personel ekle, yetki belirle, giriş modunu aktif et. Her personel sadece yetkili olduğu alanlara erişsin.",
+              },
+              {
                 ikon: "📋",
                 baslik: "İş Emirleri Modülü",
                 aciklama:
                   "Cihaz kaydederken işi personele ata, WhatsApp bildirimi otomatik gitsin. Tüm atanmış görevleri tek ekranda takip et, filtrele ve yeniden ata.",
-                enterprise: true,
               },
             ].map((item) => (
               <div
@@ -396,22 +401,35 @@ export default function LandingPage() {
                   {item.ikon}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{item.baslik}</p>
-                  {"enterprise" in item && item.enterprise ? (
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        background: "#111827",
-                        color: "white",
-                        padding: "1px 6px",
-                        borderRadius: "10px",
-                        marginTop: "2px",
-                        display: "inline-block",
-                      }}
-                    >
-                      Enterprise
-                    </span>
-                  ) : null}
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-900">{item.baslik}</p>
+                    {item.baslik === "Personel Yönetimi" && (
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          background: "#4f46e5",
+                          color: "white",
+                          padding: "1px 6px",
+                          borderRadius: "10px",
+                        }}
+                      >
+                        Premium
+                      </span>
+                    )}
+                    {item.baslik === "İş Emirleri Modülü" && (
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          background: "#111827",
+                          color: "white",
+                          padding: "1px 6px",
+                          borderRadius: "10px",
+                        }}
+                      >
+                        Enterprise
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">{item.aciklama}</p>
                 </div>
               </div>
