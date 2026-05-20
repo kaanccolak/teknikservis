@@ -174,6 +174,10 @@ export async function POST(request: Request) {
   const hasBox = o.hasBox === true;
   const notes = typeof o.notes === "string" ? o.notes.trim() || null : null;
 
+  const purchasedAtRaw =
+    typeof o.purchasedAt === "string" ? o.purchasedAt.trim() : "";
+  const purchasedAt = purchasedAtRaw ? new Date(purchasedAtRaw) : new Date();
+
   let purchasePrice: number;
   if (typeof o.purchasePrice === "number" && Number.isFinite(o.purchasePrice)) {
     purchasePrice = o.purchasePrice;
@@ -286,6 +290,7 @@ export async function POST(request: Request) {
         hasBox,
         purchasePrice,
         notes,
+        purchasedAt,
       };
 
       if (deviceTypeId && brandId && deviceModelId) {

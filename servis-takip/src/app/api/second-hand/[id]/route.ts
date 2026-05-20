@@ -127,6 +127,10 @@ export async function PATCH(
       typeof o.notes === "string" && o.notes.trim() ? o.notes.trim() : null;
   }
 
+  if ("purchasedAt" in o && typeof o.purchasedAt === "string" && o.purchasedAt.trim()) {
+    data.purchasedAt = new Date(o.purchasedAt.trim());
+  }
+
   if (typeof o.hasInvoice === "boolean") data.hasInvoice = o.hasInvoice;
   if (typeof o.hasWarranty === "boolean") data.hasWarranty = o.hasWarranty;
   if (typeof o.hasBox === "boolean") data.hasBox = o.hasBox;

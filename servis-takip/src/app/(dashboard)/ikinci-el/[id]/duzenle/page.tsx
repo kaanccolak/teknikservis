@@ -43,6 +43,7 @@ type RowDetail = {
   hasWarranty: boolean;
   hasBox: boolean;
   purchasePrice: number;
+  purchasedAt: string | null;
   notes: string | null;
   isSold: boolean;
 };
@@ -60,8 +61,26 @@ type FormValues = {
   hasWarranty: boolean;
   hasBox: boolean;
   purchasePrice: string;
+  purchasedAt: string;
   notes: string;
 };
+
+function toDatetimeLocalValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatPurchasedAtDisplay(datetimeLocal: string): string {
+  const d = new Date(datetimeLocal);
+  if (isNaN(d.getTime())) return datetimeLocal;
+  return d.toLocaleString("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function normalizePhoneForInput(phone: string | null): string {
   if (!phone) return "";
@@ -83,6 +102,7 @@ export default function IkinciElDuzenlePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [deviceCode, setDeviceCode] = useState("");
   const isInitializing = useRef(false);
+  const [showDateEditor, setShowDateEditor] = useState(false);
 
   const { register, control, handleSubmit, watch, setValue, formState } =
     useForm<FormValues>({
@@ -99,6 +119,7 @@ export default function IkinciElDuzenlePage() {
         hasWarranty: false,
         hasBox: false,
         purchasePrice: "",
+        purchasedAt: "",
         notes: "",
       },
     });
@@ -106,6 +127,7 @@ export default function IkinciElDuzenlePage() {
   const deviceTypeId = watch("deviceTypeId");
   const brandId = watch("brandId");
   const noSerialNo = watch("noSerialNo");
+  const purchasedAt = watch("purchasedAt");
 
   useEffect(() => {
     let cancelled = false;
@@ -154,6 +176,12 @@ export default function IkinciElDuzenlePage() {
         Number.isFinite(row.purchasePrice)
           ? String(row.purchasePrice)
           : "",
+      );
+      setValue(
+        "purchasedAt",
+        row.purchasedAt
+          ? toDatetimeLocalValue(new Date(row.purchasedAt))
+          : toDatetimeLocalValue(new Date()),
       );
       setValue("notes", row.notes ?? "");
 
@@ -254,6 +282,7 @@ export default function IkinciElDuzenlePage() {
         hasWarranty: data.hasWarranty,
         hasBox: data.hasBox,
         purchasePrice: price,
+        purchasedAt: data.purchasedAt,
         notes: data.notes.trim() || null,
       };
 
@@ -493,6 +522,41 @@ export default function IkinciElDuzenlePage() {
             <CardTitle>Satın alım</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Alım tarihi ve saati</Label>
+              {!showDateEditor ? (
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <span className="text-slate-700">
+                    {formatPurchasedAtDisplay(
+                      purchasedAt ?? toDatetimeLocalValue(new Date()),
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                    onClick={() => setShowDateEditor(true)}
+                  >
+                    Tarihi değiştir
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-end gap-3">
+                  <Input
+                    type="datetime-local"
+                    className="w-auto min-w-[16rem]"
+                    {...register("purchasedAt")}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDateEditor(false)}
+                  >
+                    Kapat
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="ed-price">
                 Satın alınan fiyat (₺){" "}

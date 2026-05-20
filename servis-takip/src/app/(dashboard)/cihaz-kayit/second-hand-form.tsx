@@ -14,7 +14,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -45,6 +45,23 @@ function handleEnterKey(
   nextRef.current?.focus();
 }
 
+function toDatetimeLocalValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatPurchasedAtDisplay(datetimeLocal: string): string {
+  const d = new Date(datetimeLocal);
+  if (isNaN(d.getTime())) return datetimeLocal;
+  return d.toLocaleString("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 type SecondHandFormValues = {
   sellerName: string;
   sellerPhone: string;
@@ -58,6 +75,7 @@ type SecondHandFormValues = {
   hasWarranty: boolean;
   hasBox: boolean;
   purchasePrice: string;
+  purchasedAt: string;
   notes: string;
 };
 
@@ -82,6 +100,7 @@ const defaultSecondHand: SecondHandFormValues = {
   hasWarranty: false,
   hasBox: false,
   purchasePrice: "",
+  purchasedAt: toDatetimeLocalValue(new Date()),
   notes: "",
 };
 
@@ -140,6 +159,7 @@ export function SecondHandDeviceForm(props: {
   const [showAddModel, setShowAddModel] = useState(false);
   const [newDefinitionName, setNewDefinitionName] = useState("");
   const [savingDefinition, setSavingDefinition] = useState(false);
+  const [showDateEditor, setShowDateEditor] = useState(false);
 
   const sellerNameRef = useRef<HTMLInputElement>(null);
   const sellerPhoneRef = useRef<HTMLInputElement>(null);
@@ -160,6 +180,7 @@ export function SecondHandDeviceForm(props: {
   const deviceTypeId = watch("deviceTypeId");
   const brandId = watch("brandId");
   const noSerialNo = watch("noSerialNo");
+  const purchasedAt = watch("purchasedAt");
   const values = watch();
 
   const isDirty = useMemo(() => {
@@ -392,6 +413,7 @@ export function SecondHandDeviceForm(props: {
             hasWarranty: data.hasWarranty,
             hasBox: data.hasBox,
             purchasePrice: price,
+            purchasedAt: data.purchasedAt,
             notes: data.notes.trim() || undefined,
           }),
         });
@@ -793,6 +815,41 @@ export function SecondHandDeviceForm(props: {
             <CardTitle>Satın alım</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
+            <div className="space-y-2">
+              <Label>Alım tarihi ve saati</Label>
+              {!showDateEditor ? (
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <span className="text-slate-700">
+                    {formatPurchasedAtDisplay(
+                      purchasedAt ?? toDatetimeLocalValue(new Date()),
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                    onClick={() => setShowDateEditor(true)}
+                  >
+                    Tarihi değiştir
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-end gap-3">
+                  <Input
+                    type="datetime-local"
+                    className="w-auto min-w-[16rem]"
+                    {...register("purchasedAt")}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDateEditor(false)}
+                  >
+                    Kapat
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="sh-price">
                 Satın alınan fiyat (₺){" "}

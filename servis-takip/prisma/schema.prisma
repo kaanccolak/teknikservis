@@ -258,6 +258,8 @@ model SecondHandDevice {
 
   notes             String?
 
+  purchasedAt       DateTime?
+
   isSold            Boolean      @default(false)
   soldAt            DateTime?
   soldPrice         Float?
