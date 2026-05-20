@@ -131,6 +131,10 @@ export async function PATCH(
     data.purchasedAt = new Date(o.purchasedAt.trim());
   }
 
+  if ("soldAt" in o && typeof o.soldAt === "string" && o.soldAt.trim()) {
+    data.soldAt = new Date(o.soldAt.trim());
+  }
+
   if (typeof o.hasInvoice === "boolean") data.hasInvoice = o.hasInvoice;
   if (typeof o.hasWarranty === "boolean") data.hasWarranty = o.hasWarranty;
   if (typeof o.hasBox === "boolean") data.hasBox = o.hasBox;

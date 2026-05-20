@@ -46,6 +46,7 @@ type RowDetail = {
   purchasedAt: string | null;
   notes: string | null;
   isSold: boolean;
+  soldAt: string | null;
 };
 
 type FormValues = {
@@ -62,6 +63,7 @@ type FormValues = {
   hasBox: boolean;
   purchasePrice: string;
   purchasedAt: string;
+  soldAt: string;
   notes: string;
 };
 
@@ -103,6 +105,8 @@ export default function IkinciElDuzenlePage() {
   const [deviceCode, setDeviceCode] = useState("");
   const isInitializing = useRef(false);
   const [showDateEditor, setShowDateEditor] = useState(false);
+  const [showSoldDateEditor, setShowSoldDateEditor] = useState(false);
+  const [isSoldState, setIsSoldState] = useState(false);
 
   const { register, control, handleSubmit, watch, setValue, formState } =
     useForm<FormValues>({
@@ -120,6 +124,7 @@ export default function IkinciElDuzenlePage() {
         hasBox: false,
         purchasePrice: "",
         purchasedAt: "",
+        soldAt: "",
         notes: "",
       },
     });
@@ -128,6 +133,7 @@ export default function IkinciElDuzenlePage() {
   const brandId = watch("brandId");
   const noSerialNo = watch("noSerialNo");
   const purchasedAt = watch("purchasedAt");
+  const soldAt = watch("soldAt");
 
   useEffect(() => {
     let cancelled = false;
@@ -160,6 +166,7 @@ export default function IkinciElDuzenlePage() {
       }
       const row = data as RowDetail;
       setDeviceCode(row.deviceCode);
+      setIsSoldState(row.isSold);
       setValue("sellerName", row.sellerName);
       setValue("sellerPhone", normalizePhoneForInput(row.sellerPhone));
       setValue("sellerTcNo", row.sellerTcNo ?? "");
@@ -184,6 +191,10 @@ export default function IkinciElDuzenlePage() {
           : toDatetimeLocalValue(new Date()),
       );
       setValue("notes", row.notes ?? "");
+      setValue(
+        "soldAt",
+        row.soldAt ? toDatetimeLocalValue(new Date(row.soldAt)) : "",
+      );
 
       if (row.deviceTypeId) {
         const brRes = await fetch(
@@ -283,6 +294,7 @@ export default function IkinciElDuzenlePage() {
         hasBox: data.hasBox,
         purchasePrice: price,
         purchasedAt: data.purchasedAt,
+        soldAt: data.soldAt ? new Date(data.soldAt).toISOString() : undefined,
         notes: data.notes.trim() || null,
       };
 
@@ -581,6 +593,59 @@ export default function IkinciElDuzenlePage() {
             </div>
           </CardContent>
         </Card>
+
+        {isSoldState && soldAt && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Satış bilgileri</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Satış tarihi ve saati</Label>
+                {!showSoldDateEditor ? (
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="text-slate-700">
+                      {soldAt
+                        ? new Date(soldAt).toLocaleString("tr-TR", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "—"}
+                    </span>
+                    {soldAt && (
+                      <button
+                        type="button"
+                        className="font-medium text-primary underline-offset-4 hover:underline"
+                        onClick={() => setShowSoldDateEditor(true)}
+                      >
+                        Tarihi değiştir
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-end gap-3">
+                    <Input
+                      type="datetime-local"
+                      className="w-auto min-w-[16rem]"
+                      {...register("soldAt")}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowSoldDateEditor(false)}
+                    >
+                      Kapat
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex flex-wrap gap-3">
           <Button
