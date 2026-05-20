@@ -469,18 +469,28 @@ export async function POST(request: Request) {
       throw lastTxError ?? new Error("ORDER_CREATE_FAILED");
     }
 
-    if (
-      order.customerIsNew &&
-      order.customerPhone.trim().length > 0
-    ) {
-      void addContactToGoogle(
-        shop.id,
-        {
-          name: order.customerName,
-          phone: order.customerPhone,
+    if (order.customerPhone.trim().length > 0) {
+      const phoneDigitsCheck = trPhoneDigitsOnly(order.customerPhone);
+      const existingCount = await prisma.serviceOrder.count({
+        where: {
+          shopId: shop.id,
+          customer: {
+            phoneDigits: phoneDigitsCheck,
+          },
+          id: { not: order.id },
         },
-        order.orderNumber,
-      ).catch((err) => console.error("[Google Contacts]", err));
+      });
+
+      if (existingCount === 0) {
+        void addContactToGoogle(
+          shop.id,
+          {
+            name: order.customerName,
+            phone: order.customerPhone,
+          },
+          order.orderNumber,
+        ).catch((err) => console.error("[Google Contacts]", err));
+      }
     }
 
     return NextResponse.json({

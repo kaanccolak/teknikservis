@@ -310,14 +310,26 @@ export async function POST(request: Request) {
     });
     // Satıcıyı Google Contacts'a ekle
     if (sellerPhone && sellerPhone.trim().length > 0) {
-      void addContactToGoogle(
-        shop.id,
-        {
-          name: sellerName,
-          phone: sellerPhone,
+      const phoneDigitsCheck =
+        sellerPhoneDigits ?? trPhoneDigitsOnly(sellerPhone);
+      const existingCount = await prisma.secondHandDevice.count({
+        where: {
+          shopId: shop.id,
+          sellerPhoneDigits: phoneDigitsCheck,
+          id: { not: created.id },
         },
-        created.deviceCode,
-      ).catch((err) => console.error("[Google Contacts - SecondHand]", err));
+      });
+
+      if (existingCount === 0) {
+        void addContactToGoogle(
+          shop.id,
+          {
+            name: sellerName,
+            phone: sellerPhone,
+          },
+          created.deviceCode,
+        ).catch((err) => console.error("[Google Contacts - SecondHand]", err));
+      }
     }
     return NextResponse.json(created);
   } catch (error) {
