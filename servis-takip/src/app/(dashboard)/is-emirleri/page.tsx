@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import PlanKisitOverlay from "@/components/PlanKisitOverlay";
 import YetkiYok from "@/components/YetkiYok";
+import { usePlanKisit } from "@/hooks/usePlanKisit";
 
 interface Personnel {
   id: string;
@@ -40,6 +42,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
 
 export default function IsEmirleriPage() {
   const router = useRouter();
+  const { kisitVar } = usePlanKisit();
   const [orders, setOrders] = useState<Order[]>([]);
   const [personeller, setPersoneller] = useState<Personnel[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -124,6 +127,14 @@ export default function IsEmirleriPage() {
     );
   }
   if (!canView) return <YetkiYok />;
+
+  if (kisitVar("is-emirleri")) {
+    return (
+      <div className="mx-auto max-w-2xl py-16">
+        <PlanKisitOverlay paket="enterprise" ozellik="İş Emirleri" />
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto" }}>

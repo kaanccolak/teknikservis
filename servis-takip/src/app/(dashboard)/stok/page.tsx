@@ -26,7 +26,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import PlanKisitOverlay from "@/components/PlanKisitOverlay";
 import YetkiYok from "@/components/YetkiYok";
+import { usePlanKisit } from "@/hooks/usePlanKisit";
 import { cn } from "@/lib/utils";
 import { usePersonelYetki } from "@/hooks/usePersonelYetki";
 
@@ -75,6 +77,7 @@ function deviceChainLabel(p: SparePartRow): string {
 
 export default function StokPage() {
   const { yetkiVar } = usePersonelYetki();
+  const { kisitVar } = usePlanKisit();
   const [sayfaYetkisiVar, setSayfaYetkisiVar] = useState(true);
   const [deviceTypes, setDeviceTypes] = useState<IdName[]>([]);
   const [brands, setBrands] = useState<IdName[]>([]);
@@ -515,6 +518,14 @@ export default function StokPage() {
   }, []);
 
   if (!sayfaYetkisiVar) return <YetkiYok />;
+
+  if (kisitVar("stok")) {
+    return (
+      <div className="mx-auto max-w-2xl py-16">
+        <PlanKisitOverlay paket="premium" ozellik="Stok Yönetimi" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

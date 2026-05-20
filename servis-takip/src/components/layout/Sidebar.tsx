@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { usePlanKisit } from "@/hooks/usePlanKisit";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ const navItems: {
 export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { kisitVar } = usePlanKisit();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [shopName, setShopName] = useState<string | null>(null);
@@ -304,6 +306,15 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
                   active
                     ? "bg-slate-100 text-slate-900 shadow-sm ring-1 ring-slate-200/60"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                  item.href === "/stok" &&
+                    kisitVar("stok") &&
+                    "pointer-events-none opacity-40",
+                  item.href === "/raporlar" &&
+                    kisitVar("raporlar") &&
+                    "pointer-events-none opacity-40",
+                  item.href === "/is-emirleri" &&
+                    kisitVar("is-emirleri") &&
+                    "pointer-events-none opacity-40",
                 )}
               >
                 {Icon ? (

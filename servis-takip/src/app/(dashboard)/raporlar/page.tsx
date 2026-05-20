@@ -1,7 +1,9 @@
 "use client";
 
 import PageGuideModal from "@/components/onboarding/PageGuideModal";
+import PlanKisitOverlay from "@/components/PlanKisitOverlay";
 import YetkiYok from "@/components/YetkiYok";
+import { usePlanKisit } from "@/hooks/usePlanKisit";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -153,6 +155,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function RaporlarPage() {
+  const { kisitVar } = usePlanKisit();
   const [yetkiVar, setYetkiVar] = useState(true);
   const [year, setYear] = useState(() => {
     const y = new Date().getFullYear();
@@ -260,6 +263,14 @@ export default function RaporlarPage() {
   }, []);
 
   if (!yetkiVar) return <YetkiYok />;
+
+  if (kisitVar("raporlar")) {
+    return (
+      <div className="mx-auto max-w-2xl py-16">
+        <PlanKisitOverlay paket="premium" ozellik="Raporlar" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto px-1 sm:px-0">
