@@ -1,12 +1,14 @@
 "use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const paketler = [
   {
     ad: "Basic",
-    fiyat: "₺100",
+    aylik: 100,
+    yillik: 1000,
     aciklama: "Küçük ve tek kişilik servisler için ideal başlangıç.",
-    renk: "border-slate-200",
-    butonRenk: "bg-slate-900 text-white hover:bg-slate-700",
     ozellikler: [
       "Sınırsız cihaz kayıt ve takip",
       "Cihaz sorgula ekranı",
@@ -19,13 +21,13 @@ const paketler = [
       "Yardım ve Destek AI",
     ],
     planType: "basic",
+    vurgu: false,
   },
   {
     ad: "Premium",
-    fiyat: "₺180",
+    aylik: 180,
+    yillik: 1800,
     aciklama: "Büyüyen servisler için ekip ve analiz özellikleri.",
-    renk: "border-indigo-600 border-2",
-    butonRenk: "bg-indigo-600 text-white hover:bg-indigo-500",
     rozet: "En Çok Tercih Edilen",
     ozellikler: [
       "Tüm Basic Paket İçeriği",
@@ -37,13 +39,13 @@ const paketler = [
       "Personel yetki ve giriş modu",
     ],
     planType: "premium",
+    vurgu: true,
   },
   {
     ad: "Enterprise",
-    fiyat: "₺280",
+    aylik: 280,
+    yillik: 2800,
     aciklama: "Çok personelli ve büyük servisler için tam güç.",
-    renk: "border-slate-200",
-    butonRenk: "bg-slate-900 text-white hover:bg-slate-700",
     ozellikler: [
       "Tüm Premium Paket İçeriği",
       "İş emirleri modülü",
@@ -52,27 +54,97 @@ const paketler = [
       "Öncelikli destek",
     ],
     planType: "enterprise",
+    vurgu: false,
   },
 ];
 
 export default function PaketSecPage() {
+  const router = useRouter();
+  const [yillik, setYillik] = useState(false);
+  const [secilen, setSecilen] = useState<string | null>(null);
+
   async function handlePaketSec(planType: string) {
-    // İleride ödeme sistemi burada devreye girecek
-    // Şimdilik bilgi mesajı göster
-    alert(`"${planType}" paketi seçtiniz. Ödeme sistemi yakında aktif olacak. Ekibimiz sizinle iletişime geçecek.`);
+    setSecilen(planType);
+    // İleride iyzico entegrasyonu burada devreye girecek
+    // Şimdilik bilgi ekranı göster
+    setTimeout(() => setSecilen(null), 2000);
+  }
+
+  async function handleCikis() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/landing");
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f9fafb", padding: "48px 24px" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
+      {/* Üst bar */}
+      <div style={{ background: "white", borderBottom: "1px solid #e5e7eb", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "20px", fontWeight: 800, color: "#4f46e5" }}>TamirTakip</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => void handleCikis()}
+          style={{ fontSize: "13px", color: "#6b7280", background: "none", border: "1px solid #e5e7eb", padding: "6px 14px", borderRadius: "8px", cursor: "pointer" }}
+        >
+          Çıkış Yap
+        </button>
+      </div>
+
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "48px 24px" }}>
         {/* Başlık */}
-        <div style={{ textAlign: "center", marginBottom: "48px" }}>
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <h1 style={{ fontSize: "32px", fontWeight: 800, color: "#111827", marginBottom: "12px" }}>
             Planınızı Seçin
           </h1>
-          <p style={{ fontSize: "16px", color: "#6b7280" }}>
+          <p style={{ fontSize: "16px", color: "#6b7280", marginBottom: "24px" }}>
             Deneme süreniz doldu. Kullanmaya devam etmek için bir plan seçin.
           </p>
+
+          {/* Aylık / Yıllık toggle */}
+          <div style={{ display: "inline-flex", background: "#f3f4f6", borderRadius: "10px", padding: "4px", gap: "4px" }}>
+            <button
+              type="button"
+              onClick={() => setYillik(false)}
+              style={{
+                padding: "8px 20px",
+                borderRadius: "8px",
+                border: "none",
+                fontSize: "14px",
+                fontWeight: 600,
+                cursor: "pointer",
+                background: !yillik ? "white" : "transparent",
+                color: !yillik ? "#111827" : "#6b7280",
+                boxShadow: !yillik ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+              }}
+            >
+              Aylık
+            </button>
+            <button
+              type="button"
+              onClick={() => setYillik(true)}
+              style={{
+                padding: "8px 20px",
+                borderRadius: "8px",
+                border: "none",
+                fontSize: "14px",
+                fontWeight: 600,
+                cursor: "pointer",
+                background: yillik ? "white" : "transparent",
+                color: yillik ? "#111827" : "#6b7280",
+                boxShadow: yillik ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              Yıllık
+              <span style={{ background: "#dcfce7", color: "#16a34a", fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px" }}>
+                2 ay ücretsiz
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Paket kartları */}
@@ -84,9 +156,9 @@ export default function PaketSecPage() {
                 background: "white",
                 borderRadius: "16px",
                 padding: "32px",
-                border: paket.ad === "Premium" ? "2px solid #4f46e5" : "1px solid #e5e7eb",
+                border: paket.vurgu ? "2px solid #4f46e5" : "1px solid #e5e7eb",
                 position: "relative",
-                boxShadow: paket.ad === "Premium" ? "0 20px 40px rgba(79,70,229,0.15)" : "0 4px 12px rgba(0,0,0,0.05)",
+                boxShadow: paket.vurgu ? "0 20px 40px rgba(79,70,229,0.15)" : "0 4px 12px rgba(0,0,0,0.05)",
               }}
             >
               {paket.rozet && (
@@ -96,14 +168,26 @@ export default function PaketSecPage() {
                   </span>
                 </div>
               )}
-              <p style={{ fontSize: "13px", fontWeight: 700, color: paket.ad === "Premium" ? "#4f46e5" : "#6b7280", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+
+              <p style={{ fontSize: "13px", fontWeight: 700, color: paket.vurgu ? "#4f46e5" : "#6b7280", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                 {paket.ad}
               </p>
+
               <div style={{ display: "flex", alignItems: "flex-end", gap: "4px", margin: "12px 0 4px 0" }}>
-                <span style={{ fontSize: "40px", fontWeight: 800, color: "#111827" }}>{paket.fiyat}</span>
+                <span style={{ fontSize: "40px", fontWeight: 800, color: "#111827" }}>
+                  ₺{yillik ? Math.round(paket.yillik / 12) : paket.aylik}
+                </span>
                 <span style={{ fontSize: "14px", color: "#9ca3af", marginBottom: "8px" }}>/ay</span>
               </div>
+
+              {yillik && (
+                <p style={{ fontSize: "13px", color: "#16a34a", fontWeight: 600, marginBottom: "4px" }}>
+                  Yıllık ₺{paket.yillik} — 2 ay ücretsiz
+                </p>
+              )}
+
               <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "24px" }}>{paket.aciklama}</p>
+
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px 0", display: "flex", flexDirection: "column", gap: "10px" }}>
                 {paket.ozellikler.map((f) => (
                   <li key={f} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", color: "#374151" }}>
@@ -112,29 +196,40 @@ export default function PaketSecPage() {
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                onClick={() => void handlePaketSec(paket.planType)}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "10px",
-                  border: "none",
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  background: paket.ad === "Premium" ? "#4f46e5" : "#111827",
-                  color: "white",
-                }}
-              >
-                Bu Planı Seç
-              </button>
+
+              {secilen === paket.planType ? (
+                <div style={{ width: "100%", padding: "12px", borderRadius: "10px", background: "#f0fdf4", border: "1px solid #bbf7d0", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#16a34a" }}>
+                  ✓ Talebiniz alındı! Ekibimiz sizinle iletişime geçecek.
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void handlePaketSec(paket.planType)}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "10px",
+                    border: "none",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    background: paket.vurgu ? "#4f46e5" : "#111827",
+                    color: "white",
+                  }}
+                >
+                  Bu Planı Seç
+                </button>
+              )}
             </div>
           ))}
         </div>
 
         <p style={{ textAlign: "center", fontSize: "13px", color: "#9ca3af", marginTop: "32px" }}>
-          Sorularınız için <a href="mailto:destek@tamirtakip.com.tr" style={{ color: "#4f46e5" }}>destek@tamirtakip.com.tr</a> adresine yazabilirsiniz.
+          Sorularınız için{" "}
+          <a href="mailto:destek@tamirtakip.com.tr" style={{ color: "#4f46e5" }}>
+            destek@tamirtakip.com.tr
+          </a>{" "}
+          adresine yazabilirsiniz.
         </p>
       </div>
     </div>
