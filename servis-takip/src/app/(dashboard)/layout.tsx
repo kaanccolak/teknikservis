@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import AiAssistant from "@/components/AiAssistant";
 import DemoBanner from "@/components/demo-banner";
@@ -9,11 +10,15 @@ import PersonelSecimEkrani from "@/components/PersonelSecimEkrani";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 
+// Beta döneminde false — canlıya alınca true yapılacak
+const TRIAL_KONTROL_AKTIF = false;
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [oneriOpen, setOneriOpen] = useState(false);
   const [personelGirisModuAktif, setPersonelGirisModuAktif] = useState(false);
   const [personelSecildi, setPersonelSecildi] = useState(false);
@@ -39,6 +44,32 @@ export default function DashboardLayout({
         setAyarYuklendi(true);
       });
   }, []);
+
+  useEffect(() => {
+    fetch("/api/shop")
+      .then((r) => r.json())
+      .then((shopData) => {
+        // Trial süresi kontrolü
+        if (TRIAL_KONTROL_AKTIF) {
+          const trialEndsAt = (shopData as { trialEndsAt?: string }).trialEndsAt;
+          const subscriptionStatus = (shopData as { subscriptionStatus?: string }).subscriptionStatus;
+
+          if (subscriptionStatus === "trial" && trialEndsAt) {
+            const trialBitis = new Date(trialEndsAt);
+            if (trialBitis < new Date()) {
+              router.push("/paket-sec");
+              return;
+            }
+          }
+
+          if (subscriptionStatus === "expired") {
+            router.push("/paket-sec");
+            return;
+          }
+        }
+      })
+      .catch(() => {});
+  }, [router]);
 
   function handlePersonelSecim(
     personelId: string,
