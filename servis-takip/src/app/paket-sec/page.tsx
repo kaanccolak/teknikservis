@@ -1,5 +1,4 @@
 "use client";
-import { useRouter } from "next/navigation";
 
 const paketler = [
   {
@@ -57,8 +56,6 @@ const paketler = [
 ];
 
 export default function PaketSecPage() {
-  const router = useRouter();
-
   async function handlePaketSec(planType: string) {
     // İleride ödeme sistemi burada devreye girecek
     // Şimdilik bilgi mesajı göster
