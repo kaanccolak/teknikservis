@@ -954,7 +954,29 @@ Admin yetkisi verilince tüm yetki checkboxları gizlenir.
 - `src/app/api/customers/by-phone/route.ts` endpoint eklendi
 - `service-orders` POST'a `forceNewCustomer` desteği eklendi
 
-## Bekleyen Bug
-- İkinci el cihaz düzenleme sayfasında marka ve model bilgileri yüklenmiyor
-- Dosya: `src/app/(dashboard)/ikinci-el/[id]/duzenle/page.tsx`
-- Sorun: brandId ve deviceModelId değerleri form'a doğru set edilmiyor olabilir
+### Plan Kısıtlamaları UI
+- `src/components/PlanKisitOverlay.tsx` — plan kısıtlama overlay bileşeni oluşturuldu
+- `src/app/(dashboard)/stok/page.tsx` — usePlanKisit ile "premium" kısıtı eklendi
+- `src/app/(dashboard)/raporlar/page.tsx` — usePlanKisit ile "premium" kısıtı eklendi
+- `src/app/(dashboard)/is-emirleri/page.tsx` — usePlanKisit ile "enterprise" kısıtı eklendi
+- `src/components/layout/Sidebar.tsx` — kısıtlı menü öğeleri soluk gösteriliyor
+- Tüm kısıtlamalar KISITLAMALAR_AKTIF=false ile kapalı (beta)
+
+### Paket Seçim Sayfası
+- `src/app/paket-sec/page.tsx` — aylık/yıllık toggle, 3 paket kartı, çıkış butonu
+- Paket seçince "Talebiniz alındı" mesajı (ödeme sistemi yakında)
+- Trial süresi dolunca layout.tsx TRIAL_KONTROL_AKTIF=true yapılınca bu sayfaya yönlendirilecek
+
+## Yapılacaklar (TODO)
+
+### Şirket Kurulunca
+- [ ] iyzico ödeme entegrasyonu — paket-sec sayfasındaki "Bu Planı Seç" butonu ödeme sayfasına yönlendirecek
+- [ ] iyzico webhook — `/api/webhook/iyzico` — ödeme başarılı olunca Shop.planType, subscriptionStatus, planStartedAt güncellenir
+- [ ] TRIAL_KONTROL_AKTIF=true yapılacak — layout.tsx'te, trial süresi dolunca /paket-sec'e yönlendirir
+- [ ] KISITLAMALAR_AKTIF=true yapılacak — usePlanKisit.ts'te, planType'a göre sayfalar kısıtlanır
+- [ ] trialEndsAt set edilecek — kayıt olunca src/app/api/auth/register/route.ts'te şimdi + 30 gün
+- [ ] Otomatik abonelik yenileme hatırlatma e-postası — Resend ile, süre dolmadan 3 gün önce
+
+### Teknik Borç
+- [ ] Haftalık dükkan raporu e-postası — her Pazartesi cron ile (detaylar CLAUDE.md'de mevcut)
+- [ ] Bayi iskontosu — servis detay sayfasında iskonto alanının gösterimi kontrol edilmeli (grup → iskonto geçişi)
