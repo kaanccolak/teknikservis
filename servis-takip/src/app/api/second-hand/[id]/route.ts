@@ -269,7 +269,10 @@ export async function PATCH(
           : null;
 
       data.isSold = true;
-      data.soldAt = new Date();
+      data.soldAt =
+        o.soldAt && typeof o.soldAt === "string"
+          ? new Date(o.soldAt)
+          : new Date();
       data.soldPrice = soldPrice;
       data.buyerName = buyerName;
       data.buyerPhone = buyerPhone;

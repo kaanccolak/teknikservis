@@ -43,6 +43,7 @@ type Row = {
   createdAt: string;
   purchasedAt: string | null;
   isSold: boolean;
+  soldAt: string | null;
   deviceType: { name: string } | null;
   brand: { name: string } | null;
   deviceModel: { name: string } | null;
@@ -722,6 +723,12 @@ function IkinciElInner() {
                     className="font-medium text-slate-700"
                     style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                   >
+                    Satış tarihi
+                  </th>
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     İşlemler
                   </th>
                 </tr>
@@ -865,6 +872,18 @@ function IkinciElInner() {
                           year: "numeric",
                         },
                       )}
+                    </td>
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
+                      {row.isSold && row.soldAt
+                        ? new Date(row.soldAt).toLocaleDateString("tr-TR", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "—"}
                     </td>
                     <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
                       <div className="flex flex-wrap gap-1.5">

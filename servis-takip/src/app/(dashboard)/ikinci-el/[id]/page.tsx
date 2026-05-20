@@ -69,7 +69,13 @@ type SaleFormValues = {
   buyerPhone: string;
   buyerTcNo: string;
   soldPrice: string;
+  soldAt: string;
 };
+
+function toDatetimeLocalValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function formatTry(n: number) {
   return new Intl.NumberFormat("tr-TR", {
@@ -136,6 +142,7 @@ export default function IkinciElDetayPage() {
       buyerPhone: "",
       buyerTcNo: "",
       soldPrice: "",
+      soldAt: toDatetimeLocalValue(new Date()),
     },
   });
 
@@ -263,6 +270,7 @@ export default function IkinciElDetayPage() {
           buyerPhone: values.buyerPhone,
           buyerTcNo: values.buyerTcNo.trim() || null,
           soldPrice: price,
+          soldAt: values.soldAt ? new Date(values.soldAt).toISOString() : undefined,
         }),
       });
       const json = (await res.json()) as { error?: string; details?: string };
@@ -281,6 +289,7 @@ export default function IkinciElDetayPage() {
         buyerPhone: "",
         buyerTcNo: "",
         soldPrice: "",
+        soldAt: toDatetimeLocalValue(new Date()),
       });
       void load();
     } catch {
@@ -674,6 +683,14 @@ export default function IkinciElDetayPage() {
                   {...saleForm.register("soldPrice")}
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Satış tarihi ve saati</Label>
+              <Input
+                type="datetime-local"
+                className="w-full"
+                {...saleForm.register("soldAt")}
+              />
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button
