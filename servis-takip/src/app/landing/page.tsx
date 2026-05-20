@@ -577,7 +577,7 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Yardım ve Destek AI</li>
                 </ul>
               </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
+              <button type="button" disabled className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed transition">Çok Yakında</button>
             </div>
             {/* Premium */}
             <div className="relative rounded-2xl border-2 border-indigo-600 bg-white p-8 shadow-xl flex flex-col">
@@ -603,7 +603,7 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel yetki ve giriş modu</li>
                 </ul>
               </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg">Ücretsiz Başla</button>
+              <button type="button" disabled className="mt-8 w-full rounded-xl bg-indigo-300 px-4 py-3 text-sm font-semibold text-white cursor-not-allowed transition shadow-lg">Çok Yakında</button>
             </div>
             {/* Enterprise */}
             <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
@@ -624,7 +624,7 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
                 </ul>
               </div>
-              <button type="button" onClick={() => router.push("/login?register=true")} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Ücretsiz Başla</button>
+              <button type="button" disabled className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed transition">Çok Yakında</button>
             </div>
           </div>
           <p className="mt-8 text-center text-xs text-slate-400">Tüm planlar 30 günlük ücretsiz denemeyle başlar. Kredi kartı gerekmez. İstediğiniz zaman iptal edebilirsiniz.</p>
