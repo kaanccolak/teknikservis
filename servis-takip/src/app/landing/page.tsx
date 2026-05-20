@@ -8,6 +8,15 @@ import { useRouter } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const normalKartlar = [
+  { ikon: "📋", baslik: "Cihaz kayıt ve takip", aciklama: "Otomatik kayıt numarası, durum akışı ve geçmiş. Her cihazın nerede olduğunu anında görün." },
+  { ikon: "📦", baslik: "Stok yönetimi", aciklama: "Yedek parça stok takibi, uyarılar ve servis kaydına bağlı otomatik stok düşümü." },
+  { ikon: "💬", baslik: "WhatsApp bildirimi", aciklama: "Fiyat ve durum güncellemelerini müşteriye tek tıkla veya otomatik şablonlarla iletin." },
+  { ikon: "📊", baslik: "Raporlar ve ciro", aciklama: "Aylık özetler, teslim edilen işler ve gelir takibi — kararlarınızı veriye dayandırın." },
+  { ikon: "🧾", baslik: "Fiş ve etiket", aciklama: "Müşteri nüshası, teslim fişi ve cihaz etiketi; barkodlu yazdırma ile profesyonel çıktı." },
+  { ikon: "🔄", baslik: "İkinci el modülü", aciklama: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun." },
+];
+
 export default function LandingPage() {
   const [yillikOdeme, setYillikOdeme] = useState(false);
   const router = useRouter();
@@ -372,27 +381,9 @@ export default function LandingPage() {
           <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
             Diğer Özellikler
           </p>
+          {/* Normal kartlar — 3 sütun */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { ikon: "📋", baslik: "Cihaz kayıt ve takip", aciklama: "Otomatik kayıt numarası, durum akışı ve geçmiş. Her cihazın nerede olduğunu anında görün." },
-              { ikon: "📦", baslik: "Stok yönetimi", aciklama: "Yedek parça stok takibi, uyarılar ve servis kaydına bağlı otomatik stok düşümü." },
-              { ikon: "💬", baslik: "WhatsApp bildirimi", aciklama: "Fiyat ve durum güncellemelerini müşteriye tek tıkla veya otomatik şablonlarla iletin." },
-              { ikon: "📊", baslik: "Raporlar ve ciro", aciklama: "Aylık özetler, teslim edilen işler ve gelir takibi — kararlarınızı veriye dayandırın." },
-              { ikon: "🧾", baslik: "Fiş ve etiket", aciklama: "Müşteri nüshası, teslim fişi ve cihaz etiketi; barkodlu yazdırma ile profesyonel çıktı." },
-              { ikon: "🔄", baslik: "İkinci el modülü", aciklama: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun." },
-              {
-                ikon: "👥",
-                baslik: "Personel Yönetimi",
-                aciklama:
-                  "Personel ekle, yetki belirle, giriş modunu aktif et. Her personel sadece yetkili olduğu alanlara erişsin.",
-              },
-              {
-                ikon: "📋",
-                baslik: "İş Emirleri Modülü",
-                aciklama:
-                  "Cihaz kaydederken işi personele ata, WhatsApp bildirimi otomatik gitsin. Tüm atanmış görevleri tek ekranda takip et, filtrele ve yeniden ata.",
-              },
-            ].map((item) => (
+            {normalKartlar.map((item) => (
               <div
                 key={item.baslik}
                 className="flex gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all"
@@ -401,39 +392,42 @@ export default function LandingPage() {
                   {item.ikon}
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-slate-900">{item.baslik}</p>
-                    {item.baslik === "Personel Yönetimi" && (
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          background: "#4f46e5",
-                          color: "white",
-                          padding: "1px 6px",
-                          borderRadius: "10px",
-                        }}
-                      >
-                        Premium
-                      </span>
-                    )}
-                    {item.baslik === "İş Emirleri Modülü" && (
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          background: "#111827",
-                          color: "white",
-                          padding: "1px 6px",
-                          borderRadius: "10px",
-                        }}
-                      >
-                        Enterprise
-                      </span>
-                    )}
-                  </div>
+                  <p className="text-sm font-semibold text-slate-900">{item.baslik}</p>
                   <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">{item.aciklama}</p>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Premium ve Enterprise kartlar — 2 sütun, daha büyük */}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {/* Personel Yönetimi — Premium */}
+            <div className="flex gap-4 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-6 shadow-sm hover:shadow-md transition-all">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-2xl shadow">
+                👥
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-bold text-slate-900">Personel Yönetimi</p>
+                  <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-semibold">Premium</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">Personel ekle, yetki belirle, giriş modunu aktif et. Her personel sadece yetkili olduğu alanlara erişsin.</p>
+              </div>
+            </div>
+
+            {/* İş Emirleri — Enterprise */}
+            <div className="flex gap-4 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-700 p-6 shadow-sm hover:shadow-md transition-all">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-2xl shadow">
+                📋
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-bold text-white">İş Emirleri Modülü</p>
+                  <span className="text-xs bg-white text-slate-900 px-2 py-0.5 rounded-full font-semibold">Enterprise</span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">Cihaz kaydederken işi personele ata, WhatsApp bildirimi otomatik gitsin. Tüm atanmış görevleri tek ekranda takip et.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
