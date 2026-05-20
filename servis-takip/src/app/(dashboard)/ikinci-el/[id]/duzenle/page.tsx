@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -82,6 +82,7 @@ export default function IkinciElDuzenlePage() {
   const [loadingRow, setLoadingRow] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [deviceCode, setDeviceCode] = useState("");
+  const isInitializing = useRef(false);
 
   const { register, control, handleSubmit, watch, setValue, formState } =
     useForm<FormValues>({
@@ -123,6 +124,7 @@ export default function IkinciElDuzenlePage() {
     if (!id) return;
     setLoadError(null);
     setLoadingRow(true);
+    isInitializing.current = true;
     try {
       const res = await fetch(`/api/second-hand/${id}`);
       const data = (await res.json()) as RowDetail | { error?: string };
@@ -172,6 +174,7 @@ export default function IkinciElDuzenlePage() {
     } catch {
       setLoadError("Bağlantı hatası");
     } finally {
+      isInitializing.current = false;
       setLoadingRow(false);
     }
   }, [id, setValue]);
@@ -181,6 +184,7 @@ export default function IkinciElDuzenlePage() {
   }, [loadRow]);
 
   useEffect(() => {
+    if (isInitializing.current) return;
     setValue("brandId", "");
     setValue("deviceModelId", "");
     setBrands([]);
@@ -201,6 +205,7 @@ export default function IkinciElDuzenlePage() {
   }, [deviceTypeId, setValue]);
 
   useEffect(() => {
+    if (isInitializing.current) return;
     setValue("deviceModelId", "");
     setModels([]);
     if (!brandId) return;
