@@ -18,7 +18,7 @@ export const createServiceOrderSchema = z
       .min(2, "En az 2 karakter girin"),
     cariId: z.string().optional(),
     bayiId: z.string().optional(),
-    personnelId: z.string().min(1, "Personel seçimi zorunludur"),
+    personnelId: z.string().optional(),
     phone: z.string(),
     arrivedByCargo: z.boolean().default(false),
     cargoInfo: z.string().optional(),
