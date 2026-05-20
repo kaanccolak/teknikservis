@@ -164,7 +164,7 @@ type ServiceOrderDetail = {
     phone: string;
     vergiDairesi?: string | null;
     tcVergiNo?: string;
-    grup?: string | null;
+    iskonto?: number | null;
   } | null;
   deviceType: NamedEntity | null;
   brand: NamedEntity | null;
@@ -212,10 +212,9 @@ function formatTry(n: number | null | undefined) {
   }).format(n);
 }
 
-function bayiDiscountRate(grup: string | null | undefined): number {
-  if (grup === "grup1") return 0.1;
-  if (grup === "grup2") return 0.2;
-  return 0;
+function bayiDiscountRate(iskonto: number | null | undefined): number {
+  if (iskonto == null || iskonto <= 0) return 0;
+  return iskonto / 100;
 }
 
 function warrantyLabel(w: string | null) {
@@ -542,8 +541,8 @@ export default function ServisDetayPage() {
   );
 
   const discountRate = useMemo(
-    () => bayiDiscountRate(order?.bayi?.grup),
-    [order?.bayi?.grup],
+    () => bayiDiscountRate(order?.bayi?.iskonto),
+    [order?.bayi?.iskonto],
   );
 
   /** Yalnızca kullanıcı input yazarken; kayıtlı net tutar tekrar iskonto edilmez */

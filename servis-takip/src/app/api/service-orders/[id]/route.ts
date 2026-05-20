@@ -31,7 +31,7 @@ const serviceOrderInclude = {
       phone: true,
       vergiDairesi: true,
       tcVergiNo: true,
-      grup: true,
+      iskonto: true,
     },
   },
   personnel: { select: { name: true } },

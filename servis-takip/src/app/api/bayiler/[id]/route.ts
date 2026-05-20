@@ -15,11 +15,11 @@ function normalizeDigits(value: string | undefined): string {
   return (value ?? "").replace(/\D/g, "");
 }
 
-function parseBayiGrup(value: unknown): string | null {
+function parseIskonto(value: unknown): number | null {
   if (value === undefined || value === null || value === "") return null;
-  const s = String(value).trim();
-  if (s === "grup1" || s === "grup2") return s;
-  return null;
+  const n = parseFloat(String(value));
+  if (isNaN(n) || n < 0 || n > 100) return null;
+  return n;
 }
 
 export async function GET(
@@ -119,7 +119,7 @@ export async function PATCH(
     return NextResponse.json({ error: "TC/Vergi no zorunludur" }, { status: 400 });
   }
 
-  const grup = parseBayiGrup(json.grup);
+  const iskonto = parseIskonto(json.iskonto);
 
   let shop;
   try {
@@ -140,7 +140,7 @@ export async function PATCH(
             ? json.vergiDairesi.trim() || null
             : null,
         tcVergiNo,
-        grup,
+        iskonto,
       },
     });
     if (row.count === 0) {

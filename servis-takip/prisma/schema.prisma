@@ -361,8 +361,7 @@ model Bayi {
   phoneDigits    String
   vergiDairesi   String?
   tcVergiNo      String
-  /// Bayi iskonto grubu: grup1 (%10), grup2 (%20), null = grup yok
-  grup           String?
+  iskonto        Float?   /// Bayi iskonto yüzdesi (0-100 arası, örn: 10 = %10)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   serviceOrders  ServiceOrder[]

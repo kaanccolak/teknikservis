@@ -59,7 +59,7 @@ interface Bayi {
   phone: string;
   vergiDairesi?: string | null;
   tcVergiNo: string;
-  grup?: string | null;
+  iskonto?: number | null;
   cihazSayisi: number;
   toplamCiro: number;
   createdAt: string;
@@ -95,7 +95,7 @@ const emptyForm: BayiForm = {
   phone: "",
   vergiDairesi: "",
   tcVergiNo: "",
-  grup: null,
+  iskonto: null,
 };
 
 function formatTry(value: number) {
@@ -139,7 +139,7 @@ export default function BayilerPage() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const vergiDairesiRef = useRef<HTMLInputElement>(null);
   const tcVergiRef = useRef<HTMLInputElement>(null);
-  const grupRef = useRef<HTMLSelectElement>(null);
+  const iskontoRef = useRef<HTMLInputElement>(null);
   const saveRef = useRef<HTMLButtonElement>(null);
 
   const total = useMemo(() => rows.length, [rows.length]);
@@ -203,7 +203,7 @@ export default function BayilerPage() {
       phone: row.phone ?? "",
       vergiDairesi: row.vergiDairesi ?? "",
       tcVergiNo: row.tcVergiNo ?? "",
-      grup: row.grup ?? null,
+      iskonto: row.iskonto ?? null,
     });
     setDialogOpen(true);
   }
@@ -421,7 +421,7 @@ export default function BayilerPage() {
               <th className="px-3 py-2.5">Firma Adı</th>
               <th className="px-3 py-2.5">Yetkili Kişi</th>
               <th className="px-3 py-2.5">Telefon</th>
-              <th className="px-3 py-2.5">Grup</th>
+              <th className="px-3 py-2.5">İskonto</th>
               <th className="px-3 py-2.5">Cihaz Sayısı</th>
               <th className="px-3 py-2.5">Toplam Ciro</th>
               <th className="px-3 py-2.5">İşlemler</th>
@@ -448,35 +448,9 @@ export default function BayilerPage() {
                   <td className="px-3 py-2.5">{row.yetkiliKisi}</td>
                   <td className="px-3 py-2.5">{row.phone ? formatPhone(row.phone) : "—"}</td>
                   <td className="px-3 py-2.5">
-                    {row.grup === "grup1" ? (
-                      <span
-                        style={{
-                          background: "#EFF6FF",
-                          color: "#2563EB",
-                          padding: "2px 8px",
-                          borderRadius: "12px",
-                          fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        Grup 1 · %10
-                      </span>
-                    ) : row.grup === "grup2" ? (
-                      <span
-                        style={{
-                          background: "#F0FDF4",
-                          color: "#16A34A",
-                          padding: "2px 8px",
-                          borderRadius: "12px",
-                          fontSize: "11px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        Grup 2 · %20
-                      </span>
-                    ) : (
-                      <span style={{ color: "#9ca3af", fontSize: "12px" }}>—</span>
-                    )}
+                    {row.iskonto != null && row.iskonto > 0
+                      ? `%${row.iskonto}`
+                      : "—"}
                   </td>
                   <td className="px-3 py-2.5">{row.cihazSayisi} cihaz</td>
                   <td className="px-3 py-2.5">{formatTry(row.toplamCiro ?? 0)}</td>
@@ -570,7 +544,7 @@ export default function BayilerPage() {
                   const val = e.target.value.replace(/\D/g, "").slice(0, 11);
                   setForm((p) => ({ ...p, tcVergiNo: val }));
                 }}
-                onKeyDown={(e) => handleEnterKey(e, grupRef)}
+                onKeyDown={(e) => handleEnterKey(e, iskontoRef)}
                 inputMode="numeric"
                 maxLength={11}
               />
@@ -584,27 +558,35 @@ export default function BayilerPage() {
                   display: "block",
                 }}
               >
-                Bayi Grubu
+                İskonto
               </label>
-              <select
-                ref={grupRef}
-                value={form.grup ?? ""}
-                onChange={(e) =>
-                  setForm({ ...form, grup: e.target.value || null })
-                }
-                onKeyDown={(e) => handleEnterKey(e, saveRef)}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                }}
-              >
-                <option value="">Grup Yok</option>
-                <option value="grup1">Grup 1 (%10 İskonto)</option>
-                <option value="grup2">Grup 2 (%20 İskonto)</option>
-              </select>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ fontSize: "14px", color: "#666" }}>%</span>
+                <input
+                  ref={iskontoRef}
+                  type="text"
+                  inputMode="decimal"
+                  value={form.iskonto ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, "");
+                    const n = parseFloat(val);
+                    setForm({
+                      ...form,
+                      iskonto:
+                        val === "" ? null : isNaN(n) ? null : Math.min(100, n),
+                    });
+                  }}
+                  onKeyDown={(e) => handleEnterKey(e, saveRef)}
+                  placeholder="0"
+                  style={{
+                    width: "80px",
+                    padding: "8px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
