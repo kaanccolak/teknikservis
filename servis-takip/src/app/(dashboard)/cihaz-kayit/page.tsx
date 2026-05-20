@@ -640,6 +640,11 @@ function CihazKayitServiceInner({
     data: CreateServiceOrderFormValues,
     forceNewCustomer: boolean,
   ) {
+    if (personelModuAktif && !data.personnelId) {
+      toast.error("Lütfen kaydı yapan personeli seçin");
+      return;
+    }
+
     const payload = createServiceOrderSchema.parse(data);
     try {
       const res = await fetch("/api/service-orders", {
