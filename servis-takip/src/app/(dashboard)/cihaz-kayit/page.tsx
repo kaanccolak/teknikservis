@@ -660,7 +660,10 @@ function CihazKayitServiceInner({
   const importFromOrder = useCallback(
     async (order: ReturnSearchResult) => {
       setValue("customerName", order.customer.name);
-      setValue("phone", order.customer.phone ?? "");
+      setValue(
+        "phone",
+        order.customer.phone ? normalizePhoneForInput(order.customer.phone) : "",
+      );
       setValue(
         "warrantyStatus",
         (order.warrantyStatus as "guaranteed" | "no_warranty") ?? "no_warranty",
