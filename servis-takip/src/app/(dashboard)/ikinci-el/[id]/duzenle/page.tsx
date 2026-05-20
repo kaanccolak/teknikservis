@@ -47,6 +47,10 @@ type RowDetail = {
   notes: string | null;
   isSold: boolean;
   soldAt: string | null;
+  buyerName: string | null;
+  buyerPhone: string | null;
+  buyerTcNo: string | null;
+  soldPrice: number | null;
 };
 
 type FormValues = {
@@ -64,6 +68,10 @@ type FormValues = {
   purchasePrice: string;
   purchasedAt: string;
   soldAt: string;
+  buyerName: string;
+  buyerPhone: string;
+  buyerTcNo: string;
+  soldPrice: string;
   notes: string;
 };
 
@@ -125,6 +133,10 @@ export default function IkinciElDuzenlePage() {
         purchasePrice: "",
         purchasedAt: "",
         soldAt: "",
+        buyerName: "",
+        buyerPhone: "",
+        buyerTcNo: "",
+        soldPrice: "",
         notes: "",
       },
     });
@@ -194,6 +206,13 @@ export default function IkinciElDuzenlePage() {
       setValue(
         "soldAt",
         row.soldAt ? toDatetimeLocalValue(new Date(row.soldAt)) : "",
+      );
+      setValue("buyerName", row.buyerName ?? "");
+      setValue("buyerPhone", normalizePhoneForInput(row.buyerPhone));
+      setValue("buyerTcNo", row.buyerTcNo ?? "");
+      setValue(
+        "soldPrice",
+        row.soldPrice != null ? String(row.soldPrice) : "",
       );
 
       if (row.deviceTypeId) {
@@ -296,6 +315,14 @@ export default function IkinciElDuzenlePage() {
         purchasedAt: data.purchasedAt,
         soldAt: data.soldAt ? new Date(data.soldAt).toISOString() : undefined,
         notes: data.notes.trim() || null,
+        ...(isSoldState && {
+          buyerName: data.buyerName.trim() || undefined,
+          buyerPhone: data.buyerPhone || undefined,
+          buyerTcNo: data.buyerTcNo.trim() || undefined,
+          soldPrice: data.soldPrice
+            ? parseFloat(data.soldPrice.replace(",", "."))
+            : undefined,
+        }),
       };
 
       if (data.deviceTypeId && data.brandId && data.deviceModelId) {
@@ -329,7 +356,7 @@ export default function IkinciElDuzenlePage() {
         toast.error("Bağlantı hatası");
       }
     },
-    [id, router],
+    [id, isSoldState, router],
   );
 
   const title = useMemo(
@@ -594,13 +621,51 @@ export default function IkinciElDuzenlePage() {
           </CardContent>
         </Card>
 
-        {isSoldState && soldAt && (
+        {isSoldState && (
           <Card>
             <CardHeader>
               <CardTitle>Satış bilgileri</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="ed-buyer-name">Alıcı ad soyad</Label>
+                <Input id="ed-buyer-name" {...register("buyerName")} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="ed-buyer-phone">Alıcı telefonu (+90)</Label>
+                <Controller
+                  name="buyerPhone"
+                  control={control}
+                  render={({ field }) => (
+                    <TrPhoneInput
+                      id="ed-buyer-phone"
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
+                  )}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="ed-buyer-tc">Alıcı TC kimlik no</Label>
+                <Input id="ed-buyer-tc" maxLength={11} {...register("buyerTcNo")} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="ed-sold-price">Satış fiyatı (₺)</Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                    ₺
+                  </span>
+                  <Input
+                    id="ed-sold-price"
+                    type="text"
+                    inputMode="decimal"
+                    className="pl-8"
+                    {...register("soldPrice")}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
                 <Label>Satış tarihi ve saati</Label>
                 {!showSoldDateEditor ? (
                   <div className="flex flex-wrap items-center gap-3 text-sm">

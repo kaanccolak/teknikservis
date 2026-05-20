@@ -135,6 +135,36 @@ export async function PATCH(
     data.soldAt = new Date(o.soldAt.trim());
   }
 
+  if ("buyerName" in o && typeof o.buyerName === "string") {
+    data.buyerName = o.buyerName.trim() || null;
+  }
+  if ("buyerPhone" in o) {
+    const raw = typeof o.buyerPhone === "string" ? o.buyerPhone.trim() : "";
+    if (!raw) {
+      data.buyerPhone = null;
+      data.buyerPhoneDigits = null;
+    } else {
+      const digits = trPhoneDigitsOnly(raw);
+      data.buyerPhoneDigits = digits.length > 0 ? digits : null;
+      data.buyerPhone = isCompleteTrNationalMobile(digits)
+        ? trNationalToStorage(digits)
+        : raw;
+    }
+  }
+  if ("buyerTcNo" in o) {
+    data.buyerTcNo =
+      typeof o.buyerTcNo === "string" && o.buyerTcNo.trim()
+        ? o.buyerTcNo.trim()
+        : null;
+  }
+  if ("soldPrice" in o) {
+    const p =
+      typeof o.soldPrice === "number"
+        ? o.soldPrice
+        : parseFloat(String(o.soldPrice).replace(",", "."));
+    if (Number.isFinite(p) && p > 0) data.soldPrice = p;
+  }
+
   if (typeof o.hasInvoice === "boolean") data.hasInvoice = o.hasInvoice;
   if (typeof o.hasWarranty === "boolean") data.hasWarranty = o.hasWarranty;
   if (typeof o.hasBox === "boolean") data.hasBox = o.hasBox;
