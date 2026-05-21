@@ -74,36 +74,18 @@ export default function LandingLayout({
                     name: "Basic",
                     price: "100",
                     priceCurrency: "TRY",
-                    priceSpecification: {
-                      "@type": "UnitPriceSpecification",
-                      price: "100",
-                      priceCurrency: "TRY",
-                      unitText: "MONTH",
-                    },
                   },
                   {
                     "@type": "Offer",
                     name: "Premium",
                     price: "180",
                     priceCurrency: "TRY",
-                    priceSpecification: {
-                      "@type": "UnitPriceSpecification",
-                      price: "180",
-                      priceCurrency: "TRY",
-                      unitText: "MONTH",
-                    },
                   },
                   {
                     "@type": "Offer",
                     name: "Enterprise",
                     price: "280",
                     priceCurrency: "TRY",
-                    priceSpecification: {
-                      "@type": "UnitPriceSpecification",
-                      price: "280",
-                      priceCurrency: "TRY",
-                      unitText: "MONTH",
-                    },
                   },
                 ],
                 aggregateRating: {
