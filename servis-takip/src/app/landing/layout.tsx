@@ -51,5 +51,101 @@ export default function LandingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "SoftwareApplication",
+                "@id": "https://www.tamirtakip.com.tr/#software",
+                name: "TamirTakip",
+                url: "https://www.tamirtakip.com.tr",
+                description:
+                  "Teknik servis işletmeleri için bulut tabanlı yönetim yazılımı. Cihaz kayıt, müşteri takibi, WhatsApp bildirimi, stok yönetimi ve raporlama.",
+                applicationCategory: "BusinessApplication",
+                operatingSystem: "Web",
+                offers: [
+                  {
+                    "@type": "Offer",
+                    name: "Basic",
+                    price: "100",
+                    priceCurrency: "TRY",
+                    priceSpecification: {
+                      "@type": "UnitPriceSpecification",
+                      price: "100",
+                      priceCurrency: "TRY",
+                      unitCode: "MON",
+                    },
+                  },
+                  {
+                    "@type": "Offer",
+                    name: "Premium",
+                    price: "180",
+                    priceCurrency: "TRY",
+                    priceSpecification: {
+                      "@type": "UnitPriceSpecification",
+                      price: "180",
+                      priceCurrency: "TRY",
+                      unitCode: "MON",
+                    },
+                  },
+                  {
+                    "@type": "Offer",
+                    name: "Enterprise",
+                    price: "280",
+                    priceCurrency: "TRY",
+                    priceSpecification: {
+                      "@type": "UnitPriceSpecification",
+                      price: "280",
+                      priceCurrency: "TRY",
+                      unitCode: "MON",
+                    },
+                  },
+                ],
+                featureList: [
+                  "Cihaz kayıt ve takip",
+                  "WhatsApp bildirim sistemi",
+                  "İkinci el cihaz modülü",
+                  "Stok yönetimi",
+                  "Personel yönetimi",
+                  "Raporlar ve ciro takibi",
+                  "Google Contacts entegrasyonu",
+                  "Bayi ve cari yönetimi",
+                ],
+                inLanguage: "tr",
+                availableLanguage: "Turkish",
+                countriesSupported: "TR",
+              },
+              {
+                "@type": "Organization",
+                "@id": "https://www.tamirtakip.com.tr/#organization",
+                name: "TamirTakip",
+                url: "https://www.tamirtakip.com.tr",
+                logo: "https://www.tamirtakip.com.tr/icon.svg",
+                contactPoint: {
+                  "@type": "ContactPoint",
+                  email: "destek@tamirtakip.com.tr",
+                  contactType: "customer support",
+                  availableLanguage: "Turkish",
+                },
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://www.tamirtakip.com.tr/#website",
+                url: "https://www.tamirtakip.com.tr",
+                name: "TamirTakip",
+                description: "Teknik servis takip programı",
+                inLanguage: "tr",
+              },
+            ],
+          }),
+        }}
+      />
+      {children}
+    </>
+  );
 }
