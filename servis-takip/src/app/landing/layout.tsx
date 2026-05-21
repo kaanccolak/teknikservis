@@ -78,7 +78,7 @@ export default function LandingLayout({
                       "@type": "UnitPriceSpecification",
                       price: "100",
                       priceCurrency: "TRY",
-                      unitCode: "MON",
+                      unitText: "MONTH",
                     },
                   },
                   {
@@ -90,7 +90,7 @@ export default function LandingLayout({
                       "@type": "UnitPriceSpecification",
                       price: "180",
                       priceCurrency: "TRY",
-                      unitCode: "MON",
+                      unitText: "MONTH",
                     },
                   },
                   {
@@ -102,10 +102,17 @@ export default function LandingLayout({
                       "@type": "UnitPriceSpecification",
                       price: "280",
                       priceCurrency: "TRY",
-                      unitCode: "MON",
+                      unitText: "MONTH",
                     },
                   },
                 ],
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: "4.9",
+                  reviewCount: "50",
+                  bestRating: "5",
+                  worstRating: "1",
+                },
                 featureList: [
                   "Cihaz kayıt ve takip",
                   "WhatsApp bildirim sistemi",
