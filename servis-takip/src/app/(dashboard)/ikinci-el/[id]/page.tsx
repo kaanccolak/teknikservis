@@ -37,6 +37,7 @@ import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatTrNationalDisplay, trPhoneDigitsOnly } from "@/lib/tr-phone";
 import { cn } from "@/lib/utils";
 import { usePersonelYetki } from "@/hooks/usePersonelYetki";
+import { sendWhatsApp, WA_SECOND_HAND_SOLD } from "@/lib/whatsapp";
 
 type Detail = {
   id: string;
@@ -70,6 +71,7 @@ type SaleFormValues = {
   buyerTcNo: string;
   soldPrice: string;
   soldAt: string;
+  sendWa: boolean;
 };
 
 function toDatetimeLocalValue(d: Date): string {
@@ -143,6 +145,7 @@ export default function IkinciElDetayPage() {
       buyerTcNo: "",
       soldPrice: "",
       soldAt: toDatetimeLocalValue(new Date()),
+      sendWa: true,
     },
   });
 
@@ -282,6 +285,21 @@ export default function IkinciElDetayPage() {
         );
         return;
       }
+      if (values.sendWa && values.buyerPhone) {
+        try {
+          const deviceName =
+            [row?.deviceType?.name, row?.brand?.name, row?.deviceModel?.name]
+              .filter(Boolean)
+              .join(" · ") || "Cihaz";
+          await sendWhatsApp(
+            values.buyerPhone,
+            WA_SECOND_HAND_SOLD.name,
+            WA_SECOND_HAND_SOLD.getParams(name, deviceName, String(price)),
+          );
+        } catch {
+          // WA hatası satışı engellemesin
+        }
+      }
       toast.success("Satış kaydedildi");
       setSaleOpen(false);
       saleForm.reset({
@@ -290,6 +308,7 @@ export default function IkinciElDetayPage() {
         buyerTcNo: "",
         soldPrice: "",
         soldAt: toDatetimeLocalValue(new Date()),
+        sendWa: true,
       });
       void load();
     } catch {
@@ -682,6 +701,34 @@ export default function IkinciElDetayPage() {
                   inputMode="decimal"
                   {...saleForm.register("soldPrice")}
                 />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginTop: "8px",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="sale-send-wa"
+                  checked={saleForm.watch("sendWa")}
+                  onChange={(e) =>
+                    saleForm.setValue("sendWa", e.target.checked)
+                  }
+                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
+                />
+                <label
+                  htmlFor="sale-send-wa"
+                  style={{
+                    fontSize: "14px",
+                    color: "#374151",
+                    cursor: "pointer",
+                  }}
+                >
+                  Alıcıya WhatsApp bildirimi gönder
+                </label>
               </div>
             </div>
             <div className="space-y-2">

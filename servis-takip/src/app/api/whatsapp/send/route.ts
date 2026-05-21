@@ -132,16 +132,26 @@ export async function POST(req: Request) {
     },
   });
 
+  const isSecondHandTemplate =
+    templateName === "ikinci_el_satin_alindi" ||
+    templateName === "ikinci_el_satildi";
+
   let message: string;
   if (dbTemplate) {
-    // DB şablonunu kullan, değişkenleri replace et
-    message = dbTemplate.message
-      .replace(/{isim}/g, parameters[0] ?? "")
-      .replace(/{seriNo}/g, parameters[1] ?? "")
-      .replace(/{cihaz}/g, parameters[2] ?? "")
-      .replace(/{fiyat}/g, parameters[3] ?? "")
-      .replace(/{neden}/g, parameters[3] ?? "")
-      .replace(/{kayitNo}/g, parameters[0] ?? "");
+    if (isSecondHandTemplate) {
+      message = dbTemplate.message
+        .replace(/{isim}/g, parameters[0] ?? "")
+        .replace(/{cihaz}/g, parameters[1] ?? "")
+        .replace(/{fiyat}/g, parameters[2] ?? "");
+    } else {
+      message = dbTemplate.message
+        .replace(/{isim}/g, parameters[0] ?? "")
+        .replace(/{seriNo}/g, parameters[1] ?? "")
+        .replace(/{cihaz}/g, parameters[2] ?? "")
+        .replace(/{fiyat}/g, parameters[3] ?? "")
+        .replace(/{neden}/g, parameters[3] ?? "")
+        .replace(/{kayitNo}/g, parameters[0] ?? "");
+    }
   } else {
     // Default şablonu kullan
     message = buildMessage(templateName, parameters);
@@ -196,6 +206,8 @@ function buildMessage(templateName: string, parameters: string[]): string {
     teslim_musteri_iade: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızı iade almak istediğinizi belirttiniz ve herhangi bir işlem yapılmadan teslim edilmiştir.${p[3] ? ` Toplam ücret: ${p[3]}.` : ""} Bizi tercih ettiğiniz için teşekkür ederiz.`,
 
     ikinci_el_satin_alindi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} cihazınız ${p[2] ?? ""} TL bedelle satın alındı. Teşekkür ederiz.`,
+
+    ikinci_el_satildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} cihazını ${p[2] ?? ""} TL bedelle satın aldınız. Teşekkür ederiz. İyi kullanımlar dileriz.`,
   };
 
   return messages[templateName] ?? `Servis durumunuz güncellendi. Bilgi için bize ulaşın.`;

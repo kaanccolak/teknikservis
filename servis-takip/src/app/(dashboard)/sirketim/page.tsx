@@ -183,6 +183,18 @@ const DEFAULT_TEMPLATES: Record<
       "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızı iade almak istediğinizi belirttiniz ve herhangi bir işlem yapılmadan teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.",
     variables: ["{isim}", "{seriNo}", "{cihaz}"],
   },
+  ikinci_el_satin_alindi: {
+    label: "İkinci El Alım Bildirimi",
+    defaultMessage:
+      "Sayın {isim}, {cihaz} cihazınız {fiyat} TL bedelle satın alındı. Teşekkür ederiz.",
+    variables: ["{isim}", "{cihaz}", "{fiyat}"],
+  },
+  ikinci_el_satildi: {
+    label: "İkinci El Satış Bildirimi",
+    defaultMessage:
+      "Sayın {isim}, {cihaz} cihazını {fiyat} TL bedelle satın aldınız. Teşekkür ederiz. İyi kullanımlar dileriz.",
+    variables: ["{isim}", "{cihaz}", "{fiyat}"],
+  },
 };
 
 type IdName = { id: string; name: string };

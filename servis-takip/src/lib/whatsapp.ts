@@ -136,6 +136,12 @@ export const WA_SECOND_HAND_PURCHASE = {
     [sellerName, deviceName, price],
 } as const;
 
+export const WA_SECOND_HAND_SOLD = {
+  name: "ikinci_el_satildi",
+  getParams: (buyerName: string, deviceName: string, price: string) =>
+    [buyerName, deviceName, price],
+} as const;
+
 export async function sendWhatsApp(
   phone: string,
   templateName: string,
