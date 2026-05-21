@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "tamirtakip.com.tr" }],
+        destination: "https://www.tamirtakip.com.tr/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

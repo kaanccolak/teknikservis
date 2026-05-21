@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: ["/", "/landing", "/login"],
       disallow: ["/api/", "/dashboard/"],
     },
-    sitemap: "https://tamirtakip.com.tr/sitemap.xml",
+    sitemap: "https://www.tamirtakip.com.tr/sitemap.xml",
   };
 }
