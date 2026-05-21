@@ -990,14 +990,30 @@ Admin yetkisi verilince tüm yetki checkboxları gizlenir.
 - Capterra/G2 Digital Markets başvurusu yapıldı (destek@tamirtakip.com.tr doğrulama bekleniyor)
 - AlternativeTo hesabı açıldı (7 gün sonra uygulama eklenebilir)
 
+### WhatsApp Şablonları — İkinci El
+- İkinci el alım şablonu (ikinci_el_satin_alindi) Şirketim WA şablonları arayüzüne eklendi
+- İkinci el satış şablonu (ikinci_el_satildi) eklendi — alıcıya satış bildirimi
+- src/lib/whatsapp.ts — WA_SECOND_HAND_SOLD sabiti eklendi
+- src/app/api/whatsapp/send/route.ts — ikinci_el_satildi buildMessage'a eklendi
+- src/app/(dashboard)/ikinci-el/[id]/page.tsx — satış modalına WA bildirimi toggle eklendi
+
+### Pazarlama Devam
+- Capterra/G2 Digital Markets ürün listesi tamamlandı ve incelemeye gönderildi (3-5 gün)
+- Google Business Profile oluşturuldu (5 gün doğrulama bekleniyor)
+- Cloudflare'e DNS geçişi tamamlandı
+- destek@tamirtakip.com.tr → kaanccolak@gmail.com email routing aktif
+- AlternativeTo hesabı açıldı (7 gün sonra uygulama eklenebilir)
+- Paddle başvurusu yapıldı (değerlendirmede)
+
 ## Bekleyen Görevler (Yakın Vadeli)
 
-- [ ] Cloudflare nameserver aktif olunca email routing'i tamamla
-- [ ] destek@tamirtakip.com.tr aktif olunca Capterra doğrulama mailini onayla
-- [ ] 7 gün sonra AlternativeTo'ya TamirTakip ekle
-- [ ] Paddle onayı gelince ödeme entegrasyonu yap
-- [ ] Google Business Profile doğrulaması gelince tamamla (5 gün)
+- [ ] Capterra onayı gelince profili tamamla (yorum toplamaya başla)
+- [ ] Google Business Profile doğrulaması (5 gün)
+- [ ] AlternativeTo'ya uygulama ekle (26 Mayıs 2026'dan sonra)
+- [ ] Paddle onayı gelince ödeme entegrasyonu
+- [ ] PayTR bireysel başvurusu sonucu takip et
 - [ ] Haftada 1 blog yazısı ekle
+- [ ] Gerçek müşteri yorumları gelince aggregateRating'i güncelle (landing/layout.tsx)
 
 ## Yapılacaklar (TODO)
 
