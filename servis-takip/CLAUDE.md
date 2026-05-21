@@ -967,6 +967,38 @@ Admin yetkisi verilince tüm yetki checkboxları gizlenir.
 - Paket seçince "Talebiniz alındı" mesajı (ödeme sistemi yakında)
 - Trial süresi dolunca layout.tsx TRIAL_KONTROL_AKTIF=true yapılınca bu sayfaya yönlendirilecek
 
+## Bugün Yapılanlar (21 Mayıs 2026)
+
+### SEO ve Görünürlük
+- Blog sistemi eklendi: src/app/blog/data.ts (5 yazı), src/app/blog/page.tsx, src/app/blog/[slug]/page.tsx
+- Sitemap güncellendi: blog sayfaları eklendi, www tutarlılığı sağlandı
+- Schema markup eklendi: SoftwareApplication, Organization, WebSite, AggregateRating
+- Landing page navbar ve footer'a blog linki eklendi
+- Google Business Profile oluşturuldu (doğrulama bekleniyor, 5 gün)
+- www yönlendirmesi düzeltildi: next.config.mjs'e redirect eklendi, robots.ts güncellendi
+- favicon için layout.tsx'e explicit icons metadata eklendi
+- Supabase RLS uyarısı — kasıtlı kapalı, Prisma direkt PostgreSQL kullanıyor, sorun yok
+
+### Altyapı
+- DNS Cloudflare'e taşındı (nameserver propagation bekleniyor)
+- Cloudflare Email Routing kuruldu: destek@tamirtakip.com.tr → kaanccolak@gmail.com (nameserver aktif olunca çalışacak)
+- İade politikası sayfası eklendi: src/app/iade-politikasi/page.tsx
+- paket-sec sayfası güncellendi: aylık/yıllık toggle, çıkış butonu, "Talebiniz alındı" mesajı
+
+### Pazarlama
+- Paddle başvurusu yapıldı (değerlendirmede)
+- Capterra/G2 Digital Markets başvurusu yapıldı (destek@tamirtakip.com.tr doğrulama bekleniyor)
+- AlternativeTo hesabı açıldı (7 gün sonra uygulama eklenebilir)
+
+## Bekleyen Görevler (Yakın Vadeli)
+
+- [ ] Cloudflare nameserver aktif olunca email routing'i tamamla
+- [ ] destek@tamirtakip.com.tr aktif olunca Capterra doğrulama mailini onayla
+- [ ] 7 gün sonra AlternativeTo'ya TamirTakip ekle
+- [ ] Paddle onayı gelince ödeme entegrasyonu yap
+- [ ] Google Business Profile doğrulaması gelince tamamla (5 gün)
+- [ ] Haftada 1 blog yazısı ekle
+
 ## Yapılacaklar (TODO)
 
 ### Şirket Kurulunca
