@@ -17,8 +17,52 @@ const normalKartlar = [
   { ikon: "🔄", baslik: "İkinci el modülü", aciklama: "Alım/satım kayıtları ve fişlerle ikinci el stokunuzu düzenli tutun." },
 ];
 
+const sssler = [
+  {
+    q: "Yapay zeka özellikleri nasıl çalışıyor?",
+    a: "TamirTakip, sektördeki tek yapay zeka destekli teknik servis programıdır. Arıza teşhisi için cihaz ve şikayet bilgisini girin, AI olası nedenleri listelesin. Sesli not özelliğiyle mikrofona konuşun, AI metni profesyonel servis notuna dönüştürsün. Fiyat önerisi ise dükkanınızın kendi geçmiş kayıtlarına dayanarak benzer arızalar için fiyat aralığı sunar.",
+  },
+  {
+    q: "TamirTakip nedir?",
+    a: "TamirTakip, her türlü elektronik cihaz tamiri yapan teknik servisler için geliştirilmiş bulut tabanlı bir yönetim yazılımıdır. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok yönetimi ve ciro raporlaması ihtiyaçlarınızı tek platformda karşılar. Kurulum gerektirmez, her cihazdan erişilir.",
+  },
+  {
+    q: "Hangi teknik servisler kullanabilir?",
+    a: "Cep telefonu, televizyon, beyaz eşya, oyun konsolu, bilgisayar ve her türlü elektronik cihaz tamiri yapan teknik servisler TamirTakip'i kullanabilir.",
+  },
+  {
+    q: "WhatsApp entegrasyonu nasıl çalışıyor?",
+    a: "Kendi WhatsApp numaranızı sisteme bağlayarak müşterilerinize otomatik bildirim gönderebilirsiniz. Cihaz durumu değiştiğinde, fiyat bildirimi yapıldığında veya cihaz teslim edildiğinde müşterinize otomatik mesaj gider.",
+  },
+  {
+    q: "Kurulum gerekiyor mu?",
+    a: "Hayır, TamirTakip tamamen online çalışan bir servis takip programıdır. Herhangi bir kurulum veya yükleme gerekmez. Kayıt olduktan sonra anında kullanmaya başlayabilirsiniz.",
+  },
+  {
+    q: "Mobil cihazdan kullanabilir miyim?",
+    a: "Evet, TamirTakip mobil uyumlu tasarımı ile telefon ve tablet üzerinden de kullanılabilir. Dükkanınızda olmadığınızda bile servis kayıtlarınıza erişebilirsiniz.",
+  },
+  {
+    q: "Verilerimin güvenliği nasıl sağlanıyor?",
+    a: "Tüm verileriniz şifreli olarak saklanır. Her dükkanın verileri birbirinden tamamen bağımsızdır. Şirket ayarlarınızı parola korumasıyla güvence altına alabilirsiniz.",
+  },
+  {
+    q: "Hangi teknik servisler TamirTakip'i kullanabilir?",
+    a: "Telefon, bilgisayar, tablet, beyaz eşya, küçük ev aletleri ve her türlü elektronik cihaz tamiri yapan tüm servisler TamirTakip'i kullanabilir. Cihaz türü fark etmeksizin tüm tamir süreçleri yönetilebilir.",
+  },
+  {
+    q: "Barkodlu cihaz takibi nasıl çalışır?",
+    a: "Her kayıt için otomatik oluşturulan barkodlu etiket cihaza yapıştırılır. Müşteri teslim alırken barkod okutularak cihaz bilgilerine anında erişilir. Yanlış cihaz teslimi riski sıfıra iner.",
+  },
+  {
+    q: "Müşteriler cihaz durumunu online sorgulayabilir mi?",
+    a: "Evet. Cihaz Sorgula ekranı sayesinde müşteriler kayıt numarası veya telefon numarasıyla cihazlarının güncel durumunu 7/24 online olarak sorgulayabilir.",
+  },
+];
+
 export default function LandingPage() {
   const [yillikOdeme, setYillikOdeme] = useState(false);
+  const [acikSss, setAcikSss] = useState<number | null>(null);
   const router = useRouter();
 
   return (
@@ -777,76 +821,61 @@ export default function LandingPage() {
             </h2>
           </div>
           <div style={{ display: "grid", gap: "16px" }}>
-            {[
-              {
-                q: "Yapay zeka özellikleri nasıl çalışıyor?",
-                a: "TamirTakip, sektördeki tek yapay zeka destekli teknik servis programıdır. Arıza teşhisi için cihaz ve şikayet bilgisini girin, AI olası nedenleri listelesin. Sesli not özelliğiyle mikrofona konuşun, AI metni profesyonel servis notuna dönüştürsün. Fiyat önerisi ise dükkanınızın kendi geçmiş kayıtlarına dayanarak benzer arızalar için fiyat aralığı sunar.",
-              },
-              {
-                q: "TamirTakip nedir?",
-                a: "TamirTakip, her türlü elektronik cihaz tamiri yapan teknik servisler için geliştirilmiş bulut tabanlı bir yönetim yazılımıdır. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok yönetimi ve ciro raporlaması ihtiyaçlarınızı tek platformda karşılar. Kurulum gerektirmez, her cihazdan erişilir.",
-              },
-              {
-                q: "Hangi teknik servisler kullanabilir?",
-                a: "Cep telefonu, televizyon, beyaz eşya, oyun konsolu, bilgisayar ve her türlü elektronik cihaz tamiri yapan teknik servisler TamirTakip'i kullanabilir.",
-              },
-              {
-                q: "WhatsApp entegrasyonu nasıl çalışıyor?",
-                a: "Kendi WhatsApp numaranızı sisteme bağlayarak müşterilerinize otomatik bildirim gönderebilirsiniz. Cihaz durumu değiştiğinde, fiyat bildirimi yapıldığında veya cihaz teslim edildiğinde müşterinize otomatik mesaj gider.",
-              },
-              {
-                q: "Kurulum gerekiyor mu?",
-                a: "Hayır, TamirTakip tamamen online çalışan bir servis takip programıdır. Herhangi bir kurulum veya yükleme gerekmez. Kayıt olduktan sonra anında kullanmaya başlayabilirsiniz.",
-              },
-              {
-                q: "Mobil cihazdan kullanabilir miyim?",
-                a: "Evet, TamirTakip mobil uyumlu tasarımı ile telefon ve tablet üzerinden de kullanılabilir. Dükkanınızda olmadığınızda bile servis kayıtlarınıza erişebilirsiniz.",
-              },
-              {
-                q: "Verilerimin güvenliği nasıl sağlanıyor?",
-                a: "Tüm verileriniz şifreli olarak saklanır. Her dükkanın verileri birbirinden tamamen bağımsızdır. Şirket ayarlarınızı parola korumasıyla güvence altına alabilirsiniz.",
-              },
-              {
-                q: "Hangi teknik servisler TamirTakip'i kullanabilir?",
-                a: "Telefon, bilgisayar, tablet, beyaz eşya, küçük ev aletleri ve her türlü elektronik cihaz tamiri yapan tüm servisler TamirTakip'i kullanabilir. Cihaz türü fark etmeksizin tüm tamir süreçleri yönetilebilir.",
-              },
-              {
-                q: "Barkodlu cihaz takibi nasıl çalışır?",
-                a: "Her kayıt için otomatik oluşturulan barkodlu etiket cihaza yapıştırılır. Müşteri teslim alırken barkod okutularak cihaz bilgilerine anında erişilir. Yanlış cihaz teslimi riski sıfıra iner.",
-              },
-              {
-                q: "Müşteriler cihaz durumunu online sorgulayabilir mi?",
-                a: "Evet. Cihaz Sorgula ekranı sayesinde müşteriler kayıt numarası veya telefon numarasıyla cihazlarının güncel durumunu 7/24 online olarak sorgulayabilir.",
-              },
-            ].map((item, i) => (
+            {sssler.map((item, i) => (
               <div
                 key={i}
                 style={{
                   border: "1px solid #e5e7eb",
                   borderRadius: "12px",
-                  padding: "24px",
+                  overflow: "hidden",
+                  background: "white",
                 }}
               >
-                <h3
+                <button
+                  type="button"
+                  onClick={() => setAcikSss(acikSss === i ? null : i)}
                   style={{
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: "#111827",
-                    marginBottom: "10px",
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "18px 24px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    gap: "16px",
                   }}
                 >
-                  {item.q}
-                </h3>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#6b7280",
-                    lineHeight: "1.7",
-                    margin: 0,
-                  }}
-                >
-                  {item.a}
-                </p>
+                  <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827" }}>
+                    {item.q}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "20px",
+                      color: "#6b7280",
+                      flexShrink: 0,
+                      transition: "transform 0.2s",
+                      transform: acikSss === i ? "rotate(45deg)" : "rotate(0deg)",
+                    }}
+                  >
+                    +
+                  </span>
+                </button>
+                {acikSss === i && (
+                  <div
+                    style={{
+                      padding: "0 24px 18px 24px",
+                      fontSize: "14px",
+                      color: "#6b7280",
+                      lineHeight: 1.7,
+                      borderTop: "1px solid #f3f4f6",
+                      paddingTop: "16px",
+                    }}
+                  >
+                    {item.a}
+                  </div>
+                )}
               </div>
             ))}
           </div>
