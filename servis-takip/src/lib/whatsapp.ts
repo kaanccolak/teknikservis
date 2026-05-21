@@ -82,6 +82,14 @@ export const WA_TEMPLATES: Record<
       o.deviceModel?.name || o.brand?.name || "Cihaz",
     ],
   },
+  testing: {
+    name: "test_asamasinda",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo ?? "",
+      o.deviceModel?.name || o.brand?.name || "Cihaz",
+    ],
+  },
   completed: {
     name: "onarim_tamamlandi",
     getParams: (o) => [

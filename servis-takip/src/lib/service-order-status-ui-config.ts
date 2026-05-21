@@ -28,6 +28,7 @@ export const STATUS_GROUPS: { title: string; statuses: string[] }[] = [
       "repair_failed",
       "no_problem_found",
       "customer_return_request",
+      "testing",
       "completed",
     ],
   },

@@ -195,6 +195,8 @@ function buildMessage(templateName: string, parameters: string[]): string {
 
     musteri_iade_istiyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızı iade almak istediğinizi belirttiniz. Cihazınızı teslim alabilirsiniz.`,
 
+    test_asamasinda: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın onarımı tamamlanmış ve test aşamasındadır. Cihazınızla ilgili gelişmeleri size bildireceğiz.`,
+
     onarim_tamamlandi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın onarımı tamamlanmıştır. Tamir ücreti ${p[3] ?? ""}. Cihazınızı teslim alabilirsiniz.`,
 
     teslim_edildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız teslim edilmiştir.${p[3] ? ` Toplam ücret: ${p[3]}.` : ""} Bizi tercih ettiğiniz için teşekkür ederiz.`,

@@ -153,6 +153,12 @@ const DEFAULT_TEMPLATES: Record<
       "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızı iade almak istediğinizi belirttiniz. Cihazınızı teslim alabilirsiniz.",
     variables: ["{isim}", "{seriNo}", "{cihaz}"],
   },
+  test_asamasinda: {
+    label: "Test Aşamasında",
+    defaultMessage:
+      "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınızın onarımı tamamlanmış ve test aşamasındadır. Cihazınızla ilgili gelişmeleri size bildireceğiz.",
+    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+  },
   onarim_tamamlandi: {
     label: "Onarım Tamamlandı",
     defaultMessage:

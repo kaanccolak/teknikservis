@@ -50,6 +50,12 @@ export const STATUS_CONFIG: Record<
     bg: "#fdf2f8",
     border: "#fbcfe8",
   },
+  testing: {
+    label: "Test Aşamasında",
+    color: "#0891b2",
+    bg: "#ecfeff",
+    border: "#a5f3fc",
+  },
   completed: {
     label: "Onarım Tamamlandı",
     color: "#10b981",

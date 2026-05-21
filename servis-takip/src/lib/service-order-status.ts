@@ -11,6 +11,7 @@ export const SERVICE_ORDER_STATUS_OPTIONS = [
   { value: "repair_failed", label: "Tamiri Olmuyor" },
   { value: "no_problem_found", label: "Sorun Görülmedi" },
   { value: "customer_return_request", label: "Müşteri İade İstiyor" },
+  { value: "testing", label: "Test Aşamasında" },
   { value: "completed", label: "Onarım Tamamlandı" },
   { value: "delivered", label: "Teslim Edildi" },
   { value: "delivered_repair_failed", label: "Teslim Edildi (Tamir Olmuyor)" },
