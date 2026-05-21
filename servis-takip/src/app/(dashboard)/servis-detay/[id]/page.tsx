@@ -459,14 +459,7 @@ export default function ServisDetayPage() {
       const o = data as ServiceOrderDetail;
       setOrder(o);
       setNoteDraft(o.technicianNote ?? "");
-      const iDiscount = bayiDiscountRate(o.bayi?.iskonto);
-      const displayPrice =
-        o.totalPrice != null && !Number.isNaN(o.totalPrice)
-          ? iDiscount > 0
-            ? String(Math.round(o.totalPrice / (1 - iDiscount)))
-            : String(o.totalPrice)
-          : "";
-      setInputPrice(displayPrice);
+      setInputPrice("");
     } catch {
       setError("Bağlantı hatası");
       setOrder(null);
