@@ -42,6 +42,14 @@ export const metadata: Metadata = {
     "teknik servis takip",
     "tamirtakip",
   ],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon", type: "image/png", sizes: "32x32" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   metadataBase: new URL("https://tamirtakip.com.tr"),
   openGraph: {
     title: "TamirTakip — Teknik Servis Takip Programı",
