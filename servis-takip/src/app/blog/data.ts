@@ -9,6 +9,90 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "telefon-tamircileri-icin-musteri-takip-programi",
+    title: "Telefon Tamircileri İçin Müşteri Takip Programı Nasıl Olmalı?",
+    description:
+      "Telefon tamiri yapan servisler için müşteri takip programında olması gereken özellikler ve doğru yazılım seçimi rehberi.",
+    date: "21 Mayıs 2026",
+    readTime: "4 dk okuma",
+    content: `
+    <p>Telefon tamiri yapan bir servis için müşteri takip programı, her gün onlarca cihazın kayıt, takip ve teslim sürecini yöneten temel araçtır. Doğru bir program seçmek hem zamandan tasarruf sağlar hem de müşteri memnuniyetini artırır.</p>
+    <h2>Telefon Tamircisi İçin Müşteri Takip Programında Olması Gerekenler</h2>
+    <p>Telefon tamircisi için tasarlanmış bir müşteri takip programı şu özelliklere sahip olmalıdır: otomatik kayıt numarası üretimi, müşteri adı ve telefon bilgisi kaydı, cihaz türü ve arıza açıklaması girişi, tamir durumu takibi ve müşteri bildirimi.</p>
+    <h2>WhatsApp Entegrasyonu Neden Önemli?</h2>
+    <p>Telefon tamiri müşterileri cihazları olmadan iletişim kurmakta zorlanır. WhatsApp entegrasyonlu bir takip programı sayesinde müşteriye tamir tamamlandığında, fiyat belirlendiğinde veya cihaz teslime hazır olduğunda otomatik bildirim gönderilebilir. Bu hem müşteri memnuniyetini artırır hem de gereksiz telefon aramalarını azaltır.</p>
+    <h2>Bulut Tabanlı mı Masaüstü mü?</h2>
+    <p>Bulut tabanlı programlar telefon tamircileri için çok daha avantajlıdır. Kurulum gerektirmez, her cihazdan erişilebilir, otomatik yedekleme yapar ve güncellemeler otomatik gelir. Masaüstü programlarda ise veri kaybı riski ve güncelleme sorunu yaşanabilir.</p>
+    <h2>TamirTakip ile Telefon Tamiri Yönetimi</h2>
+    <p>TamirTakip, telefon tamiri yapan servisler için özel olarak tasarlanmış bulut tabanlı bir yönetim yazılımıdır. Cihaz kaydından teslimata kadar tüm süreci dijital ortamda yönetmenizi sağlar. Otomatik kayıt numarası, WhatsApp bildirimi ve servis fişi özellikleriyle telefon tamircilerinin en çok ihtiyaç duyduğu araçları tek platformda sunar.</p>
+  `,
+  },
+  {
+    slug: "barkodlu-cihaz-takip-sistemi",
+    title: "Teknik Serviste Barkodlu Cihaz Takip Sistemi Nasıl Kullanılır?",
+    description:
+      "Barkodlu cihaz takip sistemiyle teknik servislerde cihaz kaydını hızlandırın, kayıp cihaz riskini ortadan kaldırın.",
+    date: "21 Mayıs 2026",
+    readTime: "3 dk okuma",
+    content: `
+    <p>Barkodlu cihaz takip sistemi, teknik servislerde onlarca hatta yüzlerce cihazı aynı anda yönetmenin en etkili yoludur. Her cihaza yapıştırılan barkod etiketi sayesinde cihazın kim tarafından getirildiği, hangi arızası olduğu ve tamir durumu anında sorgulanabilir.</p>
+    <h2>Barkodlu Takibin Avantajları</h2>
+    <ul>
+      <li>Cihaz kaydı saniyeler içinde tamamlanır</li>
+      <li>Rafta bekleyen cihazlar kolayca bulunur</li>
+      <li>Müşteri teslim alma sırasında hata riski sıfıra iner</li>
+      <li>Yoğun dönemlerde bile düzen korunur</li>
+    </ul>
+    <h2>Barkod Etiketi Nasıl Oluşturulur?</h2>
+    <p>TamirTakip gibi modern teknik servis yazılımları, her kayıt için otomatik olarak barkodlu etiket oluşturur. Bu etiket direkt yazıcıdan çıktı alınarak cihaza yapıştırılır. Sonraki her işlemde barkod okutularak cihaz bilgilerine anında erişilir.</p>
+    <h2>Cihaz Sorgulama</h2>
+    <p>Barkodlu sistemlerde müşteriler de kendi cihazlarının durumunu sorgulayabilir. Kayıt numarası veya telefon numarasıyla online sorgulama yapılabilir, bu da servis sahibinin telefon trafiğini önemli ölçüde azaltır.</p>
+  `,
+  },
+  {
+    slug: "kucuk-ev-aletleri-servis-yazilimi",
+    title: "Küçük Ev Aletleri Tamiri İçin Servis Yazılımı Seçimi",
+    description:
+      "Beyaz eşya, küçük ev aletleri ve elektronik tamir servisleri için doğru yazılım nasıl seçilir?",
+    date: "20 Mayıs 2026",
+    readTime: "3 dk okuma",
+    content: `
+    <p>Küçük ev aletleri tamiri yapan servisler için doğru yazılım seçimi, işletmenin verimliliğini doğrudan etkiler. Blender, süpürge, ütü, kahve makinesi gibi ürünlerin tamir süreçleri telefon tamirinden farklı özellikler gerektirir.</p>
+    <h2>Küçük Ev Aletleri Servislerinin İhtiyaçları</h2>
+    <p>Bu tür servisler için yazılımda şu özellikler kritiktir: garanti takibi, yedek parça stok yönetimi, marka ve model bazlı kayıt, tahmini maliyet hesabı ve müşteri onayı alma.</p>
+    <h2>Garanti Takibi Neden Önemli?</h2>
+    <p>Küçük ev aletlerinde garanti kapsamındaki onarımlar ayrı takip edilmelidir. Yazılım bu ayrımı otomatik yapabilmeli, garanti süresi dolan cihazlar için ayrı fiyatlandırma uygulanabilmelidir.</p>
+    <h2>Yedek Parça Stok Yönetimi</h2>
+    <p>Küçük ev aletleri servislerinde onlarca farklı marka ve modele ait yedek parça stoku tutulur. Dijital stok takibi olmadan bu parçaları yönetmek neredeyse imkansızdır. TamirTakip'in stok modülü her parçayı servis kaydına bağlayarak otomatik stok düşümü yapar.</p>
+    <h2>Sonuç</h2>
+    <p>Küçük ev aletleri tamiri yapan bir servis için bulut tabanlı, garanti takibi ve stok yönetimi sunan bir yazılım seçmek uzun vadede büyük avantaj sağlar. TamirTakip bu özelliklerin tamamını tek platformda sunar.</p>
+  `,
+  },
+  {
+    slug: "online-cihaz-takip-sistemi-musteri-bildirimi",
+    title: "Online Cihaz Takip Sistemi ile Müşteri Bildirimi Otomasyonu",
+    description:
+      "Teknik servisinizde online cihaz takip sistemi kurarak müşteri bildirimlerini otomatikleştirin, telefon trafiğini azaltın.",
+    date: "19 Mayıs 2026",
+    readTime: "3 dk okuma",
+    content: `
+    <p>Online cihaz takip sistemi, teknik servislerin en büyük sorunlarından biri olan "cihazım ne oldu?" telefon trafiğini ortadan kaldırmanın en etkili yoludur. Müşteri kendi cihazının durumunu istediği zaman online olarak sorgulayabilir.</p>
+    <h2>Online Takip Sistemi Nasıl Çalışır?</h2>
+    <p>Cihaz servise teslim alınırken sisteme kaydedilir ve otomatik bir kayıt numarası oluşturulur. Bu numara müşteriye verilir. Müşteri dilediği zaman servisin web sitesindeki sorgulama ekranına girerek cihazının güncel durumunu görebilir.</p>
+    <h2>Otomatik Bildirim Avantajları</h2>
+    <ul>
+      <li>Tamir tamamlandığında otomatik WhatsApp mesajı gider</li>
+      <li>Fiyat belirlendiğinde müşteri anında haberdar olur</li>
+      <li>Müşteri onayı dijital ortamda alınır</li>
+      <li>Teslim tarihi değişince bildirim gönderilir</li>
+    </ul>
+    <h2>Telefon Trafiği Nasıl Azalır?</h2>
+    <p>Araştırmalar, otomatik bildirim sistemi kullanan teknik servislerin müşteri aramalarını %60-70 oranında azalttığını göstermektedir. Bu hem servis sahibinin hem de çalışanların zamanını verimli kullanmasını sağlar.</p>
+    <h2>TamirTakip ile Online Takip</h2>
+    <p>TamirTakip'in online sorgulama ekranı sayesinde müşterileriniz kayıt numaraları veya telefon numarasıyla cihaz durumlarını 7/24 sorgulayabilir. WhatsApp entegrasyonu ile otomatik bildirimler göndererek müşteri memnuniyetini artırabilirsiniz.</p>
+  `,
+  },
+  {
     slug: "teknik-serviste-cihaz-takibi-neden-onemli",
     title: "Teknik Serviste Cihaz Takibi Neden Önemlidir?",
     description:
