@@ -784,7 +784,7 @@ export default function LandingPage() {
               },
               {
                 q: "TamirTakip nedir?",
-                a: "TamirTakip, teknik servisler için geliştirilmiş online servis takip programıdır. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok yönetimi ve ciro raporlaması gibi tüm servis yönetimi ihtiyaçlarınızı karşılar.",
+                a: "TamirTakip, her türlü elektronik cihaz tamiri yapan teknik servisler için geliştirilmiş bulut tabanlı bir yönetim yazılımıdır. Cihaz kayıt, durum takibi, WhatsApp bildirimi, stok yönetimi ve ciro raporlaması ihtiyaçlarınızı tek platformda karşılar. Kurulum gerektirmez, her cihazdan erişilir.",
               },
               {
                 q: "Hangi teknik servisler kullanabilir?",
@@ -805,6 +805,18 @@ export default function LandingPage() {
               {
                 q: "Verilerimin güvenliği nasıl sağlanıyor?",
                 a: "Tüm verileriniz şifreli olarak saklanır. Her dükkanın verileri birbirinden tamamen bağımsızdır. Şirket ayarlarınızı parola korumasıyla güvence altına alabilirsiniz.",
+              },
+              {
+                q: "Hangi teknik servisler TamirTakip'i kullanabilir?",
+                a: "Telefon, bilgisayar, tablet, beyaz eşya, küçük ev aletleri ve her türlü elektronik cihaz tamiri yapan tüm servisler TamirTakip'i kullanabilir. Cihaz türü fark etmeksizin tüm tamir süreçleri yönetilebilir.",
+              },
+              {
+                q: "Barkodlu cihaz takibi nasıl çalışır?",
+                a: "Her kayıt için otomatik oluşturulan barkodlu etiket cihaza yapıştırılır. Müşteri teslim alırken barkod okutularak cihaz bilgilerine anında erişilir. Yanlış cihaz teslimi riski sıfıra iner.",
+              },
+              {
+                q: "Müşteriler cihaz durumunu online sorgulayabilir mi?",
+                a: "Evet. Cihaz Sorgula ekranı sayesinde müşteriler kayıt numarası veya telefon numarasıyla cihazlarının güncel durumunu 7/24 online olarak sorgulayabilir.",
               },
             ].map((item, i) => (
               <div
