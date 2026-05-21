@@ -1,6 +1,14 @@
 import type { MetadataRoute } from "next";
+import { blogPosts } from "./blog/data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const blogUrls: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `https://www.tamirtakip.com.tr/blog/${post.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   return [
     {
       url: "https://www.tamirtakip.com.tr/landing",
@@ -8,6 +16,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: "https://www.tamirtakip.com.tr/blog",
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...blogUrls,
     {
       url: "https://www.tamirtakip.com.tr/login",
       lastModified: new Date(),
@@ -19,6 +34,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.6,
+    },
+    {
+      url: "https://www.tamirtakip.com.tr/iade-politikasi",
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
     {
       url: "https://www.tamirtakip.com.tr/kvkk",
