@@ -132,6 +132,12 @@ export default function LandingPage() {
           </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link
+              href="/blog"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-indigo-600 transition hover:bg-slate-50 sm:px-4"
+            >
+              Blog
+            </Link>
+            <Link
               href="/sorgula"
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-indigo-600 transition hover:bg-slate-50 sm:px-4"
             >
@@ -966,6 +972,9 @@ export default function LandingPage() {
             </Link>
             <Link href="/login" className="hover:text-indigo-600">
               Giriş yap
+            </Link>
+            <Link href="/blog" className="hover:text-indigo-600">
+              Blog
             </Link>
             <a
               href="/gizlilik-politikasi"
