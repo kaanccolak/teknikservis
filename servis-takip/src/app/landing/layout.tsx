@@ -117,9 +117,15 @@ export default function LandingLayout({
                 logo: "https://www.tamirtakip.com.tr/icon.svg",
                 contactPoint: {
                   "@type": "ContactPoint",
+                  telephone: "+90-537-766-42-48",
                   email: "destek@tamirtakip.com.tr",
                   contactType: "customer support",
                   availableLanguage: "Turkish",
+                },
+                address: {
+                  "@type": "PostalAddress",
+                  addressLocality: "İzmir",
+                  addressCountry: "TR",
                 },
               },
               {

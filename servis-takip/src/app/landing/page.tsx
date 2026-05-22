@@ -916,7 +916,19 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-slate-50 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 sm:flex-row sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>
+              📍 İzmir / Türkiye
+            </p>
+            <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>
+              📞 <a href="tel:+905377664248" style={{ color: "#6b7280", textDecoration: "none" }}>+90 537 766 42 48</a>
+            </p>
+            <p style={{ fontSize: "13px", color: "#6b7280" }}>
+              ✉️ <a href="mailto:destek@tamirtakip.com.tr" style={{ color: "#4f46e5", textDecoration: "none" }}>destek@tamirtakip.com.tr</a>
+            </p>
+          </div>
+        <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
           <Link
             href="/landing"
             className="flex items-center text-slate-900"
@@ -1036,6 +1048,7 @@ export default function LandingPage() {
           <p className="text-center text-xs text-slate-500 sm:text-right">
             © {new Date().getFullYear()} TamirTakip · Tüm hakları saklıdır
           </p>
+        </div>
         </div>
       </footer>
       <CookieBanner />
