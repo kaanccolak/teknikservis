@@ -53,12 +53,16 @@ export default function DukkanNushasiPage() {
     if (thermal) {
       const w = Number(genislik);
       const isLandscape = w <= 60;
-      const pageSize = isLandscape ? `${w}mm 40mm landscape` : `${w}mm auto`;
+      const pageSize = isLandscape ? `${w}mm 40mm landscape` : `${w}mm`;
 
       return `
       body { background: #f3f4f6; }
       @media print {
         .no-print { display: none !important; }
+        html, body {
+          height: auto !important;
+          overflow: visible !important;
+        }
         body { background: white !important; margin: 0; padding: 0; }
         .fis-card {
           box-shadow: none !important;
@@ -72,6 +76,7 @@ export default function DukkanNushasiPage() {
         @page {
           size: ${pageSize};
           margin: 0;
+          height: auto;
         }
         svg { display: block !important; }
       }
