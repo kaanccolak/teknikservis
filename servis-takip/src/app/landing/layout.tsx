@@ -23,13 +23,13 @@ export const metadata: Metadata = {
     "ücretsiz servis takip programı",
   ],
   alternates: {
-    canonical: "https://www.tamirtakip.com.tr/",
+    canonical: "https://www.tamirtakip.com.tr/landing",
   },
   openGraph: {
     title: "Teknik Servis Takip Programı | TamirTakip",
     description:
       "Teknik servis takip programı arıyorsanız TamirTakip'i deneyin. WhatsApp bildirimi, AI arıza teşhisi, stok yönetimi tek platformda. 30 gün ücretsiz.",
-    url: "https://www.tamirtakip.com.tr/",
+    url: "https://www.tamirtakip.com.tr/landing",
     siteName: "TamirTakip",
     type: "website",
     locale: "tr_TR",
