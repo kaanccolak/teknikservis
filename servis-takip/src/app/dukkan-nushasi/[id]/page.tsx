@@ -54,10 +54,6 @@ export default function DukkanNushasiPage() {
       const w = Number(genislik);
       const isLandscape = w <= 60;
       const pageSize = isLandscape ? `${w}mm 40mm landscape` : `${w}mm`;
-      const padUst = settings.etiket_padding_ust ?? "2";
-      const padAlt = settings.etiket_padding_alt ?? "2";
-      const padSag = settings.etiket_padding_sag ?? "2";
-      const padSol = settings.etiket_padding_sol ?? "2";
 
       return `
       body { background: #f3f4f6; }
@@ -74,9 +70,8 @@ export default function DukkanNushasiPage() {
           margin: 0 !important;
           width: ${w}mm !important;
           max-width: ${w}mm !important;
-          padding: ${padUst}mm ${padSag}mm ${padAlt}mm ${padSol}mm !important;
+          padding: 2mm !important;
           font-size: ${fontBoyutu}px !important;
-          font-weight: 700 !important;
         }
         @page {
           size: ${pageSize};
@@ -213,23 +208,19 @@ export default function DukkanNushasiPage() {
                 style={{
                   fontFamily: "monospace",
                   fontSize: `${fontSize}px`,
-                  fontWeight: 700,
                   lineHeight: "1.4",
                   maxWidth: `${genislik}mm`,
                   width: "100%",
                   margin: "0 auto",
-                  paddingTop: `${settings.etiket_padding_ust ?? "2"}mm`,
-                  paddingBottom: `${settings.etiket_padding_alt ?? "2"}mm`,
-                  paddingRight: `${settings.etiket_padding_sag ?? "2"}mm`,
-                  paddingLeft: `${settings.etiket_padding_sol ?? "2"}mm`,
+                  padding: "2mm",
                   boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
                   borderRadius: "4px",
                 }}
               >
-                {settings.etiket_goster_dukkan_adi !== "false" && (
-                  <p
+                <p
                     style={{
                       fontWeight: 700,
+                      fontSize: `${fontSize + 1}px`,
                       marginBottom: "1px",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -238,14 +229,16 @@ export default function DukkanNushasiPage() {
                   >
                     {textOrFallback(shopProfile?.name ?? order.shop?.name, "Dükkan")}
                   </p>
-                )}
-                {settings.etiket_goster_tarih !== "false" && (
-                  <p style={{ fontWeight: 700, marginBottom: "4px" }}>
+                  <p
+                    style={{
+                      fontSize: `${fontSize - 2}px`,
+                      color: "#555",
+                      marginBottom: "4px",
+                    }}
+                  >
                     {new Date(order.arrivedAt).toLocaleString("tr-TR")}
                   </p>
-                )}
-                <div style={{ borderTop: "1px dashed #999", margin: "3px 0" }} />
-                {settings.etiket_goster_musteri_adi !== "false" && (
+                  <div style={{ borderTop: "1px dashed #999", margin: "3px 0" }} />
                   <p
                     style={{
                       fontWeight: 700,
@@ -257,24 +250,19 @@ export default function DukkanNushasiPage() {
                   >
                     {textOrFallback(order.customer?.name, "—")}
                   </p>
-                )}
-                {settings.etiket_goster_telefon !== "false" && (
+                <p
+                  style={{
+                    marginBottom: "1px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {textOrFallback(order.customer?.phone, "—")}
+                </p>
+                {cihaz ? (
                   <p
                     style={{
-                      fontWeight: 700,
-                      marginBottom: "1px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {textOrFallback(order.customer?.phone, "—")}
-                  </p>
-                )}
-                {settings.etiket_goster_cihaz !== "false" && cihaz ? (
-                  <p
-                    style={{
-                      fontWeight: 700,
                       marginBottom: "1px",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -284,11 +272,9 @@ export default function DukkanNushasiPage() {
                     {cihaz}
                   </p>
                 ) : null}
-                {settings.etiket_goster_sikayet !== "false" &&
-                order.complaint?.trim() ? (
+                {order.complaint?.trim() ? (
                   <p
                     style={{
-                      fontWeight: 700,
                       marginBottom: "1px",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -298,15 +284,13 @@ export default function DukkanNushasiPage() {
                     {order.complaint.trim()}
                   </p>
                 ) : null}
-                {settings.etiket_goster_fiyat === "true" &&
-                order.totalPrice != null ? (
+                {order.totalPrice != null ? (
                   <p style={{ fontWeight: 700, marginBottom: "2px" }}>
                     {order.totalPrice.toLocaleString("tr-TR")} ₺
                   </p>
                 ) : null}
 
-                {settings.etiket_goster_barkod !== "false" &&
-                order.orderNumber?.trim() ? (
+                {order.orderNumber?.trim() ? (
                   <div
                     style={{
                       borderTop: "1px dashed #999",
