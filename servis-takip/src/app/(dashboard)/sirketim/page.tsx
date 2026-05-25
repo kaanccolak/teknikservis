@@ -2082,6 +2082,20 @@ function SirketimPageInner() {
   const [savingEtiket, setSavingEtiket] = useState(false);
   const [etiketFontBoyutu, setEtiketFontBoyutu] = useState("13");
   const [savingEtiketFont, setSavingEtiketFont] = useState(false);
+  const [etiketPaddingUst, setEtiketPaddingUst] = useState("2");
+  const [etiketPaddingAlt, setEtiketPaddingAlt] = useState("2");
+  const [etiketPaddingSag, setEtiketPaddingSag] = useState("2");
+  const [etiketPaddingSol, setEtiketPaddingSol] = useState("2");
+  const [savingEtiketPadding, setSavingEtiketPadding] = useState(false);
+  const [etiketGosterDukkanAdi, setEtiketGosterDukkanAdi] = useState(true);
+  const [etiketGosterTarih, setEtiketGosterTarih] = useState(true);
+  const [etiketGosterMusteriAdi, setEtiketGosterMusteriAdi] = useState(true);
+  const [etiketGosterTelefon, setEtiketGosterTelefon] = useState(true);
+  const [etiketGosterCihaz, setEtiketGosterCihaz] = useState(true);
+  const [etiketGosterSikayet, setEtiketGosterSikayet] = useState(true);
+  const [etiketGosterFiyat, setEtiketGosterFiyat] = useState(false);
+  const [etiketGosterBarkod, setEtiketGosterBarkod] = useState(true);
+  const [savingEtiketGoster, setSavingEtiketGoster] = useState(false);
   const [ikinciElGarantiSartlari, setIkinciElGarantiSartlari] = useState("");
   const [savingIkinciElGaranti, setSavingIkinciElGaranti] = useState(false);
   const [ikinciElAlimBelgeNotu, setIkinciElAlimBelgeNotu] = useState("");
@@ -2325,6 +2339,50 @@ function SirketimPageInner() {
         setEtiketFontBoyutu(
           (settingsData as Record<string, string>).etiket_font_boyutu ?? "13",
         );
+        setEtiketPaddingUst(
+          (settingsData as Record<string, string>).etiket_padding_ust ?? "2",
+        );
+        setEtiketPaddingAlt(
+          (settingsData as Record<string, string>).etiket_padding_alt ?? "2",
+        );
+        setEtiketPaddingSag(
+          (settingsData as Record<string, string>).etiket_padding_sag ?? "2",
+        );
+        setEtiketPaddingSol(
+          (settingsData as Record<string, string>).etiket_padding_sol ?? "2",
+        );
+        setEtiketGosterDukkanAdi(
+          (settingsData as Record<string, string>).etiket_goster_dukkan_adi !==
+            "false",
+        );
+        setEtiketGosterTarih(
+          (settingsData as Record<string, string>).etiket_goster_tarih !==
+            "false",
+        );
+        setEtiketGosterMusteriAdi(
+          (settingsData as Record<string, string>).etiket_goster_musteri_adi !==
+            "false",
+        );
+        setEtiketGosterTelefon(
+          (settingsData as Record<string, string>).etiket_goster_telefon !==
+            "false",
+        );
+        setEtiketGosterCihaz(
+          (settingsData as Record<string, string>).etiket_goster_cihaz !==
+            "false",
+        );
+        setEtiketGosterSikayet(
+          (settingsData as Record<string, string>).etiket_goster_sikayet !==
+            "false",
+        );
+        setEtiketGosterFiyat(
+          (settingsData as Record<string, string>).etiket_goster_fiyat ===
+            "true",
+        );
+        setEtiketGosterBarkod(
+          (settingsData as Record<string, string>).etiket_goster_barkod !==
+            "false",
+        );
         setPersonelGirisModu(
           (settingsData as Record<string, string>).personel_giris_modu === "true",
         );
@@ -2531,6 +2589,60 @@ function SirketimPageInner() {
       toast.error("Bağlantı hatası");
     } finally {
       setSavingEtiketFont(false);
+    }
+  }
+
+  async function handleSaveEtiketPadding() {
+    setSavingEtiketPadding(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          etiket_padding_ust: etiketPaddingUst,
+          etiket_padding_alt: etiketPaddingAlt,
+          etiket_padding_sag: etiketPaddingSag,
+          etiket_padding_sol: etiketPaddingSol,
+        }),
+      });
+      if (!res.ok) {
+        toast.error("Kayıt başarısız");
+        return;
+      }
+      toast.success("Boşluk ayarları kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingEtiketPadding(false);
+    }
+  }
+
+  async function handleSaveEtiketGoster() {
+    setSavingEtiketGoster(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          etiket_goster_dukkan_adi: String(etiketGosterDukkanAdi),
+          etiket_goster_tarih: String(etiketGosterTarih),
+          etiket_goster_musteri_adi: String(etiketGosterMusteriAdi),
+          etiket_goster_telefon: String(etiketGosterTelefon),
+          etiket_goster_cihaz: String(etiketGosterCihaz),
+          etiket_goster_sikayet: String(etiketGosterSikayet),
+          etiket_goster_fiyat: String(etiketGosterFiyat),
+          etiket_goster_barkod: String(etiketGosterBarkod),
+        }),
+      });
+      if (!res.ok) {
+        toast.error("Kayıt başarısız");
+        return;
+      }
+      toast.success("Alan ayarları kaydedildi!");
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSavingEtiketGoster(false);
     }
   }
 
@@ -4575,6 +4687,317 @@ function SirketimPageInner() {
                   >
                     {savingEtiketFont ? "Kaydediliyor..." : "Kaydet"}
                   </button>
+                </div>
+              </div>
+              {/* Boşluk Ayarları */}
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Kenar Boşlukları (mm)
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Etiketin üst, alt, sağ ve sol boşluklarını mm cinsinden girin.
+                </p>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "12px",
+                    marginBottom: "12px",
+                  }}
+                >
+                  {[
+                    {
+                      label: "Üst",
+                      value: etiketPaddingUst,
+                      set: setEtiketPaddingUst,
+                    },
+                    {
+                      label: "Alt",
+                      value: etiketPaddingAlt,
+                      set: setEtiketPaddingAlt,
+                    },
+                    {
+                      label: "Sağ",
+                      value: etiketPaddingSag,
+                      set: setEtiketPaddingSag,
+                    },
+                    {
+                      label: "Sol",
+                      value: etiketPaddingSol,
+                      set: setEtiketPaddingSol,
+                    },
+                  ].map(({ label, value, set }) => (
+                    <div
+                      key={label}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          width: "24px",
+                        }}
+                      >
+                        {label}
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={value}
+                        onChange={(e) => set(e.target.value)}
+                        style={{
+                          width: "70px",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "8px",
+                          padding: "6px 10px",
+                          fontSize: "14px",
+                        }}
+                      />
+                      <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                        mm
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleSaveEtiketPadding()}
+                  disabled={savingEtiketPadding}
+                  style={{
+                    background: "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "8px 18px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {savingEtiketPadding ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+              </div>
+              {/* Alan Görünürlük Ayarları + Önizleme */}
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginBottom: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Etikette Gösterilecek Alanlar
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Etiket üzerinde hangi bilgilerin görünmesini istediğinizi
+                  seçin.
+                </p>
+                <div style={{ display: "flex", gap: "32px" }}>
+                  <div style={{ flex: 1 }}>
+                    {[
+                      {
+                        label: "Dükkan adı",
+                        value: etiketGosterDukkanAdi,
+                        set: setEtiketGosterDukkanAdi,
+                      },
+                      {
+                        label: "Tarih ve saat",
+                        value: etiketGosterTarih,
+                        set: setEtiketGosterTarih,
+                      },
+                      {
+                        label: "Müşteri adı",
+                        value: etiketGosterMusteriAdi,
+                        set: setEtiketGosterMusteriAdi,
+                      },
+                      {
+                        label: "Telefon",
+                        value: etiketGosterTelefon,
+                        set: setEtiketGosterTelefon,
+                      },
+                      {
+                        label: "Cihaz",
+                        value: etiketGosterCihaz,
+                        set: setEtiketGosterCihaz,
+                      },
+                      {
+                        label: "Şikayet / arıza",
+                        value: etiketGosterSikayet,
+                        set: setEtiketGosterSikayet,
+                      },
+                      {
+                        label: "Fiyat",
+                        value: etiketGosterFiyat,
+                        set: setEtiketGosterFiyat,
+                      },
+                      {
+                        label: "Barkod",
+                        value: etiketGosterBarkod,
+                        set: setEtiketGosterBarkod,
+                      },
+                    ].map(({ label, value, set }) => (
+                      <label
+                        key={label}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={value}
+                          onChange={(e) => set(e.target.checked)}
+                          style={{ width: "16px", height: "16px" }}
+                        />
+                        <span style={{ fontSize: "13px", color: "#374151" }}>
+                          {label}
+                        </span>
+                      </label>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => void handleSaveEtiketGoster()}
+                      disabled={savingEtiketGoster}
+                      style={{
+                        marginTop: "8px",
+                        background: "#111827",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "8px 18px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {savingEtiketGoster ? "Kaydediliyor..." : "Kaydet"}
+                    </button>
+                  </div>
+                  <div style={{ flex: 1, minWidth: "160px" }}>
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                        marginBottom: "8px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Önizleme
+                    </p>
+                    <div
+                      style={{
+                        background: "white",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "4px",
+                        padding: `${etiketPaddingUst}mm ${etiketPaddingSag}mm ${etiketPaddingAlt}mm ${etiketPaddingSol}mm`,
+                        maxWidth: `${etiketGenislik}mm`,
+                        fontFamily: "monospace",
+                        fontSize: `${etiketFontBoyutu}px`,
+                        fontWeight: 700,
+                        lineHeight: "1.4",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {etiketGosterDukkanAdi && (
+                        <p style={{ fontWeight: 700, marginBottom: "1px" }}>
+                          Örnek Servis
+                        </p>
+                      )}
+                      {etiketGosterTarih && (
+                        <p style={{ marginBottom: "4px" }}>23.05.2026 14:30</p>
+                      )}
+                      <div
+                        style={{
+                          borderTop: "1px dashed #999",
+                          margin: "3px 0",
+                        }}
+                      />
+                      {etiketGosterMusteriAdi && (
+                        <p style={{ fontWeight: 700, marginBottom: "1px" }}>
+                          Ahmet Yılmaz
+                        </p>
+                      )}
+                      {etiketGosterTelefon && (
+                        <p style={{ marginBottom: "1px" }}>+90 532 000 00 00</p>
+                      )}
+                      {etiketGosterCihaz && (
+                        <p style={{ marginBottom: "1px" }}>iPhone 14 Pro</p>
+                      )}
+                      {etiketGosterSikayet && (
+                        <p style={{ marginBottom: "1px" }}>Ekran kırık</p>
+                      )}
+                      {etiketGosterFiyat && (
+                        <p style={{ fontWeight: 700, marginBottom: "2px" }}>
+                          1.500 ₺
+                        </p>
+                      )}
+                      {etiketGosterBarkod && (
+                        <div
+                          style={{
+                            borderTop: "1px dashed #999",
+                            marginTop: "4px",
+                            paddingTop: "3px",
+                            textAlign: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              letterSpacing: "2px",
+                              fontWeight: 700,
+                            }}
+                          >
+                            ||||| ||| ||||| |||
+                          </div>
+                          <div style={{ fontSize: "9px" }}>202605047</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div
