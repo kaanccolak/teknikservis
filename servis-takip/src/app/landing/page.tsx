@@ -561,7 +561,7 @@ export default function LandingPage() {
               {
                 quote:
                   "Müşteri sorgu ekranı sayesinde telefon trafiği yarıya indi. Kayıt numarasıyla hem biz hem müşteri aynı bilgiyi görüyor.",
-                author: "MOTSAN — Cep Telefonu Teknik Servisi",
+                author: "— Cep Telefonu Teknik Servisi",
                 city: "İzmir",
               },
             ].map((t) => (
