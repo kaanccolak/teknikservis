@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Teknik Servis Takip Programı | TamirTakip — Ücretsiz Deneyin",
+  title: "TamirTakip — Teknik Servis Takip Programı | Yapay Zeka Destekli",
   description:
-    "Teknik servis takip programı arıyorsanız TamirTakip'i deneyin. Cihaz kayıt, WhatsApp bildirimi, stok yönetimi, AI arıza teşhisi. Kurulum gerektirmez. 30 gün ücretsiz.",
+    "Türkiye'nin en gelişmiş teknik servis takip programı. AI arıza teşhisi, WhatsApp bildirimi, stok yönetimi, ciro takibi. Kurulum gerektirmez, tarayıcıdan anında kullanın.",
   keywords: [
     "teknik servis takip programı",
     "servis takip programı",
@@ -17,18 +17,14 @@ export const metadata: Metadata = {
     "online servis kayıt programı",
     "teknik servis uygulaması",
     "servis takip uygulaması",
-    "teknik servis takip",
-    "telefon tamiri programı",
-    "elektronik servis yazılımı",
-    "ücretsiz servis takip programı",
   ],
   alternates: {
     canonical: "https://www.tamirtakip.com.tr/landing",
   },
   openGraph: {
-    title: "Teknik Servis Takip Programı | TamirTakip",
+    title: "TamirTakip — Teknik Servis Takip Programı",
     description:
-      "Teknik servis takip programı arıyorsanız TamirTakip'i deneyin. WhatsApp bildirimi, AI arıza teşhisi, stok yönetimi tek platformda. 30 gün ücretsiz.",
+      "Türkiye'nin en gelişmiş teknik servis takip programı. AI arıza teşhisi, WhatsApp bildirimi, stok yönetimi tek platformda.",
     url: "https://www.tamirtakip.com.tr/landing",
     siteName: "TamirTakip",
     type: "website",
