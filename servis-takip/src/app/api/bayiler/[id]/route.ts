@@ -115,9 +115,6 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  if (tcVergiNo.length < 10) {
-    return NextResponse.json({ error: "TC/Vergi no zorunludur" }, { status: 400 });
-  }
 
   const iskonto = parseIskonto(json.iskonto);
 

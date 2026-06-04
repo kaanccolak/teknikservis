@@ -536,7 +536,18 @@ export default function BayilerPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>TC Kimlik / Vergi Numarası</Label>
+              <Label>
+                TC Kimlik / Vergi Numarası{" "}
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "#9ca3af",
+                    fontWeight: 400,
+                  }}
+                >
+                  (opsiyonel)
+                </span>
+              </Label>
               <Input
                 ref={tcVergiRef}
                 value={form.tcVergiNo ?? ""}
