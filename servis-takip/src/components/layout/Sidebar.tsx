@@ -271,7 +271,7 @@ export function Sidebar({ onOneriOpen }: { onOneriOpen: () => void }) {
             {shopName || "TamirTakip"}
           </p>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-2 min-h-0">
+        <nav className="flex flex-1 flex-col gap-0.5 lg:gap-1.5 overflow-y-auto px-3 py-2 min-h-0">
           {navItems
             .filter((item) => {
               // Personel modu kapalıysa veya admin ise hepsini göster
