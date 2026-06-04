@@ -6,7 +6,7 @@
 input:focus,
 textarea:focus,
 select:focus {
-  background-color: #fefce8 !important;
+  background-color: #fef08a !important;
   border-color: #4f46e5 !important;
   outline: none !important;
 }

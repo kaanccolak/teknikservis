@@ -864,25 +864,22 @@ function IkinciElInner() {
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
-                      {new Date(row.purchasedAt ?? row.createdAt).toLocaleDateString(
-                        "tr-TR",
-                        {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )}
+                      {(() => {
+                        const d = new Date(row.purchasedAt ?? row.createdAt);
+                        const pad = (n: number) => String(n).padStart(2, "0");
+                        return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+                      })()}
                     </td>
                     <td
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
                       {row.isSold && row.soldAt
-                        ? new Date(row.soldAt).toLocaleDateString("tr-TR", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
+                        ? (() => {
+                            const d = new Date(row.soldAt!);
+                            const pad = (n: number) => String(n).padStart(2, "0");
+                            return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+                          })()
                         : "—"}
                     </td>
                     <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
