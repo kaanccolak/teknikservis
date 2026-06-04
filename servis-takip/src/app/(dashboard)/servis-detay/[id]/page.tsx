@@ -2979,7 +2979,7 @@ export default function ServisDetayPage() {
                   <div style={{ marginBottom: "12px" }}>
                     <label
                       style={{
-                        fontSize: "var(--app-font-size, 12px)",
+                        fontSize: "12px",
                         color: "#6b7280",
                         display: "block",
                         marginBottom: "4px",
@@ -2995,7 +2995,7 @@ export default function ServisDetayPage() {
                         border: "1px solid #d1d5db",
                         borderRadius: "8px",
                         padding: "7px 10px",
-                        fontSize: "var(--app-font-size, 13px)",
+                        fontSize: "13px",
                         outline: "none",
                         background: "white",
                       }}
@@ -3023,7 +3023,7 @@ export default function ServisDetayPage() {
                     <div style={{ marginBottom: "12px" }}>
                       <div
                         style={{
-                          fontSize: "calc(var(--app-font-size, 11px) * 0.83)",
+                          fontSize: "10px",
                           color: "#9ca3af",
                           fontWeight: 600,
                           letterSpacing: "0.05em",
@@ -3056,7 +3056,7 @@ export default function ServisDetayPage() {
                                 {
                                   padding: "8px 10px",
                                   borderRadius: "6px",
-                                  fontSize: "var(--app-font-size, 11px)",
+                                  fontSize: "11px",
                                   fontWeight: isActive ? 600 : 400,
                                   cursor:
                                     isActive || savingStatus

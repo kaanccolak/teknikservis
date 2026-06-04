@@ -622,7 +622,7 @@ function IkinciElInner() {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontSize: "var(--app-font-size, 12px)",
+                fontSize: "12px",
                 textAlign: "left",
               }}
             >
@@ -763,7 +763,7 @@ function IkinciElInner() {
                             display: "inline-block",
                             padding: "3px 10px",
                             borderRadius: "20px",
-                            fontSize: "calc(var(--app-font-size, 12px) * 0.92)",
+                            fontSize: "11px",
                             fontWeight: "500",
                             background: "#d1fae5",
                             color: "#065f46",
@@ -779,7 +779,7 @@ function IkinciElInner() {
                             display: "inline-block",
                             padding: "3px 10px",
                             borderRadius: "20px",
-                            fontSize: "calc(var(--app-font-size, 12px) * 0.92)",
+                            fontSize: "11px",
                             fontWeight: "500",
                             background: "#dbeafe",
                             color: "#1e40af",

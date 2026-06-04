@@ -672,7 +672,7 @@ function CihazSorgulaInner() {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontSize: "var(--app-font-size, 12px)",
+                fontSize: "12px",
                 textAlign: "left",
               }}
             >
@@ -799,7 +799,7 @@ function CihazSorgulaInner() {
                           style={{
                             background: "#EDE9FE",
                             color: "#7C3AED",
-                            fontSize: "calc(var(--app-font-size, 12px) * 0.83)",
+                            fontSize: "10px",
                             fontWeight: "600",
                             padding: "2px 6px",
                             borderRadius: "4px",
@@ -870,7 +870,7 @@ function CihazSorgulaInner() {
                           display: "inline-block",
                           padding: "3px 10px",
                           borderRadius: "20px",
-                          fontSize: "calc(var(--app-font-size, 12px) * 0.92)",
+                          fontSize: "11px",
                           fontWeight: "500",
                           background: statusBadge.bg,
                           color: statusBadge.color,
