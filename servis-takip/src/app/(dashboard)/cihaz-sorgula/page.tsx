@@ -61,8 +61,16 @@ function formatArrivedAt(iso: string) {
 }
 
 function formatDeliveredAt(
+  status: string,
   statusLogs?: { createdAt: string; newStatus: string }[],
 ): string {
+  const deliveredStatuses = [
+    "delivered",
+    "delivered_repair_failed",
+    "delivered_no_problem",
+    "delivered_customer_return",
+  ];
+  if (!deliveredStatuses.includes(status)) return "—";
   if (!statusLogs || statusLogs.length === 0) return "—";
   const log = statusLogs[0];
   if (!log) return "—";
@@ -732,6 +740,12 @@ function CihazSorgulaInner() {
                     className="font-medium text-slate-700"
                     style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                   >
+                    Teslim Tarihi
+                  </th>
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
                     Marka
                   </th>
                   <th
@@ -757,12 +771,6 @@ function CihazSorgulaInner() {
                     style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                   >
                     Durum
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
-                    Teslim Tarihi
                   </th>
                 </tr>
               </thead>
@@ -845,6 +853,12 @@ function CihazSorgulaInner() {
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
+                      {formatDeliveredAt(row.status, row.statusLogs)}
+                    </td>
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
                       {row.brand?.name ?? row.brandName ?? "—"}
                     </td>
                     <td
@@ -881,12 +895,6 @@ function CihazSorgulaInner() {
                       >
                         {statusBadge.label}
                       </span>
-                    </td>
-                    <td
-                      className="text-slate-700"
-                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                    >
-                      {formatDeliveredAt(row.statusLogs)}
                     </td>
                   </tr>
                   );
