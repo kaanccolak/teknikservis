@@ -1,4 +1,5 @@
 "use client";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 type Message = {
@@ -14,6 +15,10 @@ const SUGGESTIONS = [
 ];
 
 export default function AiAssistant() {
+  const pathname = usePathname();
+  const sadeceDashboard = pathname === "/";
+  const gosterimClass = sadeceDashboard ? "flex" : "hidden lg:flex";
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -75,6 +80,15 @@ export default function AiAssistant() {
   return (
     <>
       {/* Chat balonu butonu */}
+      <div
+        className={gosterimClass}
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          zIndex: 9998,
+        }}
+      >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -133,10 +147,12 @@ export default function AiAssistant() {
           </>
         )}
       </button>
+      </div>
 
       {/* Chat penceresi */}
       {open ? (
         <div
+          className={gosterimClass}
           style={{
             position: "fixed",
             bottom: "88px",
