@@ -57,6 +57,13 @@ export default function DashboardLayout({
         if (fontWeight) {
           document.documentElement.style.setProperty("--app-font-weight", fontWeight);
         }
+        const tableFontSize = data.tablo_font_boyutu;
+        if (tableFontSize) {
+          document.documentElement.style.setProperty(
+            "--app-table-font-size",
+            `${tableFontSize}px`,
+          );
+        }
       })
       .catch(() => {});
   }, []);

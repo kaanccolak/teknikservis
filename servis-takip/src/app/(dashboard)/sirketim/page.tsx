@@ -2081,6 +2081,8 @@ function SirketimPageInner() {
   const [fontBoyutu, setFontBoyutu] = useState("16");
   const [fontAgirlik, setFontAgirlik] = useState("400");
   const [savingFont, setSavingFont] = useState(false);
+  const [tabloFontBoyutu, setTabloFontBoyutu] = useState("12");
+  const [savingTabloFont, setSavingTabloFont] = useState(false);
   const [etiketGenislik, setEtiketGenislik] = useState("80");
   const [savingEtiket, setSavingEtiket] = useState(false);
   const [etiketFontBoyutu, setEtiketFontBoyutu] = useState("13");
@@ -2398,6 +2400,9 @@ function SirketimPageInner() {
         setFontAgirlik(
           (settingsData as Record<string, string>).font_agirlik ?? "400",
         );
+        setTabloFontBoyutu(
+          (settingsData as Record<string, string>).tablo_font_boyutu ?? "12",
+        );
       } catch {
         // varsayılan etiketGenislik kalır
       }
@@ -2483,6 +2488,7 @@ function SirketimPageInner() {
         body: JSON.stringify({
           font_boyutu: fontBoyutu,
           font_agirlik: fontAgirlik,
+          tablo_font_boyutu: tabloFontBoyutu,
         }),
       });
       if (!res.ok) {
@@ -2496,6 +2502,10 @@ function SirketimPageInner() {
       document.documentElement.style.setProperty(
         "--app-font-weight",
         fontAgirlik,
+      );
+      document.documentElement.style.setProperty(
+        "--app-table-font-size",
+        `${tabloFontBoyutu}px`,
       );
       toast.success("Font ayarları kaydedildi!");
     } catch {
@@ -4055,6 +4065,63 @@ function SirketimPageInner() {
                     }}
                   >
                     {fontBoyutu}px
+                  </span>
+                </div>
+
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                    marginTop: "16px",
+                  }}
+                >
+                  Tablo / Liste Yazı Boyutu (px)
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Cihaz listesi, servis listesi gibi yoğun veri ekranları için.
+                  Varsayılan: 12px.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <input
+                    type="range"
+                    min={10}
+                    max={18}
+                    step={1}
+                    value={tabloFontBoyutu}
+                    onChange={(e) => {
+                      setTabloFontBoyutu(e.target.value);
+                      document.documentElement.style.setProperty(
+                        "--app-table-font-size",
+                        `${e.target.value}px`,
+                      );
+                    }}
+                    style={{ flex: 1, accentColor: "#4f46e5" }}
+                  />
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#111827",
+                      minWidth: "40px",
+                    }}
+                  >
+                    {tabloFontBoyutu}px
                   </span>
                 </div>
 
