@@ -163,7 +163,9 @@ export async function GET(request: Request) {
           deviceType: true,
           brand: true,
           deviceModel: true,
-          bayi: true,
+          bayi: {
+            select: { firmaAdi: true },
+          },
           personnel: {
             select: { id: true, name: true, phone: true },
           },
