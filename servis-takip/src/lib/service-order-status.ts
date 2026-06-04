@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 
 /** Veritabanında `ServiceOrder.status` — yalnızca bu değerler seçilebilir / API doğrular */
 export const SERVICE_ORDER_STATUS_OPTIONS = [
-  { value: "in_service", label: "Teknik Serviste" },
-  { value: "returned_device", label: "Teknik Serviste (Tekrar Geldi)" },
+  { value: "in_service", label: "Yeni Kayıt" },
+  { value: "returned_device", label: "Yeni Kayıt (Tekrar Geldi)" },
   { value: "waiting_approval", label: "Onay Bekliyor" },
   { value: "approval_given", label: "Onay Verildi" },
   { value: "waiting_part", label: "Parça Bekliyor" },

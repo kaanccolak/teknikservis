@@ -3,13 +3,13 @@ export const STATUS_CONFIG: Record<
   { label: string; color: string; bg: string; border: string }
 > = {
   in_service: {
-    label: "Teknik Serviste",
+    label: "Yeni Kayıt",
     color: "#3b82f6",
     bg: "#eff6ff",
     border: "#bfdbfe",
   },
   returned_device: {
-    label: "Teknik Serviste (Tekrar Geldi)",
+    label: "Yeni Kayıt (Tekrar Geldi)",
     color: "#8b5cf6",
     bg: "#f5f3ff",
     border: "#ddd6fe",
