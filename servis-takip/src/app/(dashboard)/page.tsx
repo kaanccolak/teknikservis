@@ -227,12 +227,12 @@ const statCardsRow1: StatCardDef[] = [
       "Teslim edilmemiş ve tamamlanmamış tüm aktif servis kayıtlarının sayısı.",
   },
   {
-    title: "Teknik Serviste",
+    title: "Yeni Kayıtlar",
     valueKey: "inService",
     href: "/cihaz-sorgula?status=in_service&hideCompleted=true",
     accentColor: "#6366f1",
     icon: Wrench,
-    tooltip: "Durumu 'Teknik Serviste' olan kayıtların sayısı.",
+    tooltip: "Durumu 'Yeni Kayıt' olan kayıtların sayısı.",
   },
   {
     title: "Onay Bekliyor",
