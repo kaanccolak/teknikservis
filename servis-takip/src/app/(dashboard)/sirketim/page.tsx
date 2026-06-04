@@ -3512,7 +3512,7 @@ function SirketimPageInner() {
                 flexShrink: 0,
               }}
             >
-              Şirket Bilgileri
+              Şirket Ayarları
             </button>
             <button
               type="button"
@@ -3707,167 +3707,6 @@ function SirketimPageInner() {
 
           {activeTab === "sirket" ? (
             <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-              {/* Font Ayarları */}
-              <div
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "10px",
-                  padding: "20px",
-                  marginBottom: "24px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#374151",
-                    display: "block",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Yazı Boyutu (px)
-                </label>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "#6b7280",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Varsayılan: 16px. Önerilen aralık: 14-22px.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    marginBottom: "16px",
-                  }}
-                >
-                  <input
-                    type="range"
-                    min={12}
-                    max={24}
-                    step={1}
-                    value={fontBoyutu}
-                    onChange={(e) => {
-                      setFontBoyutu(e.target.value);
-                      document.documentElement.style.setProperty(
-                        "--app-font-size",
-                        `${e.target.value}px`,
-                      );
-                    }}
-                    style={{ flex: 1, accentColor: "#4f46e5" }}
-                  />
-                  <span
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: "#111827",
-                      minWidth: "40px",
-                    }}
-                  >
-                    {fontBoyutu}px
-                  </span>
-                </div>
-
-                <label
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "#374151",
-                    display: "block",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Yazı Kalınlığı
-                </label>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "#6b7280",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Varsayılan: Normal (400).
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "8px",
-                    marginBottom: "16px",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {[
-                    { label: "İnce", value: "300" },
-                    { label: "Normal", value: "400" },
-                    { label: "Orta", value: "500" },
-                    { label: "Kalın", value: "600" },
-                    { label: "Çok Kalın", value: "700" },
-                  ].map(({ label, value }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => {
-                        setFontAgirlik(value);
-                        document.documentElement.style.setProperty(
-                          "--app-font-weight",
-                          value,
-                        );
-                      }}
-                      style={{
-                        padding: "6px 14px",
-                        borderRadius: "8px",
-                        border:
-                          fontAgirlik === value
-                            ? "2px solid #4f46e5"
-                            : "1px solid #d1d5db",
-                        background:
-                          fontAgirlik === value ? "#eef2ff" : "white",
-                        color: fontAgirlik === value ? "#4f46e5" : "#374151",
-                        fontSize: "13px",
-                        fontWeight: value,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    background: "#f9fafb",
-                    borderRadius: "8px",
-                    marginBottom: "16px",
-                    fontSize: `${fontBoyutu}px`,
-                    fontWeight: fontAgirlik,
-                  }}
-                >
-                  Önizleme: Bu yazı seçtiğiniz font ayarlarıyla görünür.
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => void handleSaveFontAyarlari()}
-                  disabled={savingFont}
-                  style={{
-                    background: "#111827",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "8px 18px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  {savingFont ? "Kaydediliyor..." : "Kaydet"}
-                </button>
-              </div>
-
               {!editing ? (
                 <>
                   <div
@@ -4154,6 +3993,167 @@ function SirketimPageInner() {
                   </div>
                 </>
               )}
+
+              {/* Font Ayarları */}
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "10px",
+                  padding: "20px",
+                  marginTop: "24px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Yazı Boyutu (px)
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Varsayılan: 16px. Önerilen aralık: 14-22px.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <input
+                    type="range"
+                    min={12}
+                    max={24}
+                    step={1}
+                    value={fontBoyutu}
+                    onChange={(e) => {
+                      setFontBoyutu(e.target.value);
+                      document.documentElement.style.setProperty(
+                        "--app-font-size",
+                        `${e.target.value}px`,
+                      );
+                    }}
+                    style={{ flex: 1, accentColor: "#4f46e5" }}
+                  />
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#111827",
+                      minWidth: "40px",
+                    }}
+                  >
+                    {fontBoyutu}px
+                  </span>
+                </div>
+
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Yazı Kalınlığı
+                </label>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#6b7280",
+                    marginBottom: "12px",
+                  }}
+                >
+                  Varsayılan: Normal (400).
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    marginBottom: "16px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {[
+                    { label: "İnce", value: "300" },
+                    { label: "Normal", value: "400" },
+                    { label: "Orta", value: "500" },
+                    { label: "Kalın", value: "600" },
+                    { label: "Çok Kalın", value: "700" },
+                  ].map(({ label, value }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => {
+                        setFontAgirlik(value);
+                        document.documentElement.style.setProperty(
+                          "--app-font-weight",
+                          value,
+                        );
+                      }}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: "8px",
+                        border:
+                          fontAgirlik === value
+                            ? "2px solid #4f46e5"
+                            : "1px solid #d1d5db",
+                        background:
+                          fontAgirlik === value ? "#eef2ff" : "white",
+                        color: fontAgirlik === value ? "#4f46e5" : "#374151",
+                        fontSize: "13px",
+                        fontWeight: value,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    padding: "12px 16px",
+                    background: "#f9fafb",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                    fontSize: `${fontBoyutu}px`,
+                    fontWeight: fontAgirlik,
+                  }}
+                >
+                  Önizleme: Bu yazı seçtiğiniz font ayarlarıyla görünür.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void handleSaveFontAyarlari()}
+                  disabled={savingFont}
+                  style={{
+                    background: "#111827",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "8px 18px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {savingFont ? "Kaydediliyor..." : "Kaydet"}
+                </button>
+              </div>
             </div>
           ) : activeTab === "durumlar" ? (
             <div style={{ maxWidth: "700px", margin: "0 auto" }}>
