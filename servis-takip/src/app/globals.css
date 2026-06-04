@@ -32,6 +32,12 @@ html .text-3xl { font-size: calc(var(--app-font-size, 16px) * 1.875) !important;
 /* Tablo/liste yazı boyutu */
 html .table-font { font-size: var(--app-table-font-size, 12px) !important; }
 
+/* Tablo satırı hover efekti */
+tbody tr:hover {
+  background-color: #f5f3ff !important;
+  cursor: pointer;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -719,12 +719,6 @@ function CihazSorgulaInner() {
                     className="font-medium text-slate-700"
                     style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                   >
-                    Cihaz Türü
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
                     Marka
                   </th>
                   <th
@@ -833,12 +827,6 @@ function CihazSorgulaInner() {
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
                       {formatArrivedAt(row.arrivedAt)}
-                    </td>
-                    <td
-                      className="text-slate-700"
-                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                    >
-                      {row.deviceType?.name ?? row.deviceTypeName ?? "—"}
                     </td>
                     <td
                       className="text-slate-700"
