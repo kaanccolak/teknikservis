@@ -3478,25 +3478,6 @@ export default function ServisDetayPage() {
                 >
                   {waSending ? "Gönderiliyor..." : "WhatsApp ile Bildir"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handlePaymentLink()}
-                  style={{
-                    padding: "8px 14px",
-                    background: "#2563EB",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "12px",
-                    fontWeight: "500",
-                  }}
-                >
-                  💳 Ödeme Linki Gönder
-                </button>
               </div>
             </CardContent>
           </Card>
