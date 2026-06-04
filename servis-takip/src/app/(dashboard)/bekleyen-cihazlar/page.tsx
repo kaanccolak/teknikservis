@@ -609,7 +609,7 @@ function BekleyenCihazlarInner() {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontSize: "12px",
+                fontSize: "var(--app-table-font-size, 12px)",
                 textAlign: "left",
               }}
             >
@@ -796,7 +796,8 @@ function BekleyenCihazlarInner() {
                               display: "inline-block",
                               padding: "3px 10px",
                               borderRadius: "20px",
-                              fontSize: "11px",
+                              fontSize:
+                                "calc(var(--app-table-font-size, 12px) * 0.92)",
                               fontWeight: "500",
                               background: statusBadge.bg,
                               color: statusBadge.color,
@@ -809,7 +810,8 @@ function BekleyenCihazlarInner() {
                           {row.reminderSentAt ? (
                             <span
                               style={{
-                                fontSize: "11px",
+                                fontSize:
+                                  "calc(var(--app-table-font-size, 12px) * 0.92)",
                                 fontWeight: "500",
                                 background: "#f0fdf4",
                                 color: "#16a34a",
