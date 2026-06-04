@@ -2442,6 +2442,39 @@ export default function ServisDetayPage() {
                     >
                       Teslim Bilgisi
                     </div>
+                    {(() => {
+                      const deliveredLog = order.statusLogs?.find((log) =>
+                        [
+                          "delivered",
+                          "delivered_repair_failed",
+                          "delivered_no_problem",
+                          "delivered_customer_return",
+                        ].includes(log.newStatus),
+                      );
+                      if (!deliveredLog) return null;
+                      return (
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#16a34a",
+                            fontWeight: 600,
+                            marginBottom: "6px",
+                          }}
+                        >
+                          📅{" "}
+                          {new Date(deliveredLog.createdAt).toLocaleString(
+                            "tr-TR",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div style={{ fontSize: "13px", color: "#374151" }}>
                       {order.deliveryType === "self"
                         ? "👤 Müşterinin kendisine teslim edildi"
