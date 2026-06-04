@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Font ayarları — kullanıcı tarafından özelleştirilebilir */
+html {
+  font-size: var(--app-font-size, 16px);
+}
+
+html * {
+  font-weight: var(--app-font-weight, initial) !important;
+}
+
+/* Tailwind text class override'ları */
+html .text-xs { font-size: calc(var(--app-font-size, 16px) * 0.75) !important; }
+html .text-sm { font-size: calc(var(--app-font-size, 16px) * 0.875) !important; }
+html .text-base { font-size: var(--app-font-size, 16px) !important; }
+html .text-lg { font-size: calc(var(--app-font-size, 16px) * 1.125) !important; }
+html .text-xl { font-size: calc(var(--app-font-size, 16px) * 1.25) !important; }
+html .text-2xl { font-size: calc(var(--app-font-size, 16px) * 1.5) !important; }
+html .text-3xl { font-size: calc(var(--app-font-size, 16px) * 1.875) !important; }
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

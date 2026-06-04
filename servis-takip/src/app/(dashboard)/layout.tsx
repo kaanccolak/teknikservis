@@ -46,6 +46,22 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data: Record<string, string>) => {
+        const fontSize = data.font_boyutu;
+        const fontWeight = data.font_agirlik;
+        if (fontSize) {
+          document.documentElement.style.setProperty("--app-font-size", `${fontSize}px`);
+        }
+        if (fontWeight) {
+          document.documentElement.style.setProperty("--app-font-weight", fontWeight);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     fetch("/api/shop")
       .then((r) => r.json())
       .then((shopData) => {
