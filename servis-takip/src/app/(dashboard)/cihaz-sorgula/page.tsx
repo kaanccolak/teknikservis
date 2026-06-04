@@ -53,6 +53,11 @@ type ServiceOrderListResponse = {
 
 type IdName = { id: string; name: string };
 
+function kisalt(text: string | null | undefined, maxLen = 15): string {
+  if (!text) return "—";
+  return text.length > maxLen ? text.slice(0, maxLen) + "…" : text;
+}
+
 function formatArrivedAt(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
@@ -847,13 +852,13 @@ function CihazSorgulaInner() {
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
-                      {row.brand?.name ?? row.brandName ?? "—"}
+                      {kisalt(row.brand?.name ?? row.brandName)}
                     </td>
                     <td
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
-                      {row.deviceModel?.name ?? row.modelName ?? "—"}
+                      {kisalt(row.deviceModel?.name ?? row.modelName)}
                     </td>
                     <td
                       className="text-slate-700"
