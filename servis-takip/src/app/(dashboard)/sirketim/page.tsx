@@ -4136,6 +4136,33 @@ function SirketimPageInner() {
                   Önizleme: Bu yazı seçtiğiniz font ayarlarıyla görünür.
                 </div>
 
+                <div
+                  style={{
+                    background: "#fffbeb",
+                    border: "1px solid #fcd34d",
+                    borderRadius: "8px",
+                    padding: "10px 14px",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "16px", flexShrink: 0 }}>⚠️</span>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#92400e",
+                      margin: 0,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Yazı boyutu ve kalınlığını fazla artırmak uygulama tasarımını
+                    bozabilir. Sorun yaşarsanız varsayılan değerlere (16px,
+                    Normal) geri dönün.
+                  </p>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => void handleSaveFontAyarlari()}
