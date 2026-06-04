@@ -734,18 +734,6 @@ function CihazSorgulaInner() {
                     className="font-medium text-slate-700"
                     style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                   >
-                    Geliş Tarihi
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
-                    Teslim Tarihi
-                  </th>
-                  <th
-                    className="font-medium text-slate-700"
-                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                  >
                     Marka
                   </th>
                   <th
@@ -765,6 +753,18 @@ function CihazSorgulaInner() {
                     }}
                   >
                     Seri No
+                  </th>
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
+                    Geliş Tarihi
+                  </th>
+                  <th
+                    className="font-medium text-slate-700"
+                    style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                  >
+                    Teslim Tarihi
                   </th>
                   <th
                     className="font-medium text-slate-700"
@@ -847,18 +847,6 @@ function CihazSorgulaInner() {
                       className="text-slate-700"
                       style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                     >
-                      {formatArrivedAt(row.arrivedAt)}
-                    </td>
-                    <td
-                      className="text-slate-700"
-                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                    >
-                      {formatDeliveredAt(row.status, row.statusLogs)}
-                    </td>
-                    <td
-                      className="text-slate-700"
-                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
-                    >
                       {row.brand?.name ?? row.brandName ?? "—"}
                     </td>
                     <td
@@ -878,6 +866,18 @@ function CihazSorgulaInner() {
                       }}
                     >
                       {row.noSerialNo ? "—" : (row.serialNo ?? "—")}
+                    </td>
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
+                      {formatArrivedAt(row.arrivedAt)}
+                    </td>
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
+                      {formatDeliveredAt(row.status, row.statusLogs)}
                     </td>
                     <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
                       <span
