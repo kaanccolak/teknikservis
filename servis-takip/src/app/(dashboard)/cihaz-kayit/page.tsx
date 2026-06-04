@@ -817,41 +817,43 @@ function CihazKayitServiceInner({
       return;
     }
 
-    // Telefon varsa mevcut müşteri kontrolü yap
+    // Telefon varsa mevcut müşteri kontrolü yap (bayi kaydında atla)
     if (data.phone && data.phone.trim()) {
       try {
-        const res = await fetch(
-          `/api/customers/by-phone?phone=${encodeURIComponent(data.phone)}`,
-        );
-        const json = (await res.json()) as {
-          customer: { id: string; name: string } | null;
-        };
-        if (
-          json.customer &&
-          json.customer.name.trim().toLowerCase() !==
-            data.customerName.trim().toLowerCase()
-        ) {
-          // Farklı isim — modal aç
-          await new Promise<void>((resolve) => {
-            setMevcutMusteriModal({
-              mevcutAd: json.customer!.name,
-              yeniAd: data.customerName,
-              phone: data.phone,
-              onConfirm: (forceNew) => {
-                setMevcutMusteriModal(null);
-                void submitOrder(data, forceNew);
-                resolve();
-              },
+        if (!selectedBayiId) {
+          const res = await fetch(
+            `/api/customers/by-phone?phone=${encodeURIComponent(data.phone)}`,
+          );
+          const json = (await res.json()) as {
+            customer: { id: string; name: string } | null;
+          };
+          if (
+            json.customer &&
+            json.customer.name.trim().toLowerCase() !==
+              data.customerName.trim().toLowerCase()
+          ) {
+            // Farklı isim — modal aç
+            await new Promise<void>((resolve) => {
+              setMevcutMusteriModal({
+                mevcutAd: json.customer!.name,
+                yeniAd: data.customerName,
+                phone: data.phone,
+                onConfirm: (forceNew) => {
+                  setMevcutMusteriModal(null);
+                  void submitOrder(data, forceNew);
+                  resolve();
+                },
+              });
             });
-          });
-          return;
+            return;
+          }
         }
       } catch {
         // hata olursa normal devam et
       }
     }
 
-    void submitOrder(data, false);
+    void submitOrder(data, !!selectedBayiId);
   }
 
   async function createInlineBayi() {

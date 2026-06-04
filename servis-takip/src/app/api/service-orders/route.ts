@@ -484,7 +484,7 @@ export async function POST(request: Request) {
       throw lastTxError ?? new Error("ORDER_CREATE_FAILED");
     }
 
-    if (order.customerPhone.trim().length > 0) {
+    if (order.customerPhone.trim().length > 0 && !body.bayiId) {
       const phoneDigitsCheck = trPhoneDigitsOnly(order.customerPhone);
       const existingCount = await prisma.serviceOrder.count({
         where: {

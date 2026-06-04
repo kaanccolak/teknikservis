@@ -2422,6 +2422,44 @@ export default function ServisDetayPage() {
                 <DetailRow label="Geliş Tarihi ve Saati">
                   {formatArrivedAt(order.arrivedAt)}
                 </DetailRow>
+                {isDeliveredServiceOrderStatus(order.status) && order.deliveryType ? (
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      padding: "12px",
+                      background: "#f0fdf4",
+                      borderRadius: "8px",
+                      border: "1px solid #86efac",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        color: "#16a34a",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      Teslim Bilgisi
+                    </div>
+                    <div style={{ fontSize: "13px", color: "#374151" }}>
+                      {order.deliveryType === "self"
+                        ? "👤 Müşterinin kendisine teslim edildi"
+                        : `👥 ${order.deliveryPersonName ?? ""} tarafından teslim alındı`}
+                    </div>
+                    {order.deliveryNote ? (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          marginTop: "4px",
+                        }}
+                      >
+                        Not: {order.deliveryNote}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 {order.personnel?.name ? (
                   <DetailRow label="Kaydı yapan">{order.personnel.name}</DetailRow>
                 ) : null}
@@ -3585,44 +3623,6 @@ export default function ServisDetayPage() {
                   </ul>
                 )}
               </div>
-              {isDeliveredServiceOrderStatus(order.status) && order.deliveryType ? (
-                <div
-                  style={{
-                    marginTop: "12px",
-                    padding: "12px",
-                    background: "#f0fdf4",
-                    borderRadius: "8px",
-                    border: "1px solid #86efac",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      color: "#16a34a",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    Teslim Bilgisi
-                  </div>
-                  <div style={{ fontSize: "13px", color: "#374151" }}>
-                    {order.deliveryType === "self"
-                      ? "👤 Müşterinin kendisine teslim edildi"
-                      : `👥 ${order.deliveryPersonName ?? ""} tarafından teslim alındı`}
-                  </div>
-                  {order.deliveryNote ? (
-                    <div
-                      style={{
-                        fontSize: "12px",
-                        color: "#6b7280",
-                        marginTop: "4px",
-                      }}
-                    >
-                      Not: {order.deliveryNote}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
             </CardContent>
           </Card>
         </div>
