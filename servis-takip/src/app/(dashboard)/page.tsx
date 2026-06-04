@@ -2,6 +2,7 @@
 
 import {
   Check,
+  CheckCircle,
   ClipboardList,
   Clock,
   MessageSquare,
@@ -207,6 +208,7 @@ type StatCardDef = {
     | "inService"
     | "waitingPart"
     | "waitingApproval"
+    | "approvalGiven"
     | "completedToday"
     | "externalService"
   >;
@@ -218,13 +220,13 @@ type StatCardDef = {
 
 const statCardsRow1: StatCardDef[] = [
   {
-    title: "Toplam Aktif Cihaz",
+    title: "Toplam Cihaz Sayısı",
     valueKey: "totalActive",
     href: "/cihaz-sorgula?hideCompleted=true",
     accentColor: "#3b82f6",
     icon: ClipboardList,
     tooltip:
-      "Teslim edilmemiş ve tamamlanmamış tüm aktif servis kayıtlarının sayısı.",
+      "Teslim edilmemiş ve tamamlanmamış tüm servis kayıtlarının sayısı.",
   },
   {
     title: "Yeni Kayıtlar",
@@ -249,6 +251,14 @@ const statCardsRow1: StatCardDef[] = [
     accentColor: "#f97316",
     icon: Package,
     tooltip: "Yedek parça beklenen kayıtların sayısı.",
+  },
+  {
+    title: "Onay Gelen",
+    valueKey: "approvalGiven",
+    href: "/cihaz-sorgula?status=approval_given&hideCompleted=true",
+    accentColor: "#10b981",
+    icon: CheckCircle,
+    tooltip: "Müşteriden onay alınan kayıtların sayısı.",
   },
 ];
 
@@ -1073,7 +1083,7 @@ export default function DashboardPage() {
         }
         .dash-grid-r1 {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(5, 1fr);
           gap: 12px;
           margin-bottom: 12px;
         }
