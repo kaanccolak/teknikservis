@@ -2082,7 +2082,6 @@ function SirketimPageInner() {
   const [fontAgirlik, setFontAgirlik] = useState("400");
   const [savingFont, setSavingFont] = useState(false);
   const [tabloFontBoyutu, setTabloFontBoyutu] = useState("12");
-  const [savingTabloFont, setSavingTabloFont] = useState(false);
   const [etiketGenislik, setEtiketGenislik] = useState("80");
   const [savingEtiket, setSavingEtiket] = useState(false);
   const [etiketFontBoyutu, setEtiketFontBoyutu] = useState("13");
