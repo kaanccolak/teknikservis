@@ -170,6 +170,21 @@ export async function GET(request: Request) {
           assignedPersonnel: {
             select: { id: true, name: true },
           },
+          statusLogs: {
+            where: {
+              newStatus: {
+                in: [
+                  "delivered",
+                  "delivered_repair_failed",
+                  "delivered_no_problem",
+                  "delivered_customer_return",
+                ],
+              },
+            },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { createdAt: true, newStatus: true },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),

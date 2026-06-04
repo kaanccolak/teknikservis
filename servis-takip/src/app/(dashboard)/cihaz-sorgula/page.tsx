@@ -44,6 +44,7 @@ type ServiceOrderListRow = {
   deviceType: Named | null;
   brand: Named | null;
   deviceModel: Named | null;
+  statusLogs?: { createdAt: string; newStatus: string }[];
 };
 type ServiceOrderListResponse = {
   orders: ServiceOrderListRow[];
@@ -55,6 +56,18 @@ type IdName = { id: string; name: string };
 function formatArrivedAt(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatDeliveredAt(
+  statusLogs?: { createdAt: string; newStatus: string }[],
+): string {
+  if (!statusLogs || statusLogs.length === 0) return "—";
+  const log = statusLogs[0];
+  if (!log) return "—";
+  const d = new Date(log.createdAt);
+  if (Number.isNaN(d.getTime())) return "—";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
@@ -749,7 +762,7 @@ function CihazSorgulaInner() {
                     className="font-medium text-slate-700"
                     style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
                   >
-                    İşlem
+                    Teslim Tarihi
                   </th>
                 </tr>
               </thead>
@@ -869,19 +882,11 @@ function CihazSorgulaInner() {
                         {statusBadge.label}
                       </span>
                     </td>
-                    <td style={{ padding: "8px 6px", whiteSpace: "nowrap" }}>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="pointer-events-auto"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          goDetail(row.id);
-                        }}
-                      >
-                        Detay
-                      </Button>
+                    <td
+                      className="text-slate-700"
+                      style={{ padding: "8px 6px", whiteSpace: "nowrap" }}
+                    >
+                      {formatDeliveredAt(row.statusLogs)}
                     </td>
                   </tr>
                   );
