@@ -33,6 +33,7 @@ type ServiceOrderListRow = {
   id: string;
   orderNumber: string | null;
   bayiId: string | null;
+  bayi?: { firmaAdi: string } | null;
   arrivedAt: string;
   serialNo: string | null;
   noSerialNo: boolean;
@@ -816,17 +817,24 @@ function CihazSorgulaInner() {
                       {formatServiceOrderNo(row)}
                       {row.bayiId && (
                         <span
+                          title={row.bayi?.firmaAdi ?? "Bayi"}
                           style={{
                             background: "#EDE9FE",
                             color: "#7C3AED",
-                            fontSize: "calc(var(--app-table-font-size, 12px) * 0.83)",
+                            fontSize:
+                              "calc(var(--app-table-font-size, 12px) * 0.83)",
                             fontWeight: "600",
                             padding: "2px 6px",
                             borderRadius: "4px",
                             marginLeft: "6px",
+                            cursor: "default",
                           }}
                         >
-                          BAYI
+                          {row.bayi?.firmaAdi
+                            ? row.bayi.firmaAdi.length > 10
+                              ? row.bayi.firmaAdi.slice(0, 10) + "…"
+                              : row.bayi.firmaAdi
+                            : "BAYİ"}
                         </span>
                       )}
                     </td>
