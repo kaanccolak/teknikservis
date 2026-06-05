@@ -337,6 +337,7 @@ export default function ServisDetayPage() {
   const [showWaConfirm, setShowWaConfirm] = useState(false);
   const [waConfirmStatus, setWaConfirmStatus] = useState("");
   const [waConfirmSending, setWaConfirmSending] = useState(false);
+  const [waIncludeMusteriAdi, setWaIncludeMusteriAdi] = useState(false);
   const [showRepairDetailsModal, setShowRepairDetailsModal] = useState(false);
   const [repairDetailsInput, setRepairDetailsInput] = useState("");
   const [editingRepairDetails, setEditingRepairDetails] = useState(false);
@@ -1194,8 +1195,14 @@ export default function ServisDetayPage() {
     setWaConfirmSending(true);
     try {
       const params = metaTemplate.getParams(order);
-      const finalParams = order.bayi?.firmaAdi
-        ? [order.bayi.firmaAdi, ...params.slice(1)]
+      const bayiIsim = order.bayi?.firmaAdi
+        ? waIncludeMusteriAdi && order.customer?.name
+          ? `${order.bayi.firmaAdi} (Müşteri: ${order.customer.name})`
+          : order.bayi.firmaAdi
+        : null;
+
+      const finalParams = bayiIsim
+        ? [bayiIsim, ...params.slice(1)]
         : params;
       const res = await fetch("/api/whatsapp/send", {
         method: "POST",
@@ -1977,7 +1984,10 @@ export default function ServisDetayPage() {
         open={showWaConfirm}
         onOpenChange={(open) => {
           setShowWaConfirm(open);
-          if (!open) setWaConfirmStatus("");
+          if (!open) {
+            setWaConfirmStatus("");
+            setWaIncludeMusteriAdi(false);
+          }
         }}
       >
         <DialogContent className="max-w-[400px]">
@@ -1995,6 +2005,27 @@ export default function ServisDetayPage() {
               {order.customer?.name} —{" "}
               {getStatusBadge(waConfirmStatus).label}
             </div>
+          ) : null}
+          {order?.bayi && order.customer?.name ? (
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginTop: "8px",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: "#374151",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={waIncludeMusteriAdi}
+                onChange={(e) => setWaIncludeMusteriAdi(e.target.checked)}
+                style={{ width: "16px", height: "16px" }}
+              />
+              Mesaja müşteri adını ekle ({order.customer.name})
+            </label>
           ) : null}
           <DialogFooter className="mt-4 gap-2 sm:gap-2">
             <button
