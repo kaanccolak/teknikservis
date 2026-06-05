@@ -117,6 +117,9 @@ export async function PATCH(
   }
 
   const iskonto = parseIskonto(json.iskonto);
+  const address = typeof json.address === "string" ? json.address.trim() || null : null;
+  const cargoInfo = typeof json.cargoInfo === "string" ? json.cargoInfo.trim() || null : null;
+  const cargoCode = typeof json.cargoCode === "string" ? json.cargoCode.trim() || null : null;
 
   let shop;
   try {
@@ -138,6 +141,9 @@ export async function PATCH(
             : null,
         tcVergiNo,
         iskonto,
+        address,
+        cargoInfo,
+        cargoCode,
       },
     });
     if (row.count === 0) {

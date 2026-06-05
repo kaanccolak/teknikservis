@@ -362,6 +362,9 @@ model Bayi {
   vergiDairesi   String?
   tcVergiNo      String
   iskonto        Float?   /// Bayi iskonto yüzdesi (0-100 arası, örn: 10 = %10)
+  address        String?
+  cargoInfo      String?
+  cargoCode      String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   serviceOrders  ServiceOrder[]

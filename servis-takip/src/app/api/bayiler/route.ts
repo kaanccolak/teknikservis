@@ -140,6 +140,9 @@ export async function POST(request: Request) {
   }
 
   const iskonto = parseIskonto(json.iskonto);
+  const address = typeof json.address === "string" ? json.address.trim() || null : null;
+  const cargoInfo = typeof json.cargoInfo === "string" ? json.cargoInfo.trim() || null : null;
+  const cargoCode = typeof json.cargoCode === "string" ? json.cargoCode.trim() || null : null;
 
   let shop;
   try {
@@ -164,6 +167,9 @@ export async function POST(request: Request) {
             : null,
         tcVergiNo,
         iskonto,
+        address,
+        cargoInfo,
+        cargoCode,
       },
     });
     return NextResponse.json(row);

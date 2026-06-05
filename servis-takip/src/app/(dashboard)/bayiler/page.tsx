@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TrPhoneInput } from "@/components/tr-phone-input";
 import { formatPhone } from "@/lib/formatPhone";
 import { getStatusBadge } from "@/lib/statusConfig";
@@ -60,6 +61,9 @@ interface Bayi {
   vergiDairesi?: string | null;
   tcVergiNo: string;
   iskonto?: number | null;
+  address?: string | null;
+  cargoInfo?: string | null;
+  cargoCode?: string | null;
   cihazSayisi: number;
   toplamCiro: number;
   createdAt: string;
@@ -96,6 +100,9 @@ const emptyForm: BayiForm = {
   vergiDairesi: "",
   tcVergiNo: "",
   iskonto: null,
+  address: "",
+  cargoInfo: "",
+  cargoCode: "",
 };
 
 function formatTry(value: number) {
@@ -140,6 +147,9 @@ export default function BayilerPage() {
   const vergiDairesiRef = useRef<HTMLInputElement>(null);
   const tcVergiRef = useRef<HTMLInputElement>(null);
   const iskontoRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
+  const cargoInfoRef = useRef<HTMLInputElement>(null);
+  const cargoCodeRef = useRef<HTMLInputElement>(null);
   const saveRef = useRef<HTMLButtonElement>(null);
 
   const total = useMemo(() => rows.length, [rows.length]);
@@ -204,6 +214,9 @@ export default function BayilerPage() {
       vergiDairesi: row.vergiDairesi ?? "",
       tcVergiNo: row.tcVergiNo ?? "",
       iskonto: row.iskonto ?? null,
+      address: row.address ?? "",
+      cargoInfo: row.cargoInfo ?? "",
+      cargoCode: row.cargoCode ?? "",
     });
     setDialogOpen(true);
   }
@@ -456,6 +469,15 @@ export default function BayilerPage() {
                   <td className="px-3 py-2.5">{formatTry(row.toplamCiro ?? 0)}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex gap-2">
+                      <a
+                        href={`/bayi-kargo-fisi/${row.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                        style={{ borderColor: "#f59e0b", color: "#92400e" }}
+                      >
+                        Kargo Fişi
+                      </a>
                       <button
                         type="button"
                         onClick={() => void handleDetail(row.id)}
@@ -587,7 +609,7 @@ export default function BayilerPage() {
                         val === "" ? null : isNaN(n) ? null : Math.min(100, n),
                     });
                   }}
-                  onKeyDown={(e) => handleEnterKey(e, saveRef)}
+                  onKeyDown={(e) => handleEnterKey(e, addressRef)}
                   placeholder="0"
                   style={{
                     width: "80px",
@@ -596,6 +618,35 @@ export default function BayilerPage() {
                     borderRadius: "6px",
                     fontSize: "14px",
                   }}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Adres</Label>
+              <Textarea
+                ref={addressRef}
+                value={form.address ?? ""}
+                onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+                onKeyDown={(e) => handleEnterKey(e, cargoInfoRef)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Anlaşmalı Kargo Bilgisi</Label>
+                <Input
+                  ref={cargoInfoRef}
+                  value={form.cargoInfo ?? ""}
+                  onChange={(e) => setForm((p) => ({ ...p, cargoInfo: e.target.value }))}
+                  onKeyDown={(e) => handleEnterKey(e, cargoCodeRef)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Kargo Anlaşma Kodu</Label>
+                <Input
+                  ref={cargoCodeRef}
+                  value={form.cargoCode ?? ""}
+                  onChange={(e) => setForm((p) => ({ ...p, cargoCode: e.target.value }))}
+                  onKeyDown={(e) => handleEnterKey(e, saveRef)}
                 />
               </div>
             </div>
@@ -664,6 +715,24 @@ export default function BayilerPage() {
                     <span style={{ color: "#6b7280", minWidth: "140px" }}>TC / Vergi no</span>
                     <span style={{ color: "#111827", fontWeight: 500 }}>{detail.bayi.tcVergiNo}</span>
                   </div>
+                  {detail.bayi.address?.trim() && (
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <span style={{ color: "#6b7280", minWidth: "140px" }}>Adres</span>
+                      <span style={{ color: "#111827", fontWeight: 500 }}>{detail.bayi.address}</span>
+                    </div>
+                  )}
+                  {detail.bayi.cargoInfo?.trim() && (
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <span style={{ color: "#6b7280", minWidth: "140px" }}>Kargo Firması</span>
+                      <span style={{ color: "#111827", fontWeight: 500 }}>{detail.bayi.cargoInfo}</span>
+                    </div>
+                  )}
+                  {detail.bayi.cargoCode?.trim() && (
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <span style={{ color: "#6b7280", minWidth: "140px" }}>Kargo Kodu</span>
+                      <span style={{ color: "#111827", fontWeight: 500 }}>{detail.bayi.cargoCode}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
