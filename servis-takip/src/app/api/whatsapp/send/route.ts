@@ -183,7 +183,7 @@ function buildMessage(templateName: string, parameters: string[]): string {
 
     fiyat_bildirimi: `Sayın ${p[0] ?? ""}. ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınızın ${p[3] ?? ""} masrafı vardır. Onaylamak için lütfen bu mesajı yanıtlayın.`,
 
-    onay_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız için onayınızı bekliyoruz. Onaylıyorsanız lütfen bu mesajı sadece "onaylıyorum" yazarak yanıtlayın.`,
+    onay_bekleniyor: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız için onayınızı bekliyoruz.${p[3] ? ` Fiyat: ${p[3]}.` : ""} Onaylıyorsanız lütfen bu mesajı sadece "onaylıyorum" yazarak yanıtlayın.`,
 
     onay_verildi: `Sayın ${p[0] ?? ""}, ${p[1] ?? ""} seri numaralı ${p[2] ?? "cihazınız"} cihazınız için onay verdiniz. Cihazınızın onarımıyla ilgili sizi bilgilendireceğiz.${p[3] ? ` Fiyat: ${p[3]}` : ""}`,
 

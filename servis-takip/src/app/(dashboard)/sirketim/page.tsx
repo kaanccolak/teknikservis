@@ -121,7 +121,7 @@ const DEFAULT_TEMPLATES: Record<
     label: "Onay Bekliyor",
     defaultMessage:
       'Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız için onayınızı bekliyoruz. Onaylıyorsanız lütfen bu mesajı sadece "onaylıyorum" yazarak yanıtlayın.',
-    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+    variables: ["{isim}", "{seriNo}", "{cihaz}", "{fiyat}"],
   },
   onay_verildi: {
     label: "Onay Verildi",
