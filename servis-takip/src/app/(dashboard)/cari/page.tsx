@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   useCallback,
@@ -81,6 +82,7 @@ const emptyForm: CariForm = {
 };
 
 export default function CariPage() {
+  const router = useRouter();
   const { yetkiVar } = usePersonelYetki();
   const [sayfaYetkisiVar, setSayfaYetkisiVar] = useState(true);
   const [search, setSearch] = useState("");
@@ -402,7 +404,7 @@ export default function CariPage() {
                         variant="outline"
                         size="sm"
                         className="border-amber-200 text-amber-800 hover:bg-amber-50 hover:text-amber-900"
-                        onClick={() => window.open(`/kargo-fisi/${row.id}`, "_blank")}
+                        onClick={() => router.push(`/kargo-fisi/${row.id}`)}
                       >
                         Kargo Fişi
                       </Button>

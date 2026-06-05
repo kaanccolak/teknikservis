@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import {
   useCallback,
@@ -469,15 +470,13 @@ export default function BayilerPage() {
                   <td className="px-3 py-2.5">{formatTry(row.toplamCiro ?? 0)}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex gap-2">
-                      <a
+                      <Link
                         href={`/bayi-kargo-fisi/${row.id}`}
-                        target="_blank"
-                        rel="noreferrer"
                         className={buttonVariants({ variant: "outline", size: "sm" })}
                         style={{ borderColor: "#f59e0b", color: "#92400e" }}
                       >
                         Kargo Fişi
-                      </a>
+                      </Link>
                       <button
                         type="button"
                         onClick={() => void handleDetail(row.id)}
