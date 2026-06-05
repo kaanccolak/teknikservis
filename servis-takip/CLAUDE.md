@@ -1028,3 +1028,67 @@ Admin yetkisi verilince tüm yetki checkboxları gizlenir.
 ### Teknik Borç
 - [ ] Haftalık dükkan raporu e-postası — her Pazartesi cron ile (detaylar CLAUDE.md'de mevcut)
 - [ ] Bayi iskontosu — servis detay sayfasında iskonto alanının gösterimi kontrol edilmeli (grup → iskonto geçişi)
+
+## Bugün Yapılanlar (06 Haziran 2026)
+
+### Yeni Özellikler
+- "Fiyat Verildi" durumu eklendi (price_given) — Aktif grubuna eklendi
+  - Ücret kaydedilince otomatik bu duruma geçiyor
+  - Direkt seçilirse fiyat yoksa fiyat soran modal açılıyor
+  - Fiyat girilince WA bildirimi tetikleniyor (fiyat_bildirimi şablonu)
+- Cari Hareket modülü eklendi (CariHareket Prisma modeli)
+  - Alacak/verecek ekleme, ödendi işaretleme, silme
+  - Cari detay modalında hareketler sekmesi
+  - Toplam alacak/verecek özeti
+  - API: /api/cari/[id]/hareketler (GET/POST/PATCH/DELETE)
+- Bayi kargo fişi eklendi (src/app/bayi-kargo-fisi/[id]/page.tsx)
+  - Bayi modeline address, cargoInfo, cargoCode alanları eklendi (Prisma migration)
+  - Bayi listesinde Kargo Fişi butonu eklendi
+
+### Bug Düzeltmeleri ve İyileştirmeler
+- Kamera ve mikrofon izinleri düzeltildi (Permissions-Policy: camera=(self), microphone=(self))
+- Tablo satırı hover efekti eklendi (#fefce8 açık sarı)
+- Aktif input focus rengi eklendi (#fef08a sarı arka plan)
+- Cihaz sorgula kolon sırası güncellendi: Kayıt No - Müşteri - Telefon - Marka - Model - Seri No - Geliş Tarihi - Teslim Tarihi - Durum
+- Teslim tarihi kolonu eklendi (StatusLog'dan delivered* durumu)
+- Cihaz Türü kolonu kaldırıldı, İşlem kolonu kaldırıldı
+- Marka/model 15 karakter sınırı
+- Tarih formatı: DD.MM.YYYY (saat yok)
+- Tablo font → var(--app-table-font-size, 12px) (cihaz sorgula, ikinci el, bekleyen cihazlar)
+- Font boyutu ve kalınlığı Şirketim'den ayarlanabilir hale getirildi (--app-font-size, --app-font-weight)
+- Şirket Bilgileri sekmesi → "Şirket Ayarları" olarak yeniden adlandırıldı
+- Mobilde Yardım & Destek butonu sadece dashboard'da görünüyor
+- Bayi TC/Vergi No zorunluluğu kaldırıldı (UI + API)
+- Teslim bilgisi → Geliş Tarihi altına taşındı
+- Kargo fişi link → aynı sekmede açılıyor
+- Ödeme Linki Gönder butonu kaldırıldı
+- Sidebar masaüstünde daraltıldı (w-48, gap-1.5)
+- Bekleyen cihazlar tablo font → var(--app-table-font-size)
+- Bayi WA → bayi telefonu ve firma adına gidiyor
+- WA'da müşteri adı ekleme seçeneği (checkbox)
+- Onay Gelen kartı dashboard'a eklendi (5 kart → repeat(5, 1fr))
+- Toplam Aktif Cihaz → Toplam Cihaz Sayısı
+- Teknik Serviste → Yeni Kayıt, Teknik Serviste (Tekrar Geldi) → Yeni Kayıt (Tekrar Geldi)
+- İkinci el WA şablonları: alım/satış eklendi, Şirketim'den düzenlenebilir
+- Test Aşamasında durumu eklendi + WA şablonu
+- Onay Bekliyor ve Onay Verildi şablonlarına {fiyat} parametresi eklendi
+- SSS accordion yapısına geçildi
+- Landing page footer'a iletişim bilgisi eklendi (+90 537 766 42 48, İzmir)
+- Blog yazıları eklendi (long-tail SEO): telefon tamircileri, barkodlu takip, küçük ev aletleri, online takip
+- Meta title/description güncellendi
+- Capterra/G2 Digital Markets ürün listesi tamamlandı ve incelemeye gönderildi
+- AlternativeTo hesabı açıldı (7 gün sonra uygulama eklenebilir)
+
+## Bekleyen Görevler
+
+- [ ] AlternativeTo'ya uygulama ekle (26 Mayıs 2026'dan sonra)
+- [ ] Capterra onayı gelince profil tamamla, yorum topla
+- [ ] Google Business Profile doğrulaması
+- [ ] PayTR bireysel başvuru sonucu takip
+- [ ] Shopier araştırması (komisyon öğren)
+- [ ] TRIAL_KONTROL_AKTIF=true (şirket kurulunca)
+- [ ] KISITLAMALAR_AKTIF=true (şirket kurulunca)
+- [ ] Haftalık blog yazısı
+- [ ] aggregateRating gerçek değerlerle güncelleme
+- [ ] Fatura modülü (bizimhesap.com entegrasyonu fikir aşamasında)
+- [ ] YouTube tanıtım videosu
