@@ -39,6 +39,7 @@ model Shop {
   updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
   cariler          Cari[]
+  cariHareketler   CariHareket[]
   bayiler          Bayi[]
   orders           ServiceOrder[]
   deviceTypes      DeviceType[]
@@ -389,8 +390,27 @@ model Cari {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   serviceOrders ServiceOrder[]
+  hareketler    CariHareket[]
 
   @@unique([shopId, cariCode])
+}
+
+model CariHareket {
+  id          String    @id @default(cuid())
+  shopId      String
+  shop        Shop      @relation(fields: [shopId], references: [id])
+  cariId      String
+  cari        Cari      @relation(fields: [cariId], references: [id], onDelete: Cascade)
+  tip         String    /// "alacak" veya "verecek"
+  tutar       Float
+  aciklama    String?
+  odendi      Boolean   @default(false)
+  odemeTarihi DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([cariId])
+  @@index([shopId])
 }
 
 model Setting {

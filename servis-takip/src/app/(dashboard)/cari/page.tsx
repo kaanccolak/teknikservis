@@ -70,6 +70,16 @@ interface Cari {
 
 type CariForm = Omit<Cari, "id" | "createdAt" | "cariCode">;
 
+type CariHareket = {
+  id: string;
+  tip: "alacak" | "verecek";
+  tutar: number;
+  aciklama: string | null;
+  odendi: boolean;
+  odemeTarihi: string | null;
+  createdAt: string;
+};
+
 const emptyForm: CariForm = {
   name: "",
   phone: "",
@@ -92,6 +102,11 @@ export default function CariPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCari, setSelectedCari] = useState<Cari | null>(null);
+  const [hareketler, setHareketler] = useState<CariHareket[]>([]);
+  const [hareketLoading, setHareketLoading] = useState(false);
+  const [yeniHareket, setYeniHareket] = useState<{ tip: "alacak" | "verecek"; tutar: string; aciklama: string }>({ tip: "alacak", tutar: "", aciklama: "" });
+  const [hareketTab, setHareketTab] = useState<"liste" | "yeni">("liste");
+  const [savingHareket, setSavingHareket] = useState(false);
   const [editing, setEditing] = useState<Cari | null>(null);
   const [form, setForm] = useState<CariForm>(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -182,9 +197,74 @@ export default function CariPage() {
     setDialogOpen(true);
   }
 
+  async function loadHareketler(cariId: string) {
+    setHareketLoading(true);
+    try {
+      const res = await fetch(`/api/cari/${cariId}/hareketler`);
+      const data = await res.json();
+      if (Array.isArray(data)) setHareketler(data as CariHareket[]);
+    } catch {
+      setHareketler([]);
+    } finally {
+      setHareketLoading(false);
+    }
+  }
+
+  async function handleSaveHareket() {
+    if (!selectedCari) return;
+    const tutar = parseFloat(yeniHareket.tutar.replace(",", "."));
+    if (!Number.isFinite(tutar) || tutar <= 0) { toast.error("Geçerli tutar girin"); return; }
+    setSavingHareket(true);
+    try {
+      const res = await fetch(`/api/cari/${selectedCari.id}/hareketler`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tip: yeniHareket.tip, tutar, aciklama: yeniHareket.aciklama }),
+      });
+      if (!res.ok) { toast.error("Hareket eklenemedi"); return; }
+      toast.success("Hareket eklendi");
+      setYeniHareket({ tip: "alacak", tutar: "", aciklama: "" });
+      setHareketTab("liste");
+      void loadHareketler(selectedCari.id);
+    } catch { toast.error("Bağlantı hatası"); }
+    finally { setSavingHareket(false); }
+  }
+
+  async function handleOdendi(hareketId: string) {
+    if (!selectedCari) return;
+    try {
+      const res = await fetch(`/api/cari/${selectedCari.id}/hareketler`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hareketId }),
+      });
+      if (!res.ok) { toast.error("Güncellenemedi"); return; }
+      toast.success("Ödendi olarak işaretlendi");
+      void loadHareketler(selectedCari.id);
+    } catch { toast.error("Bağlantı hatası"); }
+  }
+
+  async function handleDeleteHareket(hareketId: string) {
+    if (!selectedCari) return;
+    if (!confirm("Bu hareketi silmek istediğinize emin misiniz?")) return;
+    try {
+      const res = await fetch(`/api/cari/${selectedCari.id}/hareketler`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hareketId }),
+      });
+      if (!res.ok) { toast.error("Silinemedi"); return; }
+      toast.success("Hareket silindi");
+      void loadHareketler(selectedCari.id);
+    } catch { toast.error("Bağlantı hatası"); }
+  }
+
   function openDetail(row: Cari) {
     setSelectedCari(row);
+    setHareketTab("liste");
+    setYeniHareket({ tip: "alacak", tutar: "", aciklama: "" });
     setShowDetailModal(true);
+    void loadHareketler(row.id);
   }
 
   async function saveCari() {
@@ -525,7 +605,7 @@ export default function CariPage() {
       </Dialog>
 
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Cari Detayı</DialogTitle>
             <DialogDescription>Cari bilgileri</DialogDescription>
@@ -565,6 +645,127 @@ export default function CariPage() {
                     <span style={{ fontWeight: "500", textAlign: "right" }}>{item.value}</span>
                   </div>
                 ))}
+
+              {/* Hareketler Bölümü */}
+              <div style={{ marginTop: "20px", borderTop: "1px solid #e5e7eb", paddingTop: "16px" }}>
+                {hareketler.length > 0 && (() => {
+                  const toplamAlacak = hareketler.filter(h => h.tip === "alacak").reduce((s, h) => s + h.tutar, 0);
+                  const toplamVerecek = hareketler.filter(h => h.tip === "verecek").reduce((s, h) => s + h.tutar, 0);
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "16px" }}>
+                      <div style={{ background: "#f0fdf4", borderRadius: "8px", padding: "10px 12px", border: "1px solid #bbf7d0" }}>
+                        <p style={{ fontSize: "11px", color: "#16a34a", fontWeight: 600, marginBottom: "2px" }}>TOPLAM ALACAK</p>
+                        <p style={{ fontSize: "16px", fontWeight: 700, color: "#15803d" }}>₺{toplamAlacak.toLocaleString("tr-TR")}</p>
+                      </div>
+                      <div style={{ background: "#fef2f2", borderRadius: "8px", padding: "10px 12px", border: "1px solid #fecaca" }}>
+                        <p style={{ fontSize: "11px", color: "#dc2626", fontWeight: 600, marginBottom: "2px" }}>TOPLAM VERECEK</p>
+                        <p style={{ fontSize: "16px", fontWeight: 700, color: "#b91c1c" }}>₺{toplamVerecek.toLocaleString("tr-TR")}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                  <button type="button" onClick={() => setHareketTab("liste")}
+                    style={{ padding: "6px 14px", borderRadius: "6px", border: "none", cursor: "pointer",
+                      background: hareketTab === "liste" ? "#111827" : "#f3f4f6",
+                      color: hareketTab === "liste" ? "white" : "#374151", fontSize: "13px", fontWeight: 600 }}>
+                    Hareketler
+                  </button>
+                  <button type="button" onClick={() => setHareketTab("yeni")}
+                    style={{ padding: "6px 14px", borderRadius: "6px", border: "none", cursor: "pointer",
+                      background: hareketTab === "yeni" ? "#4f46e5" : "#f3f4f6",
+                      color: hareketTab === "yeni" ? "white" : "#374151", fontSize: "13px", fontWeight: 600 }}>
+                    + Yeni Hareket
+                  </button>
+                </div>
+
+                {hareketTab === "liste" ? (
+                  hareketLoading ? <p style={{ fontSize: "13px", color: "#6b7280" }}>Yükleniyor...</p> :
+                  hareketler.length === 0 ? <p style={{ fontSize: "13px", color: "#9ca3af", textAlign: "center", padding: "16px 0" }}>Henüz hareket yok</p> :
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "280px", overflowY: "auto" }}>
+                    {hareketler.map((h) => (
+                      <div key={h.id} style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "10px 12px", borderRadius: "8px",
+                        background: h.odendi ? "#f9fafb" : h.tip === "alacak" ? "#f0fdf4" : "#fef2f2",
+                        border: `1px solid ${h.odendi ? "#e5e7eb" : h.tip === "alacak" ? "#bbf7d0" : "#fecaca"}`,
+                        opacity: h.odendi ? 0.7 : 1,
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{
+                              fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "4px",
+                              background: h.tip === "alacak" ? "#dcfce7" : "#fee2e2",
+                              color: h.tip === "alacak" ? "#16a34a" : "#dc2626",
+                            }}>
+                              {h.tip === "alacak" ? "ALACAK" : "VERECEK"}
+                            </span>
+                            <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>
+                              ₺{h.tutar.toLocaleString("tr-TR")}
+                            </span>
+                            {h.odendi && <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: 600 }}>✓ Ödendi</span>}
+                          </div>
+                          {h.aciklama && <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>{h.aciklama}</p>}
+                          <p style={{ fontSize: "11px", color: "#9ca3af", marginTop: "2px" }}>
+                            {new Date(h.createdAt).toLocaleDateString("tr-TR")}
+                            {h.odemeTarihi && ` · Ödeme: ${new Date(h.odemeTarihi).toLocaleDateString("tr-TR")}`}
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                          {!h.odendi && (
+                            <button type="button" onClick={() => void handleOdendi(h.id)}
+                              style={{ padding: "4px 10px", borderRadius: "6px", border: "none", cursor: "pointer",
+                                background: "#16a34a", color: "white", fontSize: "12px", fontWeight: 600 }}>
+                              Ödendi
+                            </button>
+                          )}
+                          <button type="button" onClick={() => void handleDeleteHareket(h.id)}
+                            style={{ padding: "4px 10px", borderRadius: "6px", border: "1px solid #fecaca",
+                              cursor: "pointer", background: "white", color: "#dc2626", fontSize: "12px" }}>
+                            Sil
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "13px", fontWeight: 600, color: "#374151", display: "block", marginBottom: "6px" }}>Tip</label>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        {(["alacak", "verecek"] as const).map((t) => (
+                          <button key={t} type="button" onClick={() => setYeniHareket(p => ({ ...p, tip: t }))}
+                            style={{ padding: "8px 20px", borderRadius: "8px", border: "none", cursor: "pointer",
+                              background: yeniHareket.tip === t ? (t === "alacak" ? "#16a34a" : "#dc2626") : "#f3f4f6",
+                              color: yeniHareket.tip === t ? "white" : "#374151", fontSize: "13px", fontWeight: 600 }}>
+                            {t === "alacak" ? "Alacak" : "Verecek"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "13px", fontWeight: 600, color: "#374151", display: "block", marginBottom: "6px" }}>Tutar (₺)</label>
+                      <input type="text" inputMode="decimal" value={yeniHareket.tutar}
+                        onChange={(e) => setYeniHareket(p => ({ ...p, tutar: e.target.value }))}
+                        placeholder="0.00"
+                        style={{ width: "100%", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", boxSizing: "border-box" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "13px", fontWeight: 600, color: "#374151", display: "block", marginBottom: "6px" }}>Açıklama (opsiyonel)</label>
+                      <input type="text" value={yeniHareket.aciklama}
+                        onChange={(e) => setYeniHareket(p => ({ ...p, aciklama: e.target.value }))}
+                        placeholder="Ödeme nedeni, fatura no vb."
+                        style={{ width: "100%", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", boxSizing: "border-box" }} />
+                    </div>
+                    <button type="button" onClick={() => void handleSaveHareket()} disabled={savingHareket}
+                      style={{ padding: "10px", borderRadius: "8px", border: "none", cursor: "pointer",
+                        background: "#4f46e5", color: "white", fontSize: "14px", fontWeight: 600 }}>
+                      {savingHareket ? "Kaydediliyor..." : "Hareketi Kaydet"}
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {yetkiVar("canEditCari") && (
                 <div style={{ marginTop: "8px" }}>
