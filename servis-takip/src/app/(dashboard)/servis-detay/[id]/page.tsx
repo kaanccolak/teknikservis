@@ -1181,7 +1181,12 @@ export default function ServisDetayPage() {
     if (!order || !waConfirmStatus) return;
 
     const waPhone = order.bayi?.phone ?? order.customer?.phone;
-    if (!waPhone) return;
+    if (!waPhone) {
+      toast.error(
+        "Telefon numarası bulunamadı — bayi veya müşteri telefonu eksik",
+      );
+      return;
+    }
 
     const metaTemplate = WA_TEMPLATES[waConfirmStatus];
     if (!metaTemplate) return;
