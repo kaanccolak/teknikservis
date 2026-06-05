@@ -1197,7 +1197,7 @@ export default function ServisDetayPage() {
       const params = metaTemplate.getParams(order);
       const bayiIsim = order.bayi?.firmaAdi
         ? waIncludeMusteriAdi && order.customer?.name
-          ? `${order.bayi.firmaAdi} (Müşteri: ${order.customer.name})`
+          ? `${order.bayi.firmaAdi}, ${order.customer.name} isimli müşterinizin`
           : order.bayi.firmaAdi
         : null;
 
