@@ -161,7 +161,7 @@ type ServiceOrderDetail = {
     id: string;
     firmaAdi: string;
     yetkiliKisi: string;
-    phone: string;
+    phone: string | null;
     vergiDairesi?: string | null;
     tcVergiNo?: string;
     iskonto?: number | null;
@@ -1108,8 +1108,11 @@ export default function ServisDetayPage() {
       toast.error("Önce ücret girin");
       return;
     }
-    if (!order.customer?.phone) {
-      toast.error("Müşteri telefon numarası bulunamadı");
+    const waPhone = order.bayi?.phone ?? order.customer?.phone;
+    const waIsim = order.bayi?.firmaAdi ?? order.customer?.name;
+
+    if (!waPhone) {
+      toast.error("Telefon numarası bulunamadı");
       return;
     }
     setWaSending(true);
@@ -1118,10 +1121,10 @@ export default function ServisDetayPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: order.customer.phone,
+          phone: waPhone,
           templateName: "fiyat_bildirimi",
           parameters: [
-            order.customer.name,
+            waIsim,
             order.serialNo || "Belirtilmemiş",
             order.deviceModel?.name ||
               order.brand?.name ||
@@ -1175,7 +1178,10 @@ export default function ServisDetayPage() {
 
   async function handleWaSend() {
     setShowWaConfirm(false);
-    if (!order?.customer?.phone || !waConfirmStatus) return;
+    if (!order || !waConfirmStatus) return;
+
+    const waPhone = order.bayi?.phone ?? order.customer?.phone;
+    if (!waPhone) return;
 
     const metaTemplate = WA_TEMPLATES[waConfirmStatus];
     if (!metaTemplate) return;
@@ -1183,13 +1189,16 @@ export default function ServisDetayPage() {
     setWaConfirmSending(true);
     try {
       const params = metaTemplate.getParams(order);
+      const finalParams = order.bayi?.firmaAdi
+        ? [order.bayi.firmaAdi, ...params.slice(1)]
+        : params;
       const res = await fetch("/api/whatsapp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: order.customer.phone,
+          phone: waPhone,
           templateName: metaTemplate.name,
-          parameters: params,
+          parameters: finalParams,
         }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
