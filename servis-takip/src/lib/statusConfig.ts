@@ -26,6 +26,12 @@ export const STATUS_CONFIG: Record<
     bg: "#ecfeff",
     border: "#a5f3fc",
   },
+  price_given: {
+    label: "Fiyat Verildi",
+    color: "#0891b2",
+    bg: "#ecfeff",
+    border: "#a5f3fc",
+  },
   waiting_part: {
     label: "Parça Bekliyor",
     color: "#f97316",

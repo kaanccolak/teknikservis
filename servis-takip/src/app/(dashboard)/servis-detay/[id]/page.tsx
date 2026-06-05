@@ -343,6 +343,9 @@ export default function ServisDetayPage() {
   const [editingRepairDetails, setEditingRepairDetails] = useState(false);
   const [savingRepairDetails, setSavingRepairDetails] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [showFiyatModal, setShowFiyatModal] = useState(false);
+  const [fiyatModalInput, setFiyatModalInput] = useState("");
+  const [savingFiyatModal, setSavingFiyatModal] = useState(false);
   const [sesliNotLoading, setSesliNotLoading] = useState(false);
   const [dinleniyor, setDinleniyor] = useState<"repair" | "note" | null>(null);
 
@@ -830,6 +833,34 @@ export default function ServisDetayPage() {
     }
   }, []);
 
+  async function handleSaveFiyatModal() {
+    if (!order) return;
+    const raw = fiyatModalInput.trim().replace(",", ".");
+    const n = Number(raw);
+    if (Number.isNaN(n) || n <= 0) {
+      toast.error("Geçerli bir tutar girin");
+      return;
+    }
+    const netPrice = Math.round(n * (1 - discountRate));
+    setSavingFiyatModal(true);
+    try {
+      const updated = await patchOrder({ totalPrice: netPrice, status: "price_given" });
+      setOrder(updated);
+      setShowFiyatModal(false);
+      setFiyatModalInput("");
+      setPendingStatus(null);
+      toast.success("Fiyat kaydedildi, durum güncellendi");
+      if (order.customer?.phone && waShopReady) {
+        setWaConfirmStatus("price_given");
+        setShowWaConfirm(true);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Hata oluştu");
+    } finally {
+      setSavingFiyatModal(false);
+    }
+  }
+
   async function handleSaveRepairDetailsAndStatus() {
     if (!pendingStatus) return;
     setSavingRepairDetails(true);
@@ -863,6 +894,12 @@ export default function ServisDetayPage() {
       return;
     }
     if (!order || next == null || next === order.status) return;
+    if (next === "price_given" && !(order.totalPrice && order.totalPrice > 0)) {
+      setFiyatModalInput("");
+      setShowFiyatModal(true);
+      setPendingStatus("price_given");
+      return;
+    }
     if (next === "completed" && !skipCompletedRepairModal) {
       setPendingStatus(next);
       setRepairDetailsInput(order.repairDetails ?? "");
@@ -1096,6 +1133,14 @@ export default function ServisDetayPage() {
           ? `Ücret kaydedildi (brüt ₺${n.toLocaleString("tr-TR")} → net ₺${netPrice.toLocaleString("tr-TR")})`
           : "Ücret kaydedildi",
       );
+      if (netPrice > 0 && updated.status !== "price_given") {
+        try {
+          const updatedWithStatus = await patchOrder({ status: "price_given" });
+          setOrder(updatedWithStatus);
+        } catch {
+          // durum değişmese bile fiyat kaydedildi
+        }
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ücret kaydedilemedi");
     } finally {
@@ -1975,6 +2020,63 @@ export default function ServisDetayPage() {
               }}
             >
               {savingStatus ? "Kaydediliyor…" : "Teslim Et"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showFiyatModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowFiyatModal(false);
+            setFiyatModalInput("");
+            setPendingStatus(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Fiyat Verildi</DialogTitle>
+            <DialogDescription>
+              Kayda fiyat girilmemiş. Fiyatı girerek durumu &quot;Fiyat Verildi&quot; olarak güncelleyin.
+            </DialogDescription>
+          </DialogHeader>
+          <div style={{ marginTop: "8px" }}>
+            <label style={{ fontSize: "13px", fontWeight: 600, color: "#374151", display: "block", marginBottom: "6px" }}>
+              Tutar {discountRate > 0 ? "(Brüt)" : ""}
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={fiyatModalInput}
+              onChange={(e) => setFiyatModalInput(e.target.value)}
+              placeholder="0.00"
+              autoFocus
+              style={{ width: "100%", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", boxSizing: "border-box" }}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleSaveFiyatModal(); }}
+            />
+            {discountRate > 0 && fiyatModalInput && Number(fiyatModalInput.replace(",", ".")) > 0 && (
+              <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
+                Net: ₺{Math.round(Number(fiyatModalInput.replace(",", ".")) * (1 - discountRate)).toLocaleString("tr-TR")}
+              </p>
+            )}
+          </div>
+          <DialogFooter className="mt-4 gap-2">
+            <button
+              type="button"
+              onClick={() => { setShowFiyatModal(false); setFiyatModalInput(""); setPendingStatus(null); }}
+              style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "white", cursor: "pointer", fontSize: "13px" }}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSaveFiyatModal()}
+              disabled={savingFiyatModal}
+              style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: "#4f46e5", color: "white", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
+            >
+              {savingFiyatModal ? "Kaydediliyor..." : "Kaydet"}
             </button>
           </DialogFooter>
         </DialogContent>

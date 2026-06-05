@@ -6,6 +6,7 @@ export const SERVICE_ORDER_STATUS_OPTIONS = [
   { value: "returned_device", label: "Yeni Kayıt (Tekrar Geldi)" },
   { value: "waiting_approval", label: "Onay Bekliyor" },
   { value: "approval_given", label: "Onay Verildi" },
+  { value: "price_given", label: "Fiyat Verildi" },
   { value: "waiting_part", label: "Parça Bekliyor" },
   { value: "sent_to_external", label: "Dış Servise Gönderildi" },
   { value: "repair_failed", label: "Tamiri Olmuyor" },

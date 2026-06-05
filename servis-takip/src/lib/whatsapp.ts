@@ -51,6 +51,15 @@ export const WA_TEMPLATES: Record<
       o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "",
     ],
   },
+  price_given: {
+    name: "fiyat_bildirimi",
+    getParams: (o) => [
+      o.customer.name,
+      o.serialNo || "Belirtilmemiş",
+      o.deviceModel?.name || o.brand?.name || o.deviceType?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "Belirtilmemiş",
+    ],
+  },
   waiting_part: {
     name: "parca_bekleniyor",
     getParams: (o) => [

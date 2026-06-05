@@ -18,6 +18,7 @@ export const STATUS_GROUPS: { title: string; statuses: string[] }[] = [
       "returned_device",
       "waiting_approval",
       "approval_given",
+      "price_given",
       "waiting_part",
       "sent_to_external",
     ],
