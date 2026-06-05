@@ -127,7 +127,7 @@ const DEFAULT_TEMPLATES: Record<
     label: "Onay Verildi",
     defaultMessage:
       "Sayın {isim}, {seriNo} seri numaralı {cihaz} cihazınız için onay verdiniz. Cihazınızın onarımıyla ilgili sizi bilgilendireceğiz.",
-    variables: ["{isim}", "{seriNo}", "{cihaz}"],
+    variables: ["{isim}", "{seriNo}", "{cihaz}", "{fiyat}"],
   },
   parca_bekleniyor: {
     label: "Parça Bekliyor",

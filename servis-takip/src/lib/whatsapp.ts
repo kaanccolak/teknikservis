@@ -47,6 +47,7 @@ export const WA_TEMPLATES: Record<
       o.customer.name,
       o.serialNo || "Belirtilmemiş",
       o.deviceModel?.name || o.brand?.name || "Cihaz",
+      o.totalPrice ? o.totalPrice.toLocaleString("tr-TR") + " ₺" : "",
     ],
   },
   waiting_part: {
