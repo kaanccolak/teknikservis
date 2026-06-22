@@ -90,10 +90,10 @@ export async function POST(req: NextRequest) {
 
     const merchantIdInt = String(parseInt(merchantId, 10));
     const hashStr = `${merchantIdInt}${userIp}${merchantOid}${userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
-    console.log("PayTR hashStr:", hashStr);
+    const paytrTokenStr = hashStr + merchantSalt;
     const paytrToken = crypto
-      .createHmac("sha256", merchantKey + merchantSalt)
-      .update(hashStr)
+      .createHmac("sha256", merchantKey)
+      .update(paytrTokenStr)
       .digest("base64");
 
     // 10. PayTR'a token isteği gönder
@@ -125,7 +125,6 @@ export async function POST(req: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    console.log("PayTR response raw:", await paytrRes.clone().text());
     const paytrData = await paytrRes.json();
 
     if (paytrData.status !== "success") {
