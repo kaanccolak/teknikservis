@@ -4,6 +4,7 @@ import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 import { sendBaileysMessage, getSessionStatus } from "@/lib/baileys-client";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,9 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   let body: {
     phone?: string;

@@ -5,6 +5,7 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { invalidateShopCache } from "@/lib/getShop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,9 @@ export async function GET() {
 export async function PATCH(request: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   let json: unknown;
   try {

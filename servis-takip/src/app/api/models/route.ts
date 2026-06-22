@@ -5,6 +5,7 @@ import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   let body: unknown;
   try {
@@ -92,6 +96,9 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   const id = new URL(request.url).searchParams.get("id");
   if (!id) {
