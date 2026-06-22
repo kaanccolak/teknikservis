@@ -267,9 +267,10 @@ export default function PaketSecPage() {
             background: "rgba(0,0,0,0.6)",
             zIndex: 1000,
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "center",
             padding: "16px",
+            paddingTop: "40px",
           }}
           onClick={() => setIframeToken(null)}
         >
@@ -280,6 +281,8 @@ export default function PaketSecPage() {
               padding: "24px",
               width: "100%",
               maxWidth: "520px",
+              maxHeight: "90vh",
+              overflowY: "auto",
               position: "relative",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -302,7 +305,7 @@ export default function PaketSecPage() {
               id="paytriframe"
               frameBorder={0}
               scrolling="no"
-              style={{ width: "100%", minHeight: "500px" }}
+              style={{ width: "100%", minHeight: "450px" }}
             />
           </div>
         </div>
