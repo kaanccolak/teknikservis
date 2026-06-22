@@ -24,6 +24,7 @@ export default function DashboardLayout({
   const [personelSecildi, setPersonelSecildi] = useState(false);
   const [ayarYuklendi, setAyarYuklendi] = useState(false);
   const [abonelikUyari, setAbonelikUyari] = useState(false);
+  const [suresiDolduBanner, setSuresiDolduBanner] = useState(false);
 
   useEffect(() => {
     const aktifPersonel = sessionStorage.getItem("activePersonnelId");
@@ -96,17 +97,13 @@ export default function DashboardLayout({
             }
           }
 
-          if (subscriptionStatus === "trial" && trialEndsAt) {
-            const trialBitis = new Date(trialEndsAt);
-            if (trialBitis < new Date()) {
-              router.push("/paket-sec");
-              return;
-            }
-          }
-
-          if (subscriptionStatus === "expired") {
-            router.push("/paket-sec");
-            return;
+          // Süresi dolmuşsa banner göster
+          const trialBitis = trialEndsAt ? new Date(trialEndsAt) : null;
+          const suresiDoldu =
+            subscriptionStatus === "expired" ||
+            (subscriptionStatus === "trial" && trialBitis && trialBitis < new Date());
+          if (suresiDoldu) {
+            setSuresiDolduBanner(true);
           }
         }
       })
@@ -161,6 +158,43 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen overflow-hidden bg-slate-50/80">
+      {suresiDolduBanner && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9998,
+          background: "#dc2626",
+          color: "white",
+          padding: "12px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "16px",
+        }}>
+          <span style={{ fontSize: "14px", fontWeight: 600 }}>
+            ⚠️ Aboneliğiniz sona erdi. Kayıtlarınızı görüntüleyebilirsiniz ancak değişiklik yapamazsınız.
+          </span>
+          <button
+            type="button"
+            onClick={() => window.location.href = "/paket-sec"}
+            style={{
+              background: "white",
+              color: "#dc2626",
+              border: "none",
+              borderRadius: "6px",
+              padding: "6px 16px",
+              fontSize: "13px",
+              fontWeight: 700,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Planı Yenile
+          </button>
+        </div>
+      )}
       {abonelikUyari && (
         <div style={{
           position: "fixed",
