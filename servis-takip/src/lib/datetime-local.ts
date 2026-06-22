@@ -16,14 +16,6 @@ export function parseDatetimeLocal(s: string): Date | null {
   const h = Number(m[4]);
   const min = Number(m[5]);
   const d = new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+03:00`);
-  if (
-    d.getUTCFullYear() !== y ||
-    d.getUTCMonth() !== mo ||
-    d.getUTCDate() !== day ||
-    d.getUTCHours() !== ((h - 3 + 24) % 24) ||
-    d.getUTCMinutes() !== min
-  ) {
-    return null;
-  }
+  if (isNaN(d.getTime())) return null;
   return d;
 }
