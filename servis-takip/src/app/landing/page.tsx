@@ -247,7 +247,7 @@ export default function LandingPage() {
                   <span className="size-3 rounded-full bg-emerald-400/90" />
                 </div>
                 <div className="ml-2 flex-1 truncate rounded-md bg-white px-3 py-1.5 text-center text-[11px] text-slate-400 ring-1 ring-slate-200">
-                  app.servistakip.com / cihaz-sorgula
+                  www.tamirtakip.com.tr / cihaz-sorgula
                 </div>
               </div>
               <div className="space-y-3 p-4 sm:p-5">
