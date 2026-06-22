@@ -5,6 +5,7 @@ import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { addContactToGoogle } from "@/lib/googleContacts";
 import { checkSubscription } from "@/lib/checkSubscription";
+import { parseDatetimeLocal } from "@/lib/datetime-local";
 import { prisma } from "@/lib/prisma";
 import { getErrorDetails, jsonServerError } from "@/lib/server-error";
 import {
@@ -180,7 +181,9 @@ export async function POST(request: Request) {
 
   const purchasedAtRaw =
     typeof o.purchasedAt === "string" ? o.purchasedAt.trim() : "";
-  const purchasedAt = purchasedAtRaw ? new Date(purchasedAtRaw) : new Date();
+  const purchasedAt = purchasedAtRaw
+    ? (parseDatetimeLocal(purchasedAtRaw) ?? new Date())
+    : new Date();
 
   let purchasePrice: number;
   if (typeof o.purchasePrice === "number" && Number.isFinite(o.purchasePrice)) {
