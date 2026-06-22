@@ -2275,6 +2275,7 @@ function SirketimPageInner() {
   const [taxOffice, setTaxOffice] = useState("");
 
   const [baileysPhone, setBaileysPhone] = useState("");
+  const [waSpamOnay, setWaSpamOnay] = useState(false);
   const [baileysCode, setBaileysCode] = useState("");
   const [baileysStatus, setBaileysStatus] = useState<
     "idle" | "waiting_code" | "connected" | "loading"
@@ -4757,6 +4758,28 @@ function SirketimPageInner() {
               >
                 {!baileysConnected ? (
                   <>
+                    <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: "8px", padding: "14px 16px", marginBottom: "4px" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", marginBottom: "10px" }}>
+                        <span style={{ fontSize: "18px", flexShrink: 0 }}>⚠️</span>
+                        <div>
+                          <p style={{ fontSize: "13px", fontWeight: 700, color: "#92400e", marginBottom: "4px" }}>WhatsApp Spam Uyarısı</p>
+                          <p style={{ fontSize: "12px", color: "#78350f", lineHeight: 1.6 }}>
+                            Kısa süre içinde çok sayıda mesaj gönderilmesi (örn. 10–15 mesaj arka arkaya) WhatsApp tarafından spam olarak algılanabilir ve hesabınız geçici veya kalıcı olarak yasaklanabilir. Bu riski minimize etmek için mesajları aralıklı gönderin.
+                          </p>
+                        </div>
+                      </div>
+                      <label style={{ display: "flex", alignItems: "flex-start", gap: "8px", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={waSpamOnay}
+                          onChange={(e) => setWaSpamOnay(e.target.checked)}
+                          style={{ marginTop: "2px", flexShrink: 0, width: "15px", height: "15px", cursor: "pointer" }}
+                        />
+                        <span style={{ fontSize: "12px", color: "#78350f", lineHeight: 1.6 }}>
+                          WhatsApp hesabımın yasaklanması riskini anlıyor ve bu konuda <strong>TamirTakip&apos;in herhangi bir sorumluluğunun bulunmadığını</strong> kabul ediyorum.
+                        </span>
+                      </label>
+                    </div>
                     <div>
                       <label style={labelStyle}>
                         WhatsApp Telefon Numaranız
@@ -4869,7 +4892,7 @@ function SirketimPageInner() {
                       type="button"
                       onClick={() => void handleBaileysConnect()}
                       disabled={
-                        savingBaileys || baileysStatus === "waiting_code"
+                        savingBaileys || baileysStatus === "waiting_code" || !waSpamOnay
                       }
                       style={{
                         padding: "10px 20px",
