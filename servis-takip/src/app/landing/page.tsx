@@ -331,8 +331,7 @@ export default function LandingPage() {
       <section className="border-b border-slate-100 bg-slate-50 py-8">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 text-center sm:px-6 lg:px-8">
           <p className="text-sm font-medium text-slate-700">
-            <span className="text-2xl font-bold text-indigo-600">Beta</span>{" "}
-            sürecinde — ilk kullananlardan olun
+            30 gün ücretsiz — kredi kartı gerekmez
           </p>
           <span className="hidden h-4 w-px bg-slate-300 sm:block" aria-hidden />
           <p className="text-sm text-slate-600">
