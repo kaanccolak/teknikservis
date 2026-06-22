@@ -237,13 +237,13 @@ export default function TeslimFisiPage() {
                   Geliş Tarihi
                 </td>
                 <td className="py-1.5 font-medium text-slate-800">
-                  {new Date(order.arrivedAt).toLocaleString("tr-TR")}
+                  {new Date(order.arrivedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
                 </td>
               </tr>
               <tr className="border-b border-slate-200">
                 <td className="py-1.5 text-slate-500">Teslim Tarihi</td>
                 <td className="py-1.5 font-medium text-slate-800">
-                  {new Date().toLocaleString("tr-TR")}
+                  {new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
                 </td>
               </tr>
             </tbody>

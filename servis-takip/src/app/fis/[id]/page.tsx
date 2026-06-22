@@ -216,7 +216,7 @@ export default function ServisFisPage() {
                 #{formatServiceOrderNo(order)}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                {new Date(order.arrivedAt).toLocaleString("tr-TR")}
+                {new Date(order.arrivedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
               </p>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function ServisFisPage() {
               <tr className="border-b border-slate-200">
                 <td className="w-[140px] py-1.5 text-slate-500">Geliş Tarihi</td>
                 <td className="py-1.5 font-medium text-slate-800">
-                  {new Date(order.arrivedAt).toLocaleString("tr-TR")}
+                  {new Date(order.arrivedAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
                 </td>
               </tr>
               <tr className="border-b border-slate-200">
