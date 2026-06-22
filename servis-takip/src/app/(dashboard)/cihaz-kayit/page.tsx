@@ -3131,6 +3131,7 @@ function CihazKayitRoot() {
   );
   const [waShopReady, setWaShopReady] = useState(false);
   const [createdWa, setCreatedWa] = useState<WaPostCreateDialog | null>(null);
+  const [createdSecondHandId, setCreatedSecondHandId] = useState<string | null>(null);
   const [waSending, setWaSending] = useState(false);
   const [lastCreatedServiceId, setLastCreatedServiceId] = useState("");
   const [personelWaDialog, setPersonelWaDialog] = useState<{
@@ -3334,9 +3335,15 @@ function CihazKayitRoot() {
         />
       ) : (
         <SecondHandDeviceForm
-          onRegistered={(info) =>
-            setCreatedWa({ kind: "secondhand", ...info })
-          }
+          onRegistered={(info) => {
+            setCreatedWa({ kind: "secondhand", ...info });
+            fetch(`/api/second-hand?search=${info.deviceCode}`)
+              .then(r => r.json())
+              .then(data => {
+                if (data?.items?.[0]?.id) setCreatedSecondHandId(data.items[0].id);
+              })
+              .catch(() => {});
+          }}
         />
       )}
 
@@ -3416,6 +3423,10 @@ function CihazKayitRoot() {
                     if (createdWa.kind === "service") {
                       void maybeOpenPersonelWaDialog(createdWa.id);
                     } else {
+                      if (createdSecondHandId) {
+                        router.push(`/ikinci-el/${createdSecondHandId}`);
+                        setCreatedSecondHandId(null);
+                      }
                       setCreatedWa(null);
                     }
                   }}
