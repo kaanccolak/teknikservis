@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
     const testMode = process.env.PAYTR_TEST_MODE === "1" ? "1" : "0";
     const lang = "tr";
 
+    console.log("PayTR debug:", { merchantId, userIp, merchantOid, userEmail, paymentAmount, noInstallment, maxInstallment, currency, testMode, hashStr: `${merchantId}${userIp}${merchantOid}${userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}` });
     const hashStr = `${merchantId}${userIp}${merchantOid}${userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
     const paytrToken = crypto
       .createHmac("sha256", merchantKey + merchantSalt)
@@ -124,6 +125,7 @@ export async function POST(req: NextRequest) {
     });
 
     const paytrData = await paytrRes.json();
+    console.log("PayTR response:", JSON.stringify(paytrData));
 
     if (paytrData.status !== "success") {
       // Pending kaydı failed yap
