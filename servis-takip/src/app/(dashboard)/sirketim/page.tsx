@@ -54,6 +54,10 @@ type ShopFull = {
   ikinciElAlimBelgeNotu?: string | null;
   ikinciElSatisFiyatGoster?: boolean;
   isDemo?: boolean;
+  planType?: string | null;
+  subscriptionStatus?: string | null;
+  trialEndsAt?: string | null;
+  planStartedAt?: string | null;
 };
 
 function formatPhone(value: string) {
