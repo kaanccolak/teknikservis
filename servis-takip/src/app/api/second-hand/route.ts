@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { addContactToGoogle } from "@/lib/googleContacts";
+import { checkSubscription } from "@/lib/checkSubscription";
 import { prisma } from "@/lib/prisma";
 import { getErrorDetails, jsonServerError } from "@/lib/server-error";
 import {
@@ -132,6 +133,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   let body: unknown;
   try {

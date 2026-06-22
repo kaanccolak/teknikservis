@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { demoGuard } from "@/lib/demo-guard";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
+import { checkSubscription } from "@/lib/checkSubscription";
 import { jsonServerError } from "@/lib/server-error";
 import {
   isCompleteTrNationalMobile,
@@ -59,6 +60,9 @@ export async function PATCH(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   const { id } = await params;
   let body: unknown;
@@ -345,6 +349,9 @@ export async function DELETE(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   const { id } = await params;
   let shop;

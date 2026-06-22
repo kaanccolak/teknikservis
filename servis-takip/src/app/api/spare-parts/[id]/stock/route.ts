@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { getErrorDetails, jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,9 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
+
   const { id } = await context.params;
   if (!id?.trim()) {
     return NextResponse.json({ error: "Geçersiz parça" }, { status: 400 });
