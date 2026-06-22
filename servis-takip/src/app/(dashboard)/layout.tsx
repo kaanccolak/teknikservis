@@ -11,7 +11,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 
 // Beta döneminde false — canlıya alınca true yapılacak
-const TRIAL_KONTROL_AKTIF = false;
+const TRIAL_KONTROL_AKTIF = true;
 
 export default function DashboardLayout({
   children,
@@ -76,6 +76,9 @@ export default function DashboardLayout({
         if (TRIAL_KONTROL_AKTIF) {
           const trialEndsAt = (shopData as { trialEndsAt?: string }).trialEndsAt;
           const subscriptionStatus = (shopData as { subscriptionStatus?: string }).subscriptionStatus;
+          const isExempt = (shopData as { isExempt?: boolean }).isExempt;
+
+          if (isExempt) return;
 
           if (subscriptionStatus === "trial" && trialEndsAt) {
             const trialBitis = new Date(trialEndsAt);
