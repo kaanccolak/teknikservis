@@ -18,7 +18,7 @@ export function parseDatetimeLocal(s: string): Date | null {
     d.getUTCFullYear() !== y ||
     d.getUTCMonth() !== mo ||
     d.getUTCDate() !== day ||
-    d.getUTCHours() !== h - 3 ||
+    d.getUTCHours() !== ((h - 3 + 24) % 24) ||
     d.getUTCMinutes() !== min
   ) {
     return null;
