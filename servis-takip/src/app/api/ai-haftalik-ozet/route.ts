@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getShop } from "@/lib/getShop";
 import { prisma } from "@/lib/prisma";
 import { SERVICE_ORDER_DELIVERED_STATUSES } from "@/lib/service-order-status";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,9 @@ function gecenHaftaBounds(): { start: Date; end: Date } {
 }
 
 export async function POST() {
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
+
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });

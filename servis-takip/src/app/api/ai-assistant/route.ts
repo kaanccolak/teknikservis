@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getShop } from "@/lib/getShop";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,9 @@ KONUŞMA TARZI:
 - Sadece TamirTakip ile ilgili sorulara cevap ver. Başka konularda "Ben sadece TamirTakip konularında yardımcı olabilirim" de.`;
 
 export async function POST(req: Request) {
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
+
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
