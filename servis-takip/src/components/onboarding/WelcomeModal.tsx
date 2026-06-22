@@ -39,6 +39,15 @@ export default function WelcomeModal() {
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", marginBottom: "8px" }}>Hoş geldiniz!</h1>
           <p style={{ fontSize: "15px", color: "#6b7280" }}>Teknik servis yönetim paneliniz hazır</p>
         </div>
+        <div style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", color: "white" }}>
+          <div style={{ fontSize: "13px", fontWeight: 800, letterSpacing: "0.05em", marginBottom: "6px", opacity: 0.85 }}>🎁 30 GÜNLÜK ÜCRETSİZ DENEME</div>
+          <p style={{ fontSize: "15px", fontWeight: 700, marginBottom: "6px", lineHeight: 1.4 }}>
+            Tüm özellikler şu an açık — Enterprise seviyesinde kullanıyorsunuz.
+          </p>
+          <p style={{ fontSize: "13px", opacity: 0.9, lineHeight: 1.5 }}>
+            30 gün boyunca hiçbir kısıtlama olmadan tüm modülleri deneyin. Süre sonunda size en uygun paketi seçip kullanmaya devam edebilirsiniz.
+          </p>
+        </div>
         <div style={{ display: "grid", gap: "12px", marginBottom: "28px" }}>
           {[
             { icon: "⚡", title: "Hızlı Kurulum ile Başlayın", desc: "Şirketim → Tanımlar sekmesinde 'Hızlı Kurulum' butonuna tıklayın, servis türünüzü seçin. Cihaz türleri, markalar ve modeller otomatik yüklensin." },
