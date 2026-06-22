@@ -316,7 +316,7 @@ function CihazSorgulaInner() {
       "Durum",
     ];
     const lines = [
-      headers.map(csvEscape).join(","),
+      headers.map(csvEscape).join(";"),
       ...orders.map((r) =>
         [
           csvEscape(formatServiceOrderNo(r)),
@@ -328,7 +328,7 @@ function CihazSorgulaInner() {
           csvEscape(r.deviceModel?.name ?? r.modelName ?? ""),
           csvEscape(r.serialNo ?? ""),
           csvEscape(serviceOrderStatusLabel(r.status)),
-        ].join(","),
+        ].join(";"),
       ),
     ];
     const bom = "\uFEFF";
