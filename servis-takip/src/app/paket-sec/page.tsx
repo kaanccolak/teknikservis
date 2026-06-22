@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -61,6 +61,21 @@ const paketler = [
 export default function PaketSecPage() {
   const router = useRouter();
   const [yillik, setYillik] = useState(false);
+
+  useEffect(() => {
+    async function kontrolEt() {
+      try {
+        const res = await fetch("/api/shop");
+        const data = await res.json();
+        if (data?.subscriptionStatus === "active") {
+          window.location.href = "/";
+        }
+      } catch {
+        // sessizce geç
+      }
+    }
+    void kontrolEt();
+  }, []);
   const [yukleniyor, setYukleniyor] = useState<string | null>(null);
   const [iframeToken, setIframeToken] = useState<string | null>(null);
   const [hata, setHata] = useState<string | null>(null);
