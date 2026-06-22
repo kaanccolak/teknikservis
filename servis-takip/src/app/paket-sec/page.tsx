@@ -67,7 +67,9 @@ export default function PaketSecPage() {
       try {
         const res = await fetch("/api/shop");
         const data = await res.json();
-        if (data?.subscriptionStatus === "active") {
+        const params = new URLSearchParams(window.location.search);
+        const yukselt = params.get("yukselt");
+        if (data?.subscriptionStatus === "active" && yukselt !== "1") {
           window.location.href = "/";
         }
       } catch {
