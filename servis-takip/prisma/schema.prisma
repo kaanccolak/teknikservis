@@ -35,6 +35,7 @@ model Shop {
   trialEndsAt        DateTime?
   subscriptionStatus String            @default("trial")
   planStartedAt      DateTime?
+  isExempt           Boolean           @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
   customers        Customer[]
