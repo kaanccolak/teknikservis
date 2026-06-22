@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { getShop } from "@/lib/getShop";
 import { NextResponse } from "next/server";
 
