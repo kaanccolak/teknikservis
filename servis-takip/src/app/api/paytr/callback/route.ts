@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
     const failReasonCode = params.get("failed_reason_code") || "";
     const failReasonMsg  = params.get("failed_reason_msg") || "";
     const testMode      = params.get("test_mode") === "1";
-    const paymentType   = params.get("payment_type") || "";
-    const currency      = params.get("currency") || "";
-    const paymentAmount = params.get("payment_amount") || "";
+    const _paymentType   = params.get("payment_type") || "";
+    const _currency      = params.get("currency") || "";
+    const _paymentAmount = params.get("payment_amount") || "";
 
     // 1. Hash doğrulama
     const merchantKey  = process.env.PAYTR_MERCHANT_KEY!;
