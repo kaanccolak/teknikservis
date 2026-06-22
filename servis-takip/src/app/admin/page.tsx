@@ -22,6 +22,7 @@ type AdminStatsResponse = {
     orders: Array<{ id: string }>;
     recentOrders: Array<{ id: string }>;
     lastOrder: Array<{ createdAt: string }>;
+    isExempt: boolean;
   }>;
   totalOrders: number;
   todayOrders: number;
@@ -75,6 +76,20 @@ export default function AdminPage() {
       return;
     await fetch(`/api/admin/shops/${shopId}`, { method: "DELETE" });
     window.location.reload();
+  }
+
+  async function handleExempt(shopId: string, currentExempt: boolean) {
+    if (!confirm(currentExempt ? "Muafiyet kaldırılsın mı?" : "Bu dükkan muaf tutulsun mu?")) return;
+    const res = await fetch(`/api/admin/shops/${shopId}/exempt`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isExempt: !currentExempt }),
+    });
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      alert("Bir hata oluştu.");
+    }
   }
 
   async function handleSendAnnouncement() {
@@ -689,6 +704,22 @@ export default function AdminPage() {
                       ? "👥 Personel Modu Açık"
                       : "👤 Personel Modu Kapalı"}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleExempt(shop.id, shop.isExempt)}
+                    style={{
+                      background: shop.isExempt ? "#fef9c3" : "#f3f4f6",
+                      color: shop.isExempt ? "#ca8a04" : "#6b7280",
+                      border: shop.isExempt ? "1px solid #fde68a" : "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      padding: "4px 10px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {shop.isExempt ? "⭐ Muaf" : "Muaf Değil"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => void handleDelete(shop.id, shop.name)}

@@ -57,6 +57,7 @@ export async function GET() {
       waPhoneNumberId: true,
       userId: true,
       googleAccessToken: true,
+      isExempt: true,
       _count: {
         select: {
           orders: { where: { deletedAt: null } },
