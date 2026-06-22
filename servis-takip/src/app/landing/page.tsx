@@ -1044,6 +1044,8 @@ export default function LandingPage() {
             <a href="/kvkk" className="text-sm text-slate-500 hover:text-slate-700 transition">
               KVKK
             </a>
+            <Link href="/satis-sozlesmesi" style={{ color: "#6b7280", fontSize: "13px" }}>Satış Sözleşmesi</Link>
+            <Link href="/hizmet-teslimat" style={{ color: "#6b7280", fontSize: "13px" }}>Teslimat Koşulları</Link>
           </div>
           <p className="text-center text-xs text-slate-500 sm:text-right">
             © {new Date().getFullYear()} TamirTakip · Tüm hakları saklıdır
