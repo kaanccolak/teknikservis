@@ -16,6 +16,7 @@ import {
   patchServiceOrderSchema,
   type PatchServiceOrderBody,
 } from "@/lib/validation/patch-service-order";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -258,6 +259,9 @@ export async function PATCH(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   const { id } = await context.params;
   if (!id?.trim()) {
@@ -600,6 +604,9 @@ export async function DELETE(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   const { id } = await context.params;
   if (!id?.trim()) {
