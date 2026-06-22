@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import AiAssistant from "@/components/AiAssistant";
@@ -23,6 +23,7 @@ export default function DashboardLayout({
   const [personelGirisModuAktif, setPersonelGirisModuAktif] = useState(false);
   const [personelSecildi, setPersonelSecildi] = useState(false);
   const [ayarYuklendi, setAyarYuklendi] = useState(false);
+  const [abonelikUyari, setAbonelikUyari] = useState(false);
 
   useEffect(() => {
     const aktifPersonel = sessionStorage.getItem("activePersonnelId");
@@ -79,6 +80,21 @@ export default function DashboardLayout({
           const isExempt = (shopData as { isExempt?: boolean }).isExempt;
 
           if (isExempt) return;
+
+          // 3 gün kala popup göster
+          if (trialEndsAt && !isExempt) {
+            const kalan = Math.ceil(
+              (new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+            );
+            if (kalan > 0 && kalan <= 3) {
+              // Bugün zaten gösterildiyse tekrar gösterme
+              const gosterildi = localStorage.getItem("abonelikUyariGun");
+              const bugun = new Date().toDateString();
+              if (gosterildi !== bugun) {
+                setAbonelikUyari(true);
+              }
+            }
+          }
 
           if (subscriptionStatus === "trial" && trialEndsAt) {
             const trialBitis = new Date(trialEndsAt);
@@ -145,6 +161,77 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen overflow-hidden bg-slate-50/80">
+      {abonelikUyari && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "16px",
+        }}>
+          <div style={{
+            background: "white",
+            borderRadius: "16px",
+            padding: "32px 28px",
+            maxWidth: "420px",
+            width: "100%",
+            textAlign: "center",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
+            <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111827", marginBottom: "12px" }}>
+              Aboneliğiniz Dolmak Üzere
+            </h2>
+            <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "24px", lineHeight: 1.6 }}>
+              Aboneliğinizin bitmesine <strong style={{ color: "#dc2626" }}>3 gün veya daha az</strong> kaldı. Kesintisiz kullanım için lütfen planınızı yenileyin.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem("abonelikUyariGun", new Date().toDateString());
+                  setAbonelikUyari(false);
+                  window.location.href = "/paket-sec?yukselt=1";
+                }}
+                style={{
+                  background: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "10px 24px",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Hemen Yenile
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem("abonelikUyariGun", new Date().toDateString());
+                  setAbonelikUyari(false);
+                }}
+                style={{
+                  background: "none",
+                  color: "#6b7280",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  padding: "10px 20px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Daha Sonra
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Sidebar onOneriOpen={() => setOneriOpen(true)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
