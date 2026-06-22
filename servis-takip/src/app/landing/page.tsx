@@ -609,11 +609,11 @@ export default function LandingPage() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Basic</p>
                 <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">{yillikOdeme ? "₺1.000" : "₺100"}</span>
+                  <span className="text-4xl font-bold text-slate-900">{yillikOdeme ? "₺1.300" : "₺130"}</span>
                   <span className="mb-1 text-slate-400 text-sm">{yillikOdeme ? "/yıl" : "/ay"}</span>
                 </div>
                 
-                {yillikOdeme && <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺83 — 2 ay ücretsiz</p>}
+                {yillikOdeme && <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺108 — 2 ay ücretsiz</p>}
                 <p className="mt-4 text-sm text-slate-500">Küçük ve tek kişilik servisler için ideal başlangıç.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Sınırsız cihaz kayıt ve takip</li>
@@ -627,7 +627,7 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Yardım ve Destek AI</li>
                 </ul>
               </div>
-              <button type="button" disabled className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed transition">Çok Yakında</button>
+              <button type="button" onClick={() => router.push('/register')} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Hemen Başla</button>
             </div>
             {/* Premium */}
             <div className="relative rounded-2xl border-2 border-indigo-600 bg-white p-8 shadow-xl flex flex-col">
@@ -637,11 +637,11 @@ export default function LandingPage() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Premium</p>
                 <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">{yillikOdeme ? "₺1.800" : "₺180"}</span>
+                  <span className="text-4xl font-bold text-slate-900">{yillikOdeme ? "₺2.100" : "₺210"}</span>
                   <span className="mb-1 text-slate-400 text-sm">{yillikOdeme ? "/yıl" : "/ay"}</span>
                 </div>
                 
-                {yillikOdeme && <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺150 — 2 ay ücretsiz</p>}
+                {yillikOdeme && <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺175 — 2 ay ücretsiz</p>}
                 <p className="mt-4 text-sm text-slate-500">Büyüyen servisler için ekip ve analiz özellikleri.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Tüm Basic Paket İçeriği</li>
@@ -653,18 +653,18 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-indigo-500">✓</span>Personel yetki ve giriş modu</li>
                 </ul>
               </div>
-              <button type="button" disabled className="mt-8 w-full rounded-xl bg-indigo-300 px-4 py-3 text-sm font-semibold text-white cursor-not-allowed transition shadow-lg">Çok Yakında</button>
+              <button type="button" onClick={() => router.push('/register')} className="mt-8 w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 shadow-lg">Hemen Başla</button>
             </div>
             {/* Enterprise */}
             <div className="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-sm flex flex-col">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Enterprise</p>
                 <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-slate-900">{yillikOdeme ? "₺2.800" : "₺280"}</span>
+                  <span className="text-4xl font-bold text-slate-900">{yillikOdeme ? "₺3.000" : "₺300"}</span>
                   <span className="mb-1 text-slate-400 text-sm">{yillikOdeme ? "/yıl" : "/ay"}</span>
                 </div>
                 
-                {yillikOdeme && <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺233 — 2 ay ücretsiz</p>}
+                {yillikOdeme && <p className="mt-1 text-xs text-emerald-600 font-semibold">Aylık ₺250 — 2 ay ücretsiz</p>}
                 <p className="mt-4 text-sm text-slate-500">Çok personelli ve büyük servisler için tam güç.</p>
                 <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Tüm Premium Paket İçeriği</li>
@@ -674,7 +674,7 @@ export default function LandingPage() {
                   <li className="flex items-start gap-2"><span className="mt-0.5 text-emerald-500">✓</span>Öncelikli destek</li>
                 </ul>
               </div>
-              <button type="button" disabled className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed transition">Çok Yakında</button>
+              <button type="button" onClick={() => router.push('/register')} className="mt-8 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Hemen Başla</button>
             </div>
           </div>
           <p className="mt-8 text-center text-xs text-slate-400">Tüm planlar 30 günlük ücretsiz denemeyle başlar. Kredi kartı gerekmez. İstediğiniz zaman iptal edebilirsiniz.</p>
