@@ -15,11 +15,11 @@ export function parseDatetimeLocal(s: string): Date | null {
   const min = Number(m[5]);
   const d = new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+03:00`);
   if (
-    d.getFullYear() !== y ||
-    d.getMonth() !== mo ||
-    d.getDate() !== day ||
-    d.getHours() !== h ||
-    d.getMinutes() !== min
+    d.getUTCFullYear() !== y ||
+    d.getUTCMonth() !== mo ||
+    d.getUTCDate() !== day ||
+    d.getUTCHours() !== h - 3 ||
+    d.getUTCMinutes() !== min
   ) {
     return null;
   }
