@@ -3801,6 +3801,83 @@ function SirketimPageInner() {
                       </span>
                     </div>
                   ))}
+
+                  {/* Abonelik Bilgileri Kartı */}
+                  <div style={{ marginTop: "32px", border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden" }}>
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: "15px", fontWeight: 600, color: "#111827" }}>Abonelik Bilgileri</div>
+                        <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>Mevcut plan ve yenileme tarihi</div>
+                      </div>
+                      {shop?.subscriptionStatus === "active" && (
+                        <span style={{ background: "#dcfce7", color: "#16a34a", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px" }}>Aktif</span>
+                      )}
+                      {shop?.subscriptionStatus === "trial" && (
+                        <span style={{ background: "#fef9c3", color: "#ca8a04", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px" }}>Deneme</span>
+                      )}
+                      {shop?.subscriptionStatus === "expired" && (
+                        <span style={{ background: "#fee2e2", color: "#dc2626", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px" }}>Süresi Doldu</span>
+                      )}
+                    </div>
+
+                    <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "13px", color: "#9ca3af" }}>Mevcut Plan</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827", textTransform: "capitalize" }}>
+                          {shop?.planType === "trial" ? "Deneme Sürümü" :
+                           shop?.planType === "basic" ? "Basic" :
+                           shop?.planType === "premium" ? "Premium" :
+                           shop?.planType === "enterprise" ? "Enterprise" : "—"}
+                        </span>
+                      </div>
+
+                      {shop?.trialEndsAt && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "13px", color: "#9ca3af" }}>
+                            {shop?.subscriptionStatus === "active" ? "Yenileme Tarihi" : "Deneme Bitiş"}
+                          </span>
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827" }}>
+                            {new Date(shop.trialEndsAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
+                          </span>
+                        </div>
+                      )}
+
+                      {shop?.trialEndsAt && (
+                        (() => {
+                          const kalan = Math.ceil((new Date(shop.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                          return kalan > 0 ? (
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span style={{ fontSize: "13px", color: "#9ca3af" }}>Kalan Süre</span>
+                              <span style={{ fontSize: "13px", fontWeight: 600, color: kalan <= 3 ? "#dc2626" : "#111827" }}>
+                                {kalan} gün
+                              </span>
+                            </div>
+                          ) : null;
+                        })()
+                      )}
+
+                      <div style={{ marginTop: "8px" }}>
+                        <button
+                          type="button"
+                          onClick={() => window.location.href = "/paket-sec?yukselt=1"}
+                          style={{
+                            width: "100%",
+                            padding: "10px",
+                            borderRadius: "8px",
+                            border: "none",
+                            fontSize: "13px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            background: shop?.subscriptionStatus === "active" ? "#f3f4f6" : "#4f46e5",
+                            color: shop?.subscriptionStatus === "active" ? "#374151" : "white",
+                          }}
+                        >
+                          {shop?.subscriptionStatus === "active" ? "⬆ Paket Yükselt / Yenile" : "Paket Seç"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                 </>
               ) : (
                 <>
