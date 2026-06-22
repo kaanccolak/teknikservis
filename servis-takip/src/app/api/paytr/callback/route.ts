@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("PayTR callback geldi:", await req.clone().text());
     const body = await req.text();
     const params = new URLSearchParams(body);
 
