@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { demoGuard } from "@/lib/demo-guard";
 import { getShop } from "@/lib/getShop";
 import { prisma } from "@/lib/prisma";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,10 @@ export async function PATCH(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
+
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
@@ -304,6 +309,10 @@ export async function DELETE(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
+
   try {
     const shop = await getShop();
     if (!shop) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });

@@ -5,6 +5,7 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { SERVICE_ORDER_HIDE_COMPLETED_STATUSES } from "@/lib/service-order-status";
 import { jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 const BAYI_CIRO_STATUSES = [...SERVICE_ORDER_HIDE_COMPLETED_STATUSES];
 
@@ -108,6 +109,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   let body: unknown;
   try {

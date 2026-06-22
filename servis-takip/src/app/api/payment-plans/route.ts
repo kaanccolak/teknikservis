@@ -9,6 +9,7 @@ import {
 } from "@/lib/payment-plan-helpers";
 import { prisma } from "@/lib/prisma";
 import { jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,9 @@ export async function GET(req: Request) {
 export async function POST(request: Request) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   let json: unknown;
   try {

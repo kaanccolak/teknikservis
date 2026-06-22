@@ -6,6 +6,7 @@ import { getOrCreateDefaultShop } from "@/lib/default-shop";
 import { prisma } from "@/lib/prisma";
 import { SERVICE_ORDER_HIDE_COMPLETED_STATUSES } from "@/lib/service-order-status";
 import { jsonServerError } from "@/lib/server-error";
+import { checkSubscription } from "@/lib/checkSubscription";
 
 const BAYI_CIRO_STATUS_SET = new Set<string>(SERVICE_ORDER_HIDE_COMPLETED_STATUSES);
 
@@ -86,6 +87,9 @@ export async function PATCH(
   const guard = await demoGuard();
   if (guard) return guard;
 
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
+
   const { id } = await context.params;
   let body: unknown;
   try {
@@ -165,6 +169,9 @@ export async function DELETE(
 ) {
   const guard = await demoGuard();
   if (guard) return guard;
+
+  const subCheck = await checkSubscription();
+  if (subCheck) return subCheck.error;
 
   const { id } = await context.params;
   const { searchParams } = new URL(request.url);
