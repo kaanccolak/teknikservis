@@ -54,10 +54,16 @@ export async function POST(request: Request) {
   }
 
   try {
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+
     await prisma.shop.create({
       data: {
         name: shopName,
         userId: user.id,
+        planType: "trial",
+        subscriptionStatus: "trial",
+        trialEndsAt,
       },
     });
     invalidateShopCache();
