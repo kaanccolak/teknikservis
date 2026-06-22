@@ -55,6 +55,7 @@ model Shop {
   waTemplates        WaTemplate[]
   personnel          Personnel[]
   announcementReads  AnnouncementRead[]
+  subscriptions      Subscription[]
 }
 
 model Personnel {
@@ -488,4 +489,25 @@ model AnnouncementRead {
   announcement   Announcement @relation(fields: [announcementId], references: [id])
 
   @@unique([shopId, announcementId])
+}
+
+model Subscription {
+  id             String    @id @default(cuid())
+  shopId         String
+  shop           Shop      @relation(fields: [shopId], references: [id])
+  merchantOid    String    @unique
+  planType       String    // "basic" | "premium" | "enterprise"
+  billingCycle   String    // "monthly" | "yearly"
+  amount         Float
+  status         String    @default("pending") // "pending" | "success" | "failed"
+  paytrStatus    String?
+  failReason     String?
+  startsAt       DateTime?
+  endsAt         DateTime?
+  testMode       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([shopId])
+  @@index([merchantOid])
 }
