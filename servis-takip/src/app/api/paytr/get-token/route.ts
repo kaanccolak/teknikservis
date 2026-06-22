@@ -88,8 +88,9 @@ export async function POST(req: NextRequest) {
     const testMode = process.env.PAYTR_TEST_MODE === "1" ? "1" : "0";
     const lang = "tr";
 
-    console.log("PayTR debug:", { merchantId, userIp, merchantOid, userEmail, paymentAmount, noInstallment, maxInstallment, currency, testMode, hashStr: `${merchantId}${userIp}${merchantOid}${userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}` });
-    const hashStr = `${merchantId}${userIp}${merchantOid}${userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
+    const merchantIdInt = String(parseInt(merchantId, 10));
+    const hashStr = `${merchantIdInt}${userIp}${merchantOid}${userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
+    console.log("PayTR hashStr:", hashStr);
     const paytrToken = crypto
       .createHmac("sha256", merchantKey + merchantSalt)
       .update(hashStr)
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     // 10. PayTR'a token isteği gönder
     const params = new URLSearchParams({
-      merchant_id: merchantId,
+      merchant_id: String(parseInt(merchantId, 10)),
       user_ip: userIp,
       merchant_oid: merchantOid,
       email: userEmail,
@@ -124,8 +125,8 @@ export async function POST(req: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
+    console.log("PayTR response raw:", await paytrRes.clone().text());
     const paytrData = await paytrRes.json();
-    console.log("PayTR response:", JSON.stringify(paytrData));
 
     if (paytrData.status !== "success") {
       // Pending kaydı failed yap
