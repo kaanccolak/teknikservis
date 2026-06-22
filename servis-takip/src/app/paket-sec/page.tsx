@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 const paketler = [
   {
     ad: "Basic",
-    aylik: 100,
-    yillik: 1000,
+    aylik: 130,
+    yillik: 1300,
     aciklama: "Küçük ve tek kişilik servisler için ideal başlangıç.",
     ozellikler: [
       "Sınırsız cihaz kayıt ve takip",
@@ -25,8 +25,8 @@ const paketler = [
   },
   {
     ad: "Premium",
-    aylik: 180,
-    yillik: 1800,
+    aylik: 210,
+    yillik: 2100,
     aciklama: "Büyüyen servisler için ekip ve analiz özellikleri.",
     rozet: "En Çok Tercih Edilen",
     ozellikler: [
@@ -43,8 +43,8 @@ const paketler = [
   },
   {
     ad: "Enterprise",
-    aylik: 280,
-    yillik: 2800,
+    aylik: 300,
+    yillik: 3000,
     aciklama: "Çok personelli ve büyük servisler için tam güç.",
     ozellikler: [
       "Tüm Premium Paket İçeriği",
@@ -61,13 +61,37 @@ const paketler = [
 export default function PaketSecPage() {
   const router = useRouter();
   const [yillik, setYillik] = useState(false);
-  const [secilen, setSecilen] = useState<string | null>(null);
+  const [yukleniyor, setYukleniyor] = useState<string | null>(null);
+  const [iframeToken, setIframeToken] = useState<string | null>(null);
+  const [hata, setHata] = useState<string | null>(null);
 
   async function handlePaketSec(planType: string) {
-    setSecilen(planType);
-    // İleride iyzico entegrasyonu burada devreye girecek
-    // Şimdilik bilgi ekranı göster
-    setTimeout(() => setSecilen(null), 2000);
+    setYukleniyor(planType);
+    setHata(null);
+
+    try {
+      const res = await fetch("/api/paytr/get-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planType,
+          billingCycle: yillik ? "yearly" : "monthly",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.token) {
+        setHata(data.error || "Ödeme başlatılamadı. Lütfen tekrar deneyin.");
+        return;
+      }
+
+      setIframeToken(data.token);
+    } catch {
+      setHata("Sunucu hatası. Lütfen tekrar deneyin.");
+    } finally {
+      setYukleniyor(null);
+    }
   }
 
   async function handleCikis() {
@@ -80,9 +104,7 @@ export default function PaketSecPage() {
     <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
       {/* Üst bar */}
       <div style={{ background: "white", borderBottom: "1px solid #e5e7eb", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "20px", fontWeight: 800, color: "#4f46e5" }}>TamirTakip</span>
-        </div>
+        <span style={{ fontSize: "20px", fontWeight: 800, color: "#4f46e5" }}>TamirTakip</span>
         <button
           type="button"
           onClick={() => void handleCikis()}
@@ -131,12 +153,12 @@ export default function PaketSecPage() {
                 fontSize: "14px",
                 fontWeight: 600,
                 cursor: "pointer",
-                background: yillik ? "white" : "transparent",
-                color: yillik ? "#111827" : "#6b7280",
-                boxShadow: yillik ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
+                background: yillik ? "white" : "transparent",
+                color: yillik ? "#111827" : "#6b7280",
+                boxShadow: yillik ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
               }}
             >
               Yıllık
@@ -146,6 +168,13 @@ export default function PaketSecPage() {
             </button>
           </div>
         </div>
+
+        {/* Hata mesajı */}
+        {hata && (
+          <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", marginBottom: "24px", textAlign: "center", fontSize: "14px", color: "#dc2626" }}>
+            {hata}
+          </div>
+        )}
 
         {/* Paket kartları */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
@@ -197,29 +226,25 @@ export default function PaketSecPage() {
                 ))}
               </ul>
 
-              {secilen === paket.planType ? (
-                <div style={{ width: "100%", padding: "12px", borderRadius: "10px", background: "#f0fdf4", border: "1px solid #bbf7d0", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#16a34a" }}>
-                  ✓ Talebiniz alındı! Ekibimiz sizinle iletişime geçecek.
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => void handlePaketSec(paket.planType)}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    borderRadius: "10px",
-                    border: "none",
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    background: paket.vurgu ? "#4f46e5" : "#111827",
-                    color: "white",
-                  }}
-                >
-                  Bu Planı Seç
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => void handlePaketSec(paket.planType)}
+                disabled={yukleniyor !== null}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "none",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  cursor: yukleniyor !== null ? "not-allowed" : "pointer",
+                  background: paket.vurgu ? "#4f46e5" : "#111827",
+                  color: "white",
+                  opacity: yukleniyor !== null && yukleniyor !== paket.planType ? 0.5 : 1,
+                }}
+              >
+                {yukleniyor === paket.planType ? "Yükleniyor..." : "Bu Planı Seç"}
+              </button>
             </div>
           ))}
         </div>
@@ -232,6 +257,56 @@ export default function PaketSecPage() {
           adresine yazabilirsiniz.
         </p>
       </div>
+
+      {/* PayTR iFrame Modal */}
+      {iframeToken && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+          }}
+          onClick={() => setIframeToken(null)}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "16px",
+              padding: "24px",
+              width: "100%",
+              maxWidth: "520px",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <span style={{ fontWeight: 700, fontSize: "16px", color: "#111827" }}>Güvenli Ödeme</span>
+              <button
+                type="button"
+                onClick={() => setIframeToken(null)}
+                style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#6b7280", lineHeight: 1 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* PayTR iFrame */}
+            <script src="https://www.paytr.com/js/iframeResizer.min.js" async />
+            <iframe
+              src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
+              id="paytriframe"
+              frameBorder={0}
+              scrolling="no"
+              style={{ width: "100%", minHeight: "500px" }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
