@@ -1,7 +1,9 @@
 /** `datetime-local` değeri: YYYY-MM-DDTHH:mm (yerel saat) */
 export function toDatetimeLocalValue(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // UTC+3 (Türkiye) saatini hesapla
+  const tr = new Date(d.getTime() + 3 * 60 * 60 * 1000);
+  return `${tr.getUTCFullYear()}-${pad(tr.getUTCMonth() + 1)}-${pad(tr.getUTCDate())}T${pad(tr.getUTCHours())}:${pad(tr.getUTCMinutes())}`;
 }
 
 /** Yerel takvim/saat bileşenlerinden Date; geçersiz takvim günü → null */
