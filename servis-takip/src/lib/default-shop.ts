@@ -43,7 +43,13 @@ export async function getOrCreateDefaultShop(): Promise<Shop> {
           : DEFAULT_SHOP_NAME;
 
       shop = await prisma.shop.create({
-        data: { name: shopName, userId: user.id },
+        data: {
+          name: shopName,
+          userId: user.id,
+          planType: "trial",
+          subscriptionStatus: "trial",
+          trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
       });
       setShopCache(shop);
       return shop;
@@ -73,7 +79,12 @@ export async function getOrCreateDefaultShop(): Promise<Shop> {
 
   try {
     const created = await prisma.shop.create({
-      data: { name: DEFAULT_SHOP_NAME },
+      data: {
+        name: DEFAULT_SHOP_NAME,
+        planType: "trial",
+        subscriptionStatus: "trial",
+        trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
     });
     setShopCache(created);
     return created;
