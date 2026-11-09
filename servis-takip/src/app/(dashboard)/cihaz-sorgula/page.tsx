@@ -46,6 +46,12 @@ type ServiceOrderListRow = {
   brand: Named | null;
   deviceModel: Named | null;
   statusLogs?: { createdAt: string; newStatus: string }[];
+  complaint: string | null;
+  repairDetails: string | null;
+  technicianNote: string | null;
+  physicalDamage: string | null;
+  totalPrice: number | null;
+  arrivedByCargo: boolean;
 };
 type ServiceOrderListResponse = {
   orders: ServiceOrderListRow[];
@@ -315,6 +321,12 @@ function CihazSorgulaInner() {
       "Model",
       "Seri No",
       "Durum",
+      "Şikayet / Arıza",
+      "Yapılan Onarım",
+      "Teknisyen Notu",
+      "Fiziksel Hasar",
+      "Toplam Fiyat",
+      "Kargo ile Geldi",
     ];
     const lines = [
       headers.map(csvEscape).join(";"),
@@ -330,6 +342,12 @@ function CihazSorgulaInner() {
           csvEscape(r.deviceModel?.name ?? r.modelName ?? ""),
           csvEscape(r.serialNo ?? ""),
           csvEscape(serviceOrderStatusLabel(r.status)),
+          csvEscape(r.complaint ?? ""),
+          csvEscape(r.repairDetails ?? ""),
+          csvEscape(r.technicianNote ?? ""),
+          csvEscape(r.physicalDamage ?? ""),
+          csvEscape(r.totalPrice != null ? String(r.totalPrice) : ""),
+          csvEscape(r.arrivedByCargo ? "Evet" : "Hayır"),
         ].join(";"),
       ),
     ];
