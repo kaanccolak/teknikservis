@@ -93,6 +93,17 @@ export default function RootLayout({
       className={cn(geistSans.variable, geistMono.variable, "font-sans")}
     >
       <head>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtm.js?id=GTM-WP5V8WWH"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());`,
+          }}
+        />
         <link
           rel="preload"
           href="/_next/static/media/8e9860b6e62d6359-s.woff2"
