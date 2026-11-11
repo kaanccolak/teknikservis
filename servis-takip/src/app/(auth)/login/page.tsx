@@ -127,6 +127,17 @@ function LoginPageContent() {
       },
     });
 
+    // Telegram bildirimi gönder (arka planda, hata kayıt işlemini engellemez)
+    fetch("/api/notify/new-register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shopName: nameTrim,
+        email: registerEmail,
+        phone: "+90" + registerPhone,
+      }),
+    }).catch(() => {});
+
     if (error) {
       setRegisterLoading(false);
       toast.error(error.message);
