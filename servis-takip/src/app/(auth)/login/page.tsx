@@ -31,6 +31,7 @@ function LoginPageContent() {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerPasswordRepeat, setRegisterPasswordRepeat] = useState("");
+  const [registerPhone, setRegisterPhone] = useState("");
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [kvkkOnay, setKvkkOnay] = useState(false);
@@ -104,6 +105,10 @@ function LoginPageContent() {
       toast.error("Şifre en az 6 karakter olmalıdır.");
       return;
     }
+    if (registerPhone.length < 10) {
+      toast.error("Geçerli bir telefon numarası girin.");
+      return;
+    }
 
     setRegisterLoading(true);
 
@@ -114,10 +119,11 @@ function LoginPageContent() {
       email: emailTrim,
       password: passwordTrim,
       options: {
-        emailRedirectTo: "https://www.tamirtakip.com.tr/email-dogrulama",
         data: {
           shop_name: nameTrim,
+          phone: "+90" + registerPhone,
         },
+        emailRedirectTo: "https://www.tamirtakip.com.tr/email-dogrulama",
       },
     });
 
@@ -528,6 +534,29 @@ function LoginPageContent() {
                 disabled={registerLoading}
                 className="border-neutral-300"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="register-phone">Telefon Numarası</Label>
+              <div style={{ display: "flex", alignItems: "center", border: "1px solid #d1d5db", borderRadius: "6px", overflow: "hidden" }}>
+                <span style={{ padding: "10px 12px", background: "#f3f4f6", color: "#374151", fontSize: "14px", borderRight: "1px solid #d1d5db", whiteSpace: "nowrap" }}>
+                  +90
+                </span>
+                <input
+                  id="register-phone"
+                  type="tel"
+                  value={registerPhone}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    setRegisterPhone(val);
+                  }}
+                  placeholder="5xxxxxxxxx"
+                  required
+                  disabled={registerLoading}
+                  maxLength={10}
+                  style={{ border: "none", outline: "none", padding: "10px 12px", fontSize: "14px", width: "100%", background: "white" }}
+                />
+              </div>
+              <p style={{ fontSize: "12px", color: "#9ca3af" }}>Örn: 5321234567</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="register-email">E-posta</Label>
