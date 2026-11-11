@@ -66,6 +66,28 @@ export async function POST(request: Request) {
         trialEndsAt,
       },
     });
+    // Telegram bildirimi gönder
+    try {
+      const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
+      const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+      if (telegramToken && telegramChatId) {
+        const phone = user.user_metadata?.phone ?? "Belirtilmedi";
+        const email = user.email ?? "Belirtilmedi";
+        const message = `🆕 *Yeni Kayıt!*\n\n🏪 *Dükkan:* ${shopName}\n📧 *E-posta:* ${email}\n📱 *Telefon:* ${phone}\n⏰ *Tarih:* ${new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}`;
+        await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: telegramChatId,
+            text: message,
+            parse_mode: "Markdown",
+          }),
+        });
+      }
+    } catch (telegramError) {
+      console.error("[Telegram bildirimi gönderilemedi]", telegramError);
+      // Telegram hatası kayıt işlemini engellemez
+    }
     invalidateShopCache();
     return NextResponse.json({ ok: true });
   } catch (e) {
