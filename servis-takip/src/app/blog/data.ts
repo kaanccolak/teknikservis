@@ -9,6 +9,60 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "laptop-tamiri-icin-stok-takip-programi",
+    title: "Laptop Tamiri Yapan Servisler İçin Stok Takip Programı",
+    description: "Laptop tamiri yapan teknik servislerde yedek parça stok yönetimi nasıl yapılır, hangi program kullanılmalı?",
+    date: "10 Kasım 2026",
+    readTime: "4 dk okuma",
+    content: `
+    <p>Laptop tamiri yapan bir servis için en büyük zorluklardan biri yedek parça stoğunu doğru yönetmektir. Yanlış stok takibi hem maddi kayba hem de müşteri memnuniyetsizliğine yol açar.</p>
+    <h2>Stok Takibi Neden Bu Kadar Önemli?</h2>
+    <p>Bir laptop servisi günde onlarca farklı model ve marka cihazla ilgilenmek zorundadır. Her modelin ekranı, bataryası, klavyesi farklıdır. Manuel takip yapıldığında ya fazla stok tutulur ya da ihtiyaç anında parça bulunamaz. Her iki durumda da para kaybı kaçınılmazdır.</p>
+    <h2>Dijital Stok Takibinin Avantajları</h2>
+    <p>Dijital bir stok takip programı kullanıldığında servis kaydına parça eklendiğinde stok otomatik olarak düşer. Kritik stok seviyesine ulaşan parçalar için uyarı alınabilir. Hangi parçanın ne kadar kullanıldığı raporlanabilir. Bu sayede gereksiz stok birikmesi ve parça eksikliği sorunlarının önüne geçilir.</p>
+    <h2>Servis Kaydıyla Entegre Stok Yönetimi</h2>
+    <p>En verimli yöntem stok takibinin servis kaydıyla entegre çalışmasıdır. Teknisyen servise gelen laptopa hangi parçaları taktığını kayıt sırasında seçer ve stok otomatik güncellenir. Bu hem hız sağlar hem de insan hatasını ortadan kaldırır.</p>
+    <h2>TamirTakip ile Laptop Servisi Stok Yönetimi</h2>
+    <p>TamirTakip'in stok yönetimi modülü laptop servisleri için özel olarak tasarlanmıştır. Servis kaydına parça eklediğinizde stok anında güncellenir, raporlar sayesinde en çok kullanılan parçaları takip edebilir ve tedarik planlamanızı buna göre yapabilirsiniz.</p>
+  `
+  },
+  {
+    slug: "teknik-serviste-musteri-sikayetleri-yonetimi",
+    title: "Teknik Serviste Müşteri Şikayetleri Nasıl Yönetilir?",
+    description: "Teknik servis işletmelerinde müşteri şikayetlerini azaltmanın ve memnuniyeti artırmanın pratik yolları.",
+    date: "9 Kasım 2026",
+    readTime: "3 dk okuma",
+    content: `
+    <p>Teknik servis sektöründe müşteri şikayetlerinin büyük çoğunluğu aslında teknik sorunlardan değil, iletişim eksikliğinden kaynaklanır. Müşteri cihazının ne durumda olduğunu bilmek ister.</p>
+    <h2>En Yaygın Şikayet Nedenleri</h2>
+    <p>Teknik servis müşterilerinin en sık şikayet ettiği konuların başında cihazın ne zaman hazır olacağı bilgisinin verilmemesi gelir. Bunun yanı sıra fiyat sürprizleri, cihazın kaybolması ya da karışması ve telefon aramalarına geç dönülmesi de sık karşılaşılan sorunlardandır.</p>
+    <h2>Proaktif İletişim Şikayetleri Önler</h2>
+    <p>Müşteri şikayetlerini azaltmanın en etkili yolu proaktif iletişimdir. Cihaz servise kabul edildiğinde, tamir durumu değiştiğinde ve cihaz teslime hazır olduğunda müşteriyi otomatik olarak bilgilendirmek şikayetlerin büyük bölümünü ortadan kaldırır.</p>
+    <h2>WhatsApp Bildirimleriyle Müşteri Memnuniyeti</h2>
+    <p>Günümüzde müşterilerin en hızlı ulaştığı iletişim kanalı WhatsApp'tır. Servis durumu değiştiğinde otomatik WhatsApp mesajı gönderen bir sistem hem müşteriyi bilgilendirir hem de servis personelinin telefon trafiğini önemli ölçüde azaltır.</p>
+    <h2>TamirTakip ile Şikayet Yönetimi</h2>
+    <p>TamirTakip'in otomatik WhatsApp bildirim sistemi sayesinde müşterileriniz cihazlarının durumunu anlık olarak takip edebilir. 14 farklı servis durumu için özelleştirilebilir mesaj şablonları ile her aşamada doğru mesajı otomatik olarak iletebilirsiniz.</p>
+  `
+  },
+  {
+    slug: "beyaz-esya-tamiri-servis-takip-sistemi",
+    title: "Beyaz Eşya Tamircileri İçin Dijital Servis Takip Sistemi",
+    description: "Beyaz eşya tamiri yapan servisler için dijital kayıt ve takip sisteminin faydaları ve doğru yazılım seçimi.",
+    date: "8 Kasım 2026",
+    readTime: "4 dk okuma",
+    content: `
+    <p>Beyaz eşya tamiri yapan servisler çoğunlukla kağıt defter veya Excel ile kayıt tutmaktadır. Bu yöntemler küçük ölçekte işe yarasa da iş büyüdükçe ciddi sorunlara yol açmaktadır.</p>
+    <h2>Kağıt Defterin Sınırları</h2>
+    <p>Kağıt defterde tutulan kayıtlarda müşteri araması geldiğinde cihazı bulmak zaman alır. Teknisyen sahaya çıktığında hangi işi yapacağını bilmek için servise gelmek zorunda kalır. Yıl sonunda ne kadar ciro yapıldığını hesaplamak güçleşir. Üstelik defter kaybolursa tüm geçmiş kayıtlar yok olur.</p>
+    <h2>Dijital Sisteme Geçişin Faydaları</h2>
+    <p>Dijital bir servis takip sistemiyle müşteri adı ya da telefon numarasıyla saniyeler içinde kayıt bulunabilir. Teknisyenler sahadan telefon veya tabletten sisteme erişebilir. Aylık ve yıllık ciro raporları otomatik olarak hazırlanır. Tüm veriler bulutta yedeklendiği için kayıp riski sıfıra iner.</p>
+    <h2>Beyaz Eşya Servisine Özel İhtiyaçlar</h2>
+    <p>Beyaz eşya servisleri telefon tamircilerinden farklı ihtiyaçlara sahiptir. Ev ziyareti takibi, parça sipariş yönetimi ve yetkili servis entegrasyonu bu ihtiyaçların başında gelir. Doğru bir yazılım bu süreçlerin tamamını tek platformda yönetmeye imkan tanır.</p>
+    <h2>TamirTakip ile Beyaz Eşya Servisi Yönetimi</h2>
+    <p>TamirTakip yalnızca telefon tamircileri için değil, her türlü teknik servis için tasarlanmıştır. Çamaşır makinesi, buzdolabı, klima ve diğer beyaz eşya servisleri TamirTakip ile cihaz kaydından teslimata kadar tüm süreci dijital ortamda yönetebilir.</p>
+  `
+  },
+  {
     slug: "telefon-tamircileri-icin-musteri-takip-programi",
     title: "Telefon Tamircileri İçin Müşteri Takip Programı Nasıl Olmalı?",
     description:
