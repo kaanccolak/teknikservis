@@ -98,7 +98,7 @@ export async function POST(req: Request) {
     };
 
     if (!response.ok || data.error) {
-      console.error("Groq error:", data.error);
+      console.error("Gemini error:", JSON.stringify(data));
       return NextResponse.json(
         { error: data.error?.message ?? "Yapay zeka hatası" },
         { status: 500 },
