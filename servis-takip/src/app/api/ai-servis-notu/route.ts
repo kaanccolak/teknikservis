@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Metin gerekli" }, { status: 400 });
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "API key bulunamadı" }, { status: 500 });
     }
@@ -44,36 +44,30 @@ export async function POST(req: Request) {
          - Teknik detayları koru
          - Sadece düzenlenmiş metni döndür, açıklama yapma`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Ham metin: "${hamMetin}"` },
-        ],
-        temperature: 0.3,
-        max_tokens: 256,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\nHam metin: "${hamMetin}"` }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+      }
+    );
 
     const data = (await response.json()) as {
-      choices?: { message: { content: string } }[];
+      candidates?: { content: { parts: { text: string }[] } }[];
       error?: { message: string };
     };
-
     if (!response.ok || data.error) {
+      console.error("Gemini error:", JSON.stringify(data));
       return NextResponse.json(
-        { error: data.error?.message ?? "Düzenleme başarısız" },
+        { error: "Yapay zeka hatası" },
         { status: 500 },
       );
     }
-
-    const text = data.choices?.[0]?.message?.content ?? "";
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     return NextResponse.json({ text });
   } catch (error) {
     console.error("AI servis notu error:", error);

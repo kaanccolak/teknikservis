@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     const ort = Math.round(fiyatlar.reduce((a, b) => a + b, 0) / fiyatlar.length);
     const benzerlikTuru = yuksekBenzerlik.length >= 2 ? "arıza" : "cihaz";
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "API key bulunamadı" }, { status: 500 });
     }
@@ -139,43 +139,35 @@ export async function POST(req: Request) {
       })
       .join("\n");
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Sen teknik servis fiyat analizisti. Sana geçmiş kayıtlar verilecek. Kısa bir değerlendirme yaz. Türkçe, max 40 kelime, sadece açıklama yaz.",
-          },
-          {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
             role: "user",
-            content: `Cihaz: ${cihaz}\nŞikayet: ${sikayet}\n\nBenzer geçmiş kayıtlar:\n${ornekler}\n\nFiyat aralığı: ${min}₺ - ${max}₺, ortalama: ${ort}₺\n\nBu verilere dayanarak kısa bir değerlendirme yap.`,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 100,
-      }),
-    });
+            parts: [{
+              text: `Sen teknik servis fiyat analizisti. Sana geçmiş kayıtlar verilecek. Kısa bir değerlendirme yaz. Türkçe, max 40 kelime, sadece açıklama yaz.\n\nCihaz: ${cihaz}\nŞikayet: ${sikayet}\n\nBenzer geçmiş kayıtlar:\n${ornekler}\n\nFiyat aralığı: ${min}₺ - ${max}₺, ortalama: ${ort}₺\n\nBu verilere dayanarak kısa bir değerlendirme yap.`,
+            }],
+          }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+      }
+    );
 
     const data = (await response.json()) as {
-      choices?: { message: { content: string } }[];
+      candidates?: { content: { parts: { text: string }[] } }[];
       error?: { message: string };
     };
-
     if (!response.ok || data.error) {
+      console.error("Gemini error:", JSON.stringify(data));
       return NextResponse.json(
-        { error: data.error?.message ?? "Öneri yapılamadı" },
+        { error: "Yapay zeka hatası" },
         { status: 500 },
       );
     }
-
-    const aciklama = data.choices?.[0]?.message?.content ?? "";
+    const aciklama = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     return NextResponse.json({
       text: aciklama,

@@ -113,7 +113,7 @@ export async function POST() {
           .join(" ") || "Belirtilmemiş"
       : null;
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "API key bulunamadı" }, { status: 500 });
 
     const veri = {
@@ -130,35 +130,35 @@ export async function POST() {
           : "Veri yok",
     };
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          {
-            role: "system",
-            content: `Sen bir teknik servis danışmanısın. Verilen haftalık performans verilerini analiz edip samimi, kısa ve motive edici bir özet yaz. Türkçe yaz. Maksimum 80 kelime. Rakamları tekrar etme, yorum yap ve öneri ver.`,
-          },
-          {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
             role: "user",
-            content: `Geçen hafta (${veri.hafta}) verileri:\n- Yeni kayıt: ${veri.yeniKayit}\n- Teslim edilen: ${veri.teslimEdilen}\n- Ciro: ${veri.ciro}\n- En çok gelen cihazlar: ${veri.enCokCihazlar}\n- Ortalama tamir süresi: ${veri.ortTamirSuresi}\n- Önceki haftadan kalan bekleyen kayıt: ${veri.bekleyenEskiKayit}\n- En karlı iş: ${veri.enKarliIs}\n\nBu verileri değerlendir.`,
-          },
-        ],
-        temperature: 0.6,
-        max_tokens: 150,
-      }),
-    });
+            parts: [{
+              text: `Sen bir teknik servis danışmanısın. Verilen haftalık performans verilerini analiz edip samimi, kısa ve motive edici bir özet yaz. Türkçe yaz. Maksimum 80 kelime. Rakamları tekrar etme, yorum yap ve öneri ver.\n\nGeçen hafta (${veri.hafta}) verileri:\n- Yeni kayıt: ${veri.yeniKayit}\n- Teslim edilen: ${veri.teslimEdilen}\n- Ciro: ${veri.ciro}\n- En çok gelen cihazlar: ${veri.enCokCihazlar}\n- Ortalama tamir süresi: ${veri.ortTamirSuresi}\n- Önceki haftadan kalan bekleyen kayıt: ${veri.bekleyenEskiKayit}\n- En karlı iş: ${veri.enKarliIs}\n\nBu verileri değerlendir.`,
+            }],
+          }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+      }
+    );
 
     const data = (await response.json()) as {
-      choices?: { message: { content: string } }[];
+      candidates?: { content: { parts: { text: string }[] } }[];
       error?: { message: string };
     };
-
-    const aiYorum = data.choices?.[0]?.message?.content ?? "";
+    if (!response.ok || data.error) {
+      console.error("Gemini error:", JSON.stringify(data));
+      return NextResponse.json(
+        { error: "Yapay zeka hatası" },
+        { status: 500 },
+      );
+    }
+    const aiYorum = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     return NextResponse.json({ ...veri, aiYorum });
   } catch (error) {
