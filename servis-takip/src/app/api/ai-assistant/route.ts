@@ -77,28 +77,28 @@ export async function POST(req: Request) {
       content: m.parts[0].text,
     }));
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gemini-3.8-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...groqMessages,
-        ],
-        temperature: 0.7,
-        max_tokens: 1024,
-      }),
-    });
+    const contents = groqMessages.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        }),
+      }
+    );
 
     const data = (await response.json()) as {
-      choices?: { message: { content: string } }[];
+      candidates?: { content: { parts: { text: string }[] } }[];
       error?: { message: string };
     };
-
     if (!response.ok || data.error) {
       console.error("Gemini error:", JSON.stringify(data));
       return NextResponse.json(
@@ -106,8 +106,7 @@ export async function POST(req: Request) {
         { status: 500 },
       );
     }
-
-    const text = data.choices?.[0]?.message?.content ?? "";
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     return NextResponse.json({ text });
   } catch (error) {
     console.error("AI assistant error:", error);
