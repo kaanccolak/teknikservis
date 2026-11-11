@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getShop } from "@/lib/getShop";
 import { checkSubscription } from "@/lib/checkSubscription";
 
+export const maxDuration = 30;
+
 export const dynamic = "force-dynamic";
 
 const SYSTEM_PROMPT = `Sen TamirTakip uygulamasının yapay zeka asistanısın. TamirTakip, Türkiye'deki teknik servisler için geliştirilmiş bir SaaS yönetim uygulamasıdır.
