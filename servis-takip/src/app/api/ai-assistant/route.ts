@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model: "gemini-3.8-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...groqMessages,
