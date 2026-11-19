@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: ["/", "/landing", "/login"],
-      disallow: ["/api/", "/dashboard/"],
+      disallow: ["/api/", "/admin"],
     },
     sitemap: "https://www.tamirtakip.com.tr/sitemap.xml",
   };

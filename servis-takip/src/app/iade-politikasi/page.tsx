@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  title: "İade Politikası | TamirTakip",
+  description: "TamirTakip abonelik iptali ve iade koşulları.",
   alternates: { canonical: "/iade-politikasi" },
+  openGraph: {
+    title: "İade Politikası | TamirTakip",
+    description: "TamirTakip abonelik iptali ve iade koşulları.",
+    url: "/iade-politikasi",
+    siteName: "TamirTakip",
+    locale: "tr_TR",
+    type: "website",
+  },
 };
 
 export default function IadePolitikasiPage() {

@@ -15,7 +15,7 @@ export async function generateMetadata({
   const post = blogPosts.find((p) => p.slug === slug);
   if (!post) return {};
   return {
-    title: `${post.title} | TamirTakip Blog`,
+    title: `${post.title} | TamirTakip`,
     description: post.description,
     alternates: { canonical: `/blog/${slug}` },
     openGraph: {

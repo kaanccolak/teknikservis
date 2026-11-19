@@ -2,7 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  title: "KVKK Aydınlatma Metni | TamirTakip",
+  description: "TamirTakip kişisel verilerin korunması kanunu aydınlatma metni.",
   alternates: { canonical: "/kvkk" },
+  openGraph: {
+    title: "KVKK Aydınlatma Metni | TamirTakip",
+    description: "TamirTakip kişisel verilerin korunması kanunu aydınlatma metni.",
+    url: "/kvkk",
+    siteName: "TamirTakip",
+    locale: "tr_TR",
+    type: "website",
+  },
 };
 
 export default function KVKKPage() {

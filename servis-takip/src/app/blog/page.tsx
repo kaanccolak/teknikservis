@@ -2,11 +2,19 @@ import Link from "next/link";
 import { blogPosts } from "./data";
 
 export const metadata = {
-  title: "Blog | TamirTakip",
+  title: "Teknik Servis Yönetimi Blogu | TamirTakip",
   description:
     "Teknik servis yönetimi, cihaz takibi ve servis yazılımı hakkında faydalı yazılar.",
   alternates: { canonical: "/blog" },
-  openGraph: { url: "/blog" },
+  openGraph: {
+    title: "Teknik Servis Yönetimi Blogu | TamirTakip",
+    description:
+      "Teknik servis yönetimi, cihaz takibi ve servis yazılımı hakkında faydalı yazılar.",
+    url: "/blog",
+    siteName: "TamirTakip",
+    locale: "tr_TR",
+    type: "website" as const,
+  },
 };
 
 export default function BlogPage() {

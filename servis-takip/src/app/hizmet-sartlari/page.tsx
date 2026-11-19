@@ -2,8 +2,17 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Hizmet Şartları — TamirTakip",
+  title: "Hizmet Şartları | TamirTakip",
+  description: "TamirTakip kullanım şartları ve hizmet koşulları.",
   alternates: { canonical: "/hizmet-sartlari" },
+  openGraph: {
+    title: "Hizmet Şartları | TamirTakip",
+    description: "TamirTakip kullanım şartları ve hizmet koşulları.",
+    url: "/hizmet-sartlari",
+    siteName: "TamirTakip",
+    locale: "tr_TR",
+    type: "website",
+  },
 }
 
 export default function HizmetSartlariPage() {

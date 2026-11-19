@@ -2,8 +2,17 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Gizlilik Politikası — TamirTakip",
+  title: "Gizlilik Politikası | TamirTakip",
+  description: "TamirTakip gizlilik politikası ve kişisel veri işleme koşulları.",
   alternates: { canonical: "/gizlilik-politikasi" },
+  openGraph: {
+    title: "Gizlilik Politikası | TamirTakip",
+    description: "TamirTakip gizlilik politikası ve kişisel veri işleme koşulları.",
+    url: "/gizlilik-politikasi",
+    siteName: "TamirTakip",
+    locale: "tr_TR",
+    type: "website",
+  },
 }
 
 export default function GizlilikPolitikasiPage() {
