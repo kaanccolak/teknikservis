@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Hizmet Şartları — TamirTakip",
+  alternates: { canonical: "/hizmet-sartlari" },
 }
 
 export default function HizmetSartlariPage() {

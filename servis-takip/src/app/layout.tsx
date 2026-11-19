@@ -51,12 +51,11 @@ export const metadata: Metadata = {
     shortcut: "/icon.svg",
     apple: "/icon.svg",
   },
-  metadataBase: new URL("https://tamirtakip.com.tr"),
+  metadataBase: new URL("https://www.tamirtakip.com.tr"),
   openGraph: {
     title: "TamirTakip — Teknik Servis Takip Programı",
     description:
       "Teknik servisler için online cihaz kayıt, takip ve WhatsApp bildirim platformu.",
-    url: "https://tamirtakip.com.tr",
     siteName: "TamirTakip",
     locale: "tr_TR",
     type: "website",
@@ -74,9 +73,6 @@ export const metadata: Metadata = {
       index: true,
       follow: true,
     },
-  },
-  alternates: {
-    canonical: "https://tamirtakip.com.tr",
   },
   verification: {
     google: "acF0jejAxOq2qcKxmXaCisP1QTv9z6we4zw9i0P4aUE",

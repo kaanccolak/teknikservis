@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/iade-politikasi" },
+};
+
 export default function IadePolitikasiPage() {
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "48px 24px", fontFamily: "sans-serif" }}>

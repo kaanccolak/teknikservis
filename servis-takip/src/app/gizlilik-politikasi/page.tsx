@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Gizlilik Politikası — TamirTakip",
+  alternates: { canonical: "/gizlilik-politikasi" },
 }
 
 export default function GizlilikPolitikasiPage() {

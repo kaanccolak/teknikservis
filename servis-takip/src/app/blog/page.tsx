@@ -5,6 +5,8 @@ export const metadata = {
   title: "Blog | TamirTakip",
   description:
     "Teknik servis yönetimi, cihaz takibi ve servis yazılımı hakkında faydalı yazılar.",
+  alternates: { canonical: "/blog" },
+  openGraph: { url: "/blog" },
 };
 
 export default function BlogPage() {
