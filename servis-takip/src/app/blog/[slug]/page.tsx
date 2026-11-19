@@ -2,6 +2,28 @@ import Link from "next/link";
 import { blogPosts } from "../data";
 import { notFound } from "next/navigation";
 
+const TURKISH_MONTHS: Record<string, string> = {
+  Ocak: "01",
+  Şubat: "02",
+  Mart: "03",
+  Nisan: "04",
+  Mayıs: "05",
+  Haziran: "06",
+  Temmuz: "07",
+  Ağustos: "08",
+  Eylül: "09",
+  Ekim: "10",
+  Kasım: "11",
+  Aralık: "12",
+};
+
+function toIsoDate(date: string): string {
+  const [day, month, year] = date.split(" ");
+  const monthNumber = TURKISH_MONTHS[month];
+  if (!day || !monthNumber || !year) return date;
+  return `${year}-${monthNumber}-${day.padStart(2, "0")}`;
+}
+
 export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
@@ -36,8 +58,63 @@ export default async function BlogPostPage({
   const post = blogPosts.find((p) => p.slug === slug);
   if (!post) notFound();
 
+  const pageUrl = `https://www.tamirtakip.com.tr/blog/${slug}`;
+  const published = toIsoDate(post.date);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BlogPosting",
+        headline: post.title,
+        description: post.description,
+        datePublished: published,
+        dateModified: published,
+        inLanguage: "tr",
+        author: { "@type": "Person", name: "TamirTakip" },
+        publisher: {
+          "@type": "Organization",
+          name: "TamirTakip",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://www.tamirtakip.com.tr/logo.png",
+          },
+        },
+        mainEntityOfPage: pageUrl,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Ana Sayfa",
+            item: "https://www.tamirtakip.com.tr/landing",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Blog",
+            item: "https://www.tamirtakip.com.tr/blog",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: post.title,
+            item: pageUrl,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Navbar */}
       <nav
         style={{

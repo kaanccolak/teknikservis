@@ -829,6 +829,7 @@ export default function LandingPage() {
               >
                 <button
                   type="button"
+                  aria-expanded={acikSss === i}
                   onClick={() => setAcikSss(acikSss === i ? null : i)}
                   style={{
                     width: "100%",
@@ -858,20 +859,19 @@ export default function LandingPage() {
                     +
                   </span>
                 </button>
-                {acikSss === i && (
-                  <div
-                    style={{
-                      padding: "0 24px 18px 24px",
-                      fontSize: "14px",
-                      color: "#6b7280",
-                      lineHeight: 1.7,
-                      borderTop: "1px solid #f3f4f6",
-                      paddingTop: "16px",
-                    }}
-                  >
-                    {item.a}
-                  </div>
-                )}
+                <div
+                  style={{
+                    display: acikSss === i ? "block" : "none",
+                    padding: "0 24px 18px 24px",
+                    fontSize: "14px",
+                    color: "#6b7280",
+                    lineHeight: 1.7,
+                    borderTop: "1px solid #f3f4f6",
+                    paddingTop: "16px",
+                  }}
+                >
+                  {item.a}
+                </div>
               </div>
             ))}
           </div>
