@@ -75,11 +75,41 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Korumalı rotalar: giriş yoksa landing
-  const isProtected =
-    !isPublic && request.nextUrl.pathname !== "/login";
+  // Bilinen uygulama rotaları. Giriş yoksa /landing.
+  // "/" aynı kuralın parçası. Listede olmayan yollar Next.js 404 sayfasına düşer.
+  const appPaths = [
+    "/",
+    "/bekleyen-cihazlar",
+    "/bayiler",
+    "/cari",
+    "/cihaz-kayit",
+    "/cihaz-sorgula",
+    "/dis-servis",
+    "/dukkan-nushasi",
+    "/fis",
+    "/ikinci-el",
+    "/ikinci-el-fis",
+    "/ikinci-el-satis-fisi",
+    "/is-emirleri",
+    "/kargo-fisi",
+    "/paket-sec",
+    "/planlarim",
+    "/raporlar",
+    "/servis-detay",
+    "/sirketim",
+    "/stok",
+    "/teslim-fisi",
+    "/whatsapp-mesajlari",
+  ];
 
-  if (isProtected && !user) {
+  const isAppPath = appPaths.some((path) =>
+    path === "/"
+      ? request.nextUrl.pathname === "/"
+      : request.nextUrl.pathname === path ||
+        request.nextUrl.pathname.startsWith(path + "/"),
+  );
+
+  if (isAppPath && !user) {
     return NextResponse.redirect(new URL("/landing", request.url));
   }
 
