@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import type { Metadata } from "next"
+import { siteOgImage } from "@/lib/site-og"
 
 export const metadata: Metadata = {
   title: "Hizmet Şartları | TamirTakip",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
     siteName: "TamirTakip",
     locale: "tr_TR",
     type: "website",
+    images: [siteOgImage],
   },
 }
 

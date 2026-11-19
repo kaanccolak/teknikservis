@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOgImage } from "@/lib/site-og";
 
 export const metadata: Metadata = {
   title: "Teknik Servis Takip Programı | TamirTakip — Ücretsiz Deneyin",
@@ -33,6 +34,7 @@ export const metadata: Metadata = {
     siteName: "TamirTakip",
     type: "website",
     locale: "tr_TR",
+    images: [siteOgImage],
   },
   twitter: {
     card: "summary_large_image",

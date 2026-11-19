@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { siteOgImage } from "@/lib/site-og";
 
 export const metadata: Metadata = {
   title: "KVKK Aydınlatma Metni | TamirTakip",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
     siteName: "TamirTakip",
     locale: "tr_TR",
     type: "website",
+    images: [siteOgImage],
   },
 };
 

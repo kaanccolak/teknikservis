@@ -70,7 +70,12 @@ export default async function BlogPostPage({
         datePublished: published,
         dateModified: published,
         inLanguage: "tr",
-        author: { "@type": "Person", name: "TamirTakip" },
+        image: `https://www.tamirtakip.com.tr/blog/${slug}/opengraph-image`,
+        author: {
+          "@type": "Person",
+          name: "Kaan Çolak",
+          url: "https://www.linkedin.com/in/kaanccolak/",
+        },
         publisher: {
           "@type": "Organization",
           name: "TamirTakip",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteOgImage } from "@/lib/site-og";
 import { blogPosts } from "./data";
 
 export const metadata = {
@@ -14,6 +15,7 @@ export const metadata = {
     siteName: "TamirTakip",
     locale: "tr_TR",
     type: "website" as const,
+    images: [siteOgImage],
   },
 };
 

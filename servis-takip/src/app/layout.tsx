@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "TamirTakip — Teknik Servis Takip Programı",
     description:
       "Teknik servisler için online cihaz kayıt, takip ve WhatsApp bildirim platformu.",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOgImage } from "@/lib/site-og";
 
 export const metadata: Metadata = {
   title: "Cihaz Durumu Sorgula | TamirTakip",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
     siteName: "TamirTakip",
     locale: "tr_TR",
     type: "website",
+    images: [siteOgImage],
   },
 };
 

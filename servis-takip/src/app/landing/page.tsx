@@ -47,8 +47,8 @@ const sssler = [
     a: "Tüm verileriniz şifreli olarak saklanır. Her dükkanın verileri birbirinden tamamen bağımsızdır. Şirket ayarlarınızı parola korumasıyla güvence altına alabilirsiniz.",
   },
   {
-    q: "Hangi teknik servisler TamirTakip'i kullanabilir?",
-    a: "Telefon, bilgisayar, tablet, beyaz eşya, küçük ev aletleri ve her türlü elektronik cihaz tamiri yapan tüm servisler TamirTakip'i kullanabilir. Cihaz türü fark etmeksizin tüm tamir süreçleri yönetilebilir.",
+    q: "Ücretsiz deneme bitince ne oluyor?",
+    a: "Kayıt kredi kartı olmadan başlar ve ilk 30 gün tüm özellikler ücretsizdir. Süre sonunda bir plan seçilmezse hesap dondurulur. Planlar Basic ₺130/ay (yıllık ₺1.300), Premium ₺210/ay (yıllık ₺2.100) ve Enterprise ₺300/ay (yıllık ₺3.000) şeklindedir; yıllık ödemede 2 ay ücretsizdir. Aboneliği istediğiniz zaman iptal edebilirsiniz. Ücretli dönemde 14 gün içinde yapılan iade talebinde ücretin tamamı iade edilir.",
   },
   {
     q: "Barkodlu cihaz takibi nasıl çalışır?",
