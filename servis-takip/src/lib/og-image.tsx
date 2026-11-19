@@ -2,13 +2,16 @@ import { ogFontBase64 } from "@/lib/og-fonts";
 
 export const ogSize = { width: 1200, height: 630 };
 
-function decodeFont(base64: string) {
+function decodeFont(base64: string): ArrayBuffer {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) {
     bytes[index] = binary.charCodeAt(index);
   }
-  return bytes;
+  return bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer;
 }
 
 export async function loadOgFonts() {
