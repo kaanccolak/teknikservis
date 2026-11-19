@@ -1,30 +1,20 @@
-import { ogFontBase64 } from "@/lib/og-fonts";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const ogSize = { width: 1200, height: 630 };
 
-function decodeFont(base64: string): ArrayBuffer {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes.buffer.slice(
-    bytes.byteOffset,
-    bytes.byteOffset + bytes.byteLength,
-  ) as ArrayBuffer;
-}
+const regularFontPath = join(process.cwd(), "src/app/fonts/Inter-Regular.ttf");
+const boldFontPath = join(process.cwd(), "src/app/fonts/Inter-Bold.ttf");
 
 export async function loadOgFonts() {
-  const regular = decodeFont(ogFontBase64.latinRegular);
-  const bold = decodeFont(ogFontBase64.latinBold);
-  const regularExt = decodeFont(ogFontBase64.extRegular);
-  const boldExt = decodeFont(ogFontBase64.extBold);
+  const [regular, bold] = await Promise.all([
+    readFile(regularFontPath),
+    readFile(boldFontPath),
+  ]);
 
   return [
     { name: "Inter", data: regular, weight: 400 as const, style: "normal" as const },
     { name: "Inter", data: bold, weight: 700 as const, style: "normal" as const },
-    { name: "Inter", data: regularExt, weight: 400 as const, style: "normal" as const },
-    { name: "Inter", data: boldExt, weight: 700 as const, style: "normal" as const },
   ];
 }
 

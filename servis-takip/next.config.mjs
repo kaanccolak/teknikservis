@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    outputFileTracingIncludes: {
+      "/opengraph-image": ["./src/app/fonts/Inter-Regular.ttf", "./src/app/fonts/Inter-Bold.ttf"],
+      "/blog/[slug]/opengraph-image": ["./src/app/fonts/Inter-Regular.ttf", "./src/app/fonts/Inter-Bold.ttf"],
+    },
+  },
   async redirects() {
     return [
       {

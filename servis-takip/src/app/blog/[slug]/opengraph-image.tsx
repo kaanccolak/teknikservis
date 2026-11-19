@@ -2,7 +2,8 @@ import { ImageResponse } from "next/og";
 import { blogPosts } from "@/app/blog/data";
 import { OgLogo, Wordmark, loadOgFonts, ogSize } from "@/lib/og-image";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const alt = "TamirTakip blog yazısı";
 export const size = ogSize;
 export const contentType = "image/png";
