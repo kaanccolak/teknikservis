@@ -1050,50 +1050,6 @@ export default function LandingPage() {
         </div>
       </footer>
       <CookieBanner />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: "TamirTakip",
-            applicationCategory: "BusinessApplication",
-            operatingSystem: "Web",
-            description:
-              "TamirTakip, Türkiye'deki teknik servisler için geliştirilmiş bulut tabanlı servis takip yazılımıdır. Cihaz kaydı, otomatik kayıt numarası, servis durumu takibi, WhatsApp otomatik bildirimleri, stok yönetimi, cari yönetimi, ikinci el cihaz takibi ve raporlama özelliklerini tek platformda sunar. Kurulum gerektirmez, her cihazdan erişilebilir. 30 gün ücretsiz deneme.",
-            url: "https://www.tamirtakip.com.tr",
-            offers: {
-              "@type": "Offer",
-              price: "130",
-              priceCurrency: "TRY",
-              priceSpecification: {
-                "@type": "UnitPriceSpecification",
-                price: "130",
-                priceCurrency: "TRY",
-                unitText: "MONTH",
-              },
-            },
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: "4.9",
-              reviewCount: "50",
-            },
-            featureList: [
-              "Cihaz kaydı ve otomatik sıralı kayıt numarası",
-              "Servis durumu takibi",
-              "WhatsApp otomatik bildirim",
-              "Stok yönetimi",
-              "Cari yönetimi",
-              "Müşteri sorgulama portalı",
-              "Raporlama",
-              "İkinci el cihaz takibi",
-              "Bayi/şube yönetimi",
-              "Termal yazıcı desteği",
-            ],
-            inLanguage: "tr",
-          }),
-        }}
-      />
     </main>
     </>
   );
