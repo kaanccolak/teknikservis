@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 
 export default function DemoIletisimKarti() {
   const [isDemo, setIsDemo] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const open = hover || locked;
 
   useEffect(() => {
     void fetch("/api/shop")
@@ -17,59 +20,91 @@ export default function DemoIletisimKarti() {
   if (!isDemo) return null;
 
   return (
-    <aside
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
         position: "fixed",
         right: "24px",
-        bottom: "82px",
+        bottom: "78px",
         zIndex: 9996,
-        width: "240px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: "8px",
         maxWidth: "calc(100vw - 48px)",
-        background: "white",
-        border: "1px solid #e5e7eb",
-        borderRadius: "16px",
-        boxShadow: "0 8px 28px rgba(15, 23, 42, 0.12)",
-        padding: "14px 16px",
       }}
     >
-      <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#111827" }}>
-        📞 Sorularınız mı var?
-      </p>
-      <p style={{ margin: "8px 0 2px", fontSize: "12px", color: "#6b7280" }}>
-        Hemen arayın:
-      </p>
-      <a
-        href="tel:+905377664248"
+      {open ? (
+        <div
+          style={{
+            width: "220px",
+            maxWidth: "100%",
+            background: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "14px",
+            boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
+            padding: "12px",
+          }}
+        >
+          <a
+            href="tel:+905377664248"
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "#4f46e5",
+              textDecoration: "none",
+            }}
+          >
+            +90 537 766 42 48
+          </a>
+          <a
+            href="https://wa.me/905377664248"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "32px",
+              borderRadius: "8px",
+              background: "#22c55e",
+              color: "white",
+              fontSize: "12px",
+              fontWeight: 700,
+              textDecoration: "none",
+            }}
+          >
+            WhatsApp&apos;tan Yaz
+          </a>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setLocked((value) => !value)}
         style={{
-          display: "inline-block",
-          marginBottom: "12px",
-          fontSize: "15px",
-          fontWeight: 700,
+          height: "46px",
+          borderRadius: "23px",
+          background: "white",
           color: "#4f46e5",
-          textDecoration: "none",
-        }}
-      >
-        +90 537 766 42 48
-      </a>
-      <a
-        href="https://wa.me/905377664248"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
+          border: "1px solid #e5e7eb",
+          cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          height: "36px",
-          borderRadius: "10px",
-          background: "#22c55e",
-          color: "white",
+          gap: "8px",
+          padding: "0 16px",
+          boxShadow: "0 4px 16px rgba(15, 23, 42, 0.12)",
           fontSize: "13px",
-          fontWeight: 700,
-          textDecoration: "none",
+          fontWeight: 600,
+          whiteSpace: "nowrap",
         }}
       >
-        WhatsApp&apos;tan Yaz
-      </a>
-    </aside>
+        <span aria-hidden="true">📞</span>
+        Bizi Arayın
+      </button>
+    </div>
   );
 }
