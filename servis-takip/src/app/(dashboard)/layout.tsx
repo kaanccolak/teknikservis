@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import AiAssistant from "@/components/AiAssistant";
 import DemoBanner from "@/components/demo-banner";
+import DemoIletisimKarti from "@/components/DemoIletisimKarti";
 import OneriModal from "@/components/OneriModal";
 import PersonelSecimEkrani from "@/components/PersonelSecimEkrani";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -272,6 +273,7 @@ export default function DashboardLayout({
         <DemoBanner />
         <main className="flex-1 overflow-auto p-6 pt-20 lg:pt-6" style={{ paddingTop: suresiDolduBanner ? "48px" : undefined }}>{children}</main>
       </div>
+      <DemoIletisimKarti />
       <AiAssistant />
       <OneriModal open={oneriOpen} onClose={() => setOneriOpen(false)} />
     </div>

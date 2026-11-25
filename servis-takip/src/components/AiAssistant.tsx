@@ -32,7 +32,7 @@ export default function AiAssistant() {
       setMessages([
         {
           role: "model",
-          parts: [{ text: "Merhaba! 👋 TamirTakip hakkında aklınıza takılan her şeyi sorabilirsiniz." }],
+          parts: [{ text: "Merhaba! 👋 TamirTakip hakkında aklınıza takılan her şeyi sorabilirsiniz.\n\n📞 Destek Hattı (WhatsApp/Telefon): +90 537 766 42 48" }],
         },
       ]);
     }
